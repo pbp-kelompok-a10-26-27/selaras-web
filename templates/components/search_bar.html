@@ -1,0 +1,19 @@
+{% load lucide %}
+<form
+  method="get"{% if action %} action="{{ action }}"{% endif %} role="search"
+  class="flex h-[42px] items-center gap-4 rounded-[10px] border border-primary-500 bg-primary-200 px-4 text-primary-800 transition-colors focus-within:border-transparent focus-within:bg-primary-300
+    {% if wide %}w-full{% else %}w-full max-w-[364px]{% endif %}"
+>
+  {% lucide "search" size=20 class="shrink-0" aria_hidden="true" %}
+  <input
+    type="search"
+    name="q"
+    value="{{ request.GET.q }}"
+    placeholder="{{ placeholder|default:'Cari' }}"
+    aria-label="{{ placeholder|default:'Cari' }}"
+    class="min-w-0 flex-1 bg-transparent text-s5 text-foreground outline-none placeholder:text-primary-800 [&::-webkit-search-cancel-button]:hidden"
+  />
+  <button type="button" aria-label="Filter" class="shrink-0">
+    {% lucide "menu" size=20 aria_hidden="true" %}
+  </button>
+</form>
