@@ -1,56 +1,71 @@
-{% extends "base.html" %} {% block title %} SELARAS {% endblock %} {% block
-content %}
+{% extends "base.html" %} 
+{% block title %} 
+  SELARAS 
+{% endblock %} {% block content %}
 
 <main
-  class="flex min-h-screen w-full mx-auto overflow-hidden flex-col items-center justify-center"
+  class="flex min-h-screen w-full mx-auto overflow-hidden flex-col items-center justify-center bg-primary-200"
 >
   <!-- Header Start -->
-  <section class="flex flex-row justify-evenly items-center lg:px-10 md:px-8">
-    {% include 'components/logo.html' %}
-    <div class="flex flex-col gap-4 items-center justify-center">
-      {% include 'components/navbar.html' %} {% include
-      'components/search-bar.html %'}
+    <section
+    class="z-50 -mt-5 flex flex-row justify-between items-center py-4 lg:px-24 md:px-8 w-full"
+  >
+    
+    <div class="shrink-0 animate-fade-in">
+      <img
+        src="/static/assets/images/logo.svg"
+        alt="Selaras Web Icon"
+        class="w-35 h-35 animate-fade-in"
+      />
+    </div>
+
+    <div
+      class="animate-fade-in flex flex-col gap-4 items-center justify-center flex-1 max-w-xl mx-4"
+    >
+      <!-- Navbar component supposed to be here -->
+      {% include 'components/search_bar.html' with class="min-w-[600px]" %}
     </div>
 
     <!-- Helpdesk Button -->
-    <button></button>
+    <div class="shrink-0 animate-fade-in">
+      {% include "components/button.html" with label="Help Desk" icon_left="headset" icon_right="headset" %}
+    </div>
   </section>
-  <!-- Header End -->
 
   <!-- Hero Start -->
   <section
-    class="flex flex-col items-center justify-center mt-8 max-w-screen overflow-hidden"
+    class="animate-fade-in flex flex-col items-center justify-center pb-40 mb-60 -mt-8  w-full overflow-hidden"
   >
     <!-- Background Image -->
     <img
-      src="path"
-      alt="path"
-      class="absolute top-0 left-0 z-0 min-h-screen w-full bg-center bg-contain bg-no-repeat"
+      src="/static/assets/images/landing/bg-landing-page.webp"
+      alt="Background Image Hero"
+      class="absolute w-full h-full z-0 left-0 top-0 bg-center bg-no-repeat bg-cover"
     />
 
-    <div class="flex flex-col gap-4 items-center justify-center">
-      <h1 class="md:text-h1 text-h3 font-transcity font-bold text-secondary">
+    <div class="relative z-50 flex flex-col items-center justify-center text-center px-4">
+      <h1 class="md:text-h1 text-h3 font-transcity text-primary-700">
         Selaras untuk Bumi
       </h1>
-      <h2 class="md:text-b3 text-b5 font-jakarta-sans text-primary font-normal">
+      <h2 class="md:text-b3 text-b5 font-sans text-primary-400">
         Menyelaraskan melalui edukasi, donasi, dan komunitas
       </h2>
-      <button>Mulai Sekarang</button>
+      {% include "components/button.html" with label="Get Started" class="mt-8" icon_right="arrow-right" href="/" %}
     </div>
   </section>
   <!-- Hero End -->
 
   <!-- Description Start -->
   <section
-    class="flex flex-col max-w-full gap-10 items-center justify-center mt-12"
+    class="animate-fade-in flex flex-col max-w-[1300px] gap-10 justify-center items-center"
   >
     <!-- Paragraph and Icon Start -->
-    <div class="flex flex-row justify-between items-center px-10 mx-auto">
-      <div class="flex flex-col gap-3 items-center justify-center text-justify">
-        <h2 class="font-transcity font-bold text-secondary md:text-h1 text-h3">
+    <div class="scroll-reveal flex flex-row justify-between w-full items-center mx-auto">
+      <div class="flex flex-col gap-3 text-justify flex-wrap max-w-[800px]">
+        <h2 class="font-transcity font-bold text-primary-700 md:text-h1 text-h3">
           Welcome to Selaras
         </h2>
-        <p class="font-jakarta md:text-s3 text-s5 text-primary">
+        <p class="font-jakarta md:text-s3 text-s5 text-primary-900 leading-relaxed">
           Selaras adalah platform digital yang membantu membangun kebiasaan
           hidup ramah lingkungan secara konsisten. Temukan inspirasi lewat
           artikel, tantang dirimu melalui challenge, bagikan perjalananmu
@@ -59,29 +74,32 @@ content %}
         </p>
       </div>
 
-      {% include 'components/logo.html' %}
+      <img
+        src="/static/assets/images/logo-w-jargon.svg"
+        class="w-70 h-70"
+      />
     </div>
     <!-- Paragraph and Icon End -->
 
     <!-- Card Module Start -->
     <div
       id="module-grid"
-      class="grid lg:grid-cols-4 grid-cols-2 gap-4 items-center justify-center max-w-full mt-10"
+      class="scroll-reveal grid lg:grid-cols-4 grid-cols-2 gap-8 items-center justify-center max-w-[1200px] mx-auto mt-10"
     ></div>
     <!-- Card Module End -->
 
     <!-- FAQs Start -->
     <section
-      class="flex flex-col mt-16 items-center justify-center w-full max-w-4xl mx-auto px-4"
+      class="scroll-reveal flex flex-col mt-16 items-center justify-center w-full max-w-4xl mx-auto px-4"
     >
       <h2
-        class="md:text-h2 text-h4 font-transcity text-[#4A5D4E] font-bold mb-8 text-center"
+        class="md:text-h2 text-h4 font-transcity text-primary-700 mb-8 text-center"
       >
         Frequently Asked Questions
       </h2>
 
       <!-- FAQ Items Container -->
-      <div id="faq-container" class="flex flex-col gap-4 w-full"></div>
+      <div id="faq-container" class="scroll-reveal flex flex-col mt-10 gap-4 w-full pb-20"></div>
     </section>
     <!-- FAQs End -->
   </section>
@@ -95,28 +113,28 @@ content %}
       name: "Article & Education",
       description:
         "Temukan artikel dan edukasi tentang lingkungan hidup, tips ramah lingkungan, dan informasi terkait keberlanjutan.",
-      redirectTo: "/article-education",
+      redirectTo: "/",
       buttonText: "Read Article",
     },
     {
       name: "Challenge",
       description:
         "Ikuti tantangan untuk mengubah kebiasaanmu menjadi lebih ramah lingkungan dan dapatkan reward menarik.",
-      redirectTo: "/challenge",
+      redirectTo: "/",
       buttonText: "Start Challenge",
     },
     {
       name: "Feeds",
       description:
         "Bagikan perjalananmu dalam menjaga lingkungan hidup, temukan inspirasi dari komunitas, dan lihat update terbaru dari teman-temanmu.",
-      redirectTo: "/feeds",
+      redirectTo: "/",
       buttonText: "See Updates",
     },
     {
       name: "Donation",
       description:
         "Dukung berbagai program dan inisiatif lingkungan hidup melalui donasi yang transparan dan terpercaya.",
-      redirectTo: "/donation",
+      redirectTo: "/",
       buttonText: "Make Donation",
     },
   ];
@@ -127,13 +145,13 @@ content %}
     .map(
       (module) => `
   <div 
-    class="flex flex-col w-full bg-[#FAFAF5] rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer aspect-[4/5]" 
+    class="flex flex-col w-full bg-[#FAFAF5] rounded-3xl overflow-hidden shadow-lg hover:shadow-md transition-shadow duration-300 cursor-pointer aspect-[4/5] hover:scale-105 *: transition-transform duration-300" 
     onclick="window.location.href='${module.redirectTo}'"
   >
-    <!-- Top Decorative Banner (Pink Area) -->
-    <div class="h-[35%] w-full bg-[#F3BCC8]"></div>
+    <!-- Top Decorative Banner Pink Area -->
+    <div class="h-[25%] w-full bg-[#F3BCC8]"></div>
 
-    <!-- Content Area (Kiri: Padding & Teks Rata Kiri) -->
+    <!-- Content Area  -->
     <div class="flex flex-col flex-1 p-6 justify-between items-start text-left">
       <div class="flex flex-col gap-2">
         <h3 class="font-transcity font-bold text-[#4A5D4E] text-xl lg:text-2xl leading-tight">
@@ -144,7 +162,7 @@ content %}
         </p>
       </div>
 
-      <!-- Bottom Interactive Action (Text + Arrow Icon) -->
+      <!-- Bottom Interactive Action  -->
       <div class="flex flex-row items-center gap-3 font-jakarta font-semibold text-[#4A5D4E] hover:opacity-80 transition-opacity mt-4">
         <span>${module.buttonText}</span>
         <svg xmlns="http://w3.org" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
@@ -242,5 +260,31 @@ content %}
       chevronIcon.classList.add("rotate-180");
     }
   }
+
+  const revealItems = document.querySelectorAll(".scroll-reveal");
+  const revealVisibleItems = () => {
+    revealItems.forEach((item) => {
+      const bounds = item.getBoundingClientRect();
+      if (bounds.top < window.innerHeight && bounds.bottom > 0) {
+        item.classList.add("is-visible");
+      }
+    });
+  };
+
+  const revealObserver = new IntersectionObserver(
+    (entries, observer) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-visible");
+          observer.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.12 },
+  );
+
+  revealItems.forEach((item) => revealObserver.observe(item));
+  revealVisibleItems();
+  window.addEventListener("scroll", revealVisibleItems, { passive: true });
 </script>
 {% endblock %}

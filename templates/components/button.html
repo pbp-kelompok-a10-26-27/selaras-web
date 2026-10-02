@@ -7,7 +7,7 @@
     {% if disabled %}cursor-not-allowed bg-neutral-800
     {% elif selected %}{% if variant == 'secondary' %}bg-secondary-400{% else %}bg-secondary-300{% endif %}
     {% elif variant == 'secondary' %}bg-primary-400 hover:bg-tertiary-400
-    {% else %}bg-primary-300 hover:bg-tertiary-300{% endif %}"
+    {% else %}bg-primary-300 hover:bg-tertiary-300{% endif %} {{ class }}"
 >
   {% if icon_only %}
     <span class="grid size-5 place-items-center md:size-6">{% lucide icon_only size=None class="size-4 md:size-5" aria_hidden="true" %}</span>

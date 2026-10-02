@@ -1,5 +1,5 @@
 {% url 'home' as home_url %}
-<nav aria-label="Navigasi utama" class="flex items-center justify-center gap-16 px-8 py-4">
+<nav aria-label="Navigasi utama" class="relative flex items-center justify-center gap-16 px-8 py-4 z-100">
   <ul class="flex items-center gap-8">
     <li>{% include "components/navbar_link.html" with label="Home" href=home_url %}</li>
     <li>{% include "components/navbar_link.html" with label="Article" href="#" %}</li>

@@ -6,6 +6,12 @@ The platform addresses common difficulties in sustainable living: good intention
 
 SELARAS provides structured challenges with daily progress tracking and badges/streaks, contextual educational articles with real-world product recommendations, weather-based suggestions for outdoor activities, a community feed, local environmental donation campaigns, and a dedicated support channel.
 
+### Progress
+- [x] Setup repository & modules
+- [x] Created design system palettes including colors, typography, icons, etc.
+- (Figma Link)[https://www.figma.com/design/ehFwOVTAobEXuoefdRIzAf/SELARAS?node-id=63-332&t=f8Pf6tkPLaACOtkz-0]
+- [x] Created simple landing page (unfinished - not a final design) (still not responsive, test for deployment only)
+
 ### Group Members
 
 | Name                       | Student ID |
