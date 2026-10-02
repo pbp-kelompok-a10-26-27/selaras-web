@@ -1,24 +1,246 @@
-{% extends "base.html" %} 
-{% block title %} 
-    SELARAS 
-{% endblock %} 
+{% extends "base.html" %} {% block title %} SELARAS {% endblock %} {% block
+content %}
 
-{% block content %}
+<main
+  class="flex min-h-screen w-full mx-auto overflow-hidden flex-col items-center justify-center"
+>
+  <!-- Header Start -->
+  <section class="flex flex-row justify-evenly items-center lg:px-10 md:px-8">
+    {% include 'components/logo.html' %}
+    <div class="flex flex-col gap-4 items-center justify-center">
+      {% include 'components/navbar.html' %} {% include
+      'components/search-bar.html %'}
+    </div>
 
-<main class="flex min-h-screen items-center justify-center">
-  <section class="text-center">
-    <h1 class="text-4xl font-bold text-purple-700">SELARAS</h1>
-
-    <p class="mt-4 text-gray-600">
-      Platform Membangun Kebiasaan Hidup Berkelanjutan
-    </p>
-
-    <button
-      class="mt-6 rounded-xl bg-purple-600 px-6 py-3 font-medium text-white transition hover:bg-purple-700"
-    >
-      Tailwind Works
-    </button>
+    <!-- Helpdesk Button -->
+    <button></button>
   </section>
+  <!-- Header End -->
+
+  <!-- Hero Start -->
+  <section
+    class="flex flex-col items-center justify-center mt-8 max-w-screen overflow-hidden"
+  >
+    <!-- Background Image -->
+    <img
+      src="path"
+      alt="path"
+      class="absolute top-0 left-0 z-0 min-h-screen w-full bg-center bg-contain bg-no-repeat"
+    />
+
+    <div class="flex flex-col gap-4 items-center justify-center">
+      <h1 class="md:text-h1 text-h3 font-transcity font-bold text-secondary">
+        Selaras untuk Bumi
+      </h1>
+      <h2 class="md:text-b3 text-b5 font-jakarta-sans text-primary font-normal">
+        Menyelaraskan melalui edukasi, donasi, dan komunitas
+      </h2>
+      <button>Mulai Sekarang</button>
+    </div>
+  </section>
+  <!-- Hero End -->
+
+  <!-- Description Start -->
+  <section
+    class="flex flex-col max-w-full gap-10 items-center justify-center mt-12"
+  >
+    <!-- Paragraph and Icon Start -->
+    <div class="flex flex-row justify-between items-center px-10 mx-auto">
+      <div class="flex flex-col gap-3 items-center justify-center text-justify">
+        <h2 class="font-transcity font-bold text-secondary md:text-h1 text-h3">
+          Welcome to Selaras
+        </h2>
+        <p class="font-jakarta md:text-s3 text-s5 text-primary">
+          Selaras adalah platform digital yang membantu membangun kebiasaan
+          hidup ramah lingkungan secara konsisten. Temukan inspirasi lewat
+          artikel, tantang dirimu melalui challenge, bagikan perjalananmu
+          bersama komunitas, dan ubah kepedulian menjadi aksi nyata untuk bumi,
+          semuanya dalam satu ruang yang selaras.
+        </p>
+      </div>
+
+      {% include 'components/logo.html' %}
+    </div>
+    <!-- Paragraph and Icon End -->
+
+    <!-- Card Module Start -->
+    <div
+      id="module-grid"
+      class="grid lg:grid-cols-4 grid-cols-2 gap-4 items-center justify-center max-w-full mt-10"
+    ></div>
+    <!-- Card Module End -->
+
+    <!-- FAQs Start -->
+    <section
+      class="flex flex-col mt-16 items-center justify-center w-full max-w-4xl mx-auto px-4"
+    >
+      <h2
+        class="md:text-h2 text-h4 font-transcity text-[#4A5D4E] font-bold mb-8 text-center"
+      >
+        Frequently Asked Questions
+      </h2>
+
+      <!-- FAQ Items Container -->
+      <div id="faq-container" class="flex flex-col gap-4 w-full"></div>
+    </section>
+    <!-- FAQs End -->
+  </section>
+  <!-- Description End -->
 </main>
 
+<script>
+  // Data for the modules - Module Card Start
+  const data = [
+    {
+      name: "Article & Education",
+      description:
+        "Temukan artikel dan edukasi tentang lingkungan hidup, tips ramah lingkungan, dan informasi terkait keberlanjutan.",
+      redirectTo: "/article-education",
+      buttonText: "Read Article",
+    },
+    {
+      name: "Challenge",
+      description:
+        "Ikuti tantangan untuk mengubah kebiasaanmu menjadi lebih ramah lingkungan dan dapatkan reward menarik.",
+      redirectTo: "/challenge",
+      buttonText: "Start Challenge",
+    },
+    {
+      name: "Feeds",
+      description:
+        "Bagikan perjalananmu dalam menjaga lingkungan hidup, temukan inspirasi dari komunitas, dan lihat update terbaru dari teman-temanmu.",
+      redirectTo: "/feeds",
+      buttonText: "See Updates",
+    },
+    {
+      name: "Donation",
+      description:
+        "Dukung berbagai program dan inisiatif lingkungan hidup melalui donasi yang transparan dan terpercaya.",
+      redirectTo: "/donation",
+      buttonText: "Make Donation",
+    },
+  ];
+
+  const moduleContainer = document.getElementById("module-grid");
+
+  moduleContainer.innerHTML = data
+    .map(
+      (module) => `
+  <div 
+    class="flex flex-col w-full bg-[#FAFAF5] rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer aspect-[4/5]" 
+    onclick="window.location.href='${module.redirectTo}'"
+  >
+    <!-- Top Decorative Banner (Pink Area) -->
+    <div class="h-[35%] w-full bg-[#F3BCC8]"></div>
+
+    <!-- Content Area (Kiri: Padding & Teks Rata Kiri) -->
+    <div class="flex flex-col flex-1 p-6 justify-between items-start text-left">
+      <div class="flex flex-col gap-2">
+        <h3 class="font-transcity font-bold text-[#4A5D4E] text-xl lg:text-2xl leading-tight">
+          ${module.name}
+        </h3>
+        <p class="font-jakarta text-[#8A9A86] text-sm lg:text-base leading-relaxed line-clamp-3">
+          ${module.description}
+        </p>
+      </div>
+
+      <!-- Bottom Interactive Action (Text + Arrow Icon) -->
+      <div class="flex flex-row items-center gap-3 font-jakarta font-semibold text-[#4A5D4E] hover:opacity-80 transition-opacity mt-4">
+        <span>${module.buttonText}</span>
+        <svg xmlns="http://w3.org" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5l6 6m0 0l-6 6m6-6H3" />
+        </svg>
+      </div>
+    </div>
+  </div>
+`,
+    )
+    .join("");
+
+  // Data for the FAQs - FAQ Start
+  const faqData = [
+    {
+      question: "Apa itu Selaras?",
+      answer:
+        "Selaras adalah platform digital yang membantu membangun kebiasaan hidup ramah lingkungan secara konsisten melalui edukasi, donasi, dan komunitas.",
+    },
+    {
+      question: "Apa yang bisa dilakukan di Selaras?",
+      answer:
+        "Kamu bisa membaca artikel edukatif, mengikuti berbagai tantangan ramah lingkungan (challenges), berinteraksi di Feeds komunitas, serta menyalurkan donasi untuk bumi.",
+    },
+    {
+      question: "Bagaimana cara kerja challenge?",
+      answer:
+        "Kamu bisa memilih challenge yang tersedia, berkomitmen menyelesaikannya setiap hari, mengunggah bukti aksi nyatamu, dan mendapatkan reward menarik.",
+    },
+    {
+      question: "Apa yang bisa saya bagikan di Feeds?",
+      answer:
+        "Kamu bisa membagikan cerita perjalanan ramah lingkunganmu, foto aksi nyata, tips keberlanjutan, hingga berdiskusi dengan sesama anggota komunitas.",
+    },
+    {
+      question: "Bagaimana cara berdonasi di Selaras?",
+      answer:
+        "Cukup buka menu Donasi, pilih program lingkungan yang ingin kamu dukung, masukkan nominal, dan lakukan pembayaran secara aman dan transparan.",
+    },
+  ];
+
+  const faqContainer = document.getElementById("faq-container");
+
+  faqContainer.innerHTML = faqData
+    .map(
+      (item, index) => `
+    <div class="w-full bg-[#FAFAF5] rounded-xl shadow-sm border border-gray-100/50 overflow-hidden transition-all duration-300">
+      <!-- Tombol Pertanyaan -->
+      <button 
+        onclick="toggleFaq(${index})"
+        class="w-full flex flex-row justify-between items-center p-5 text-left font-jakarta font-medium text-[#4A5D4E] md:text-lg text-base hover:bg-[#f4f4ee] transition-colors focus:outline-none"
+      >
+        <span>${item.question}</span>
+        <!-- Chevron Down Icon -->
+        <svg 
+          id="icon-${index}" 
+          xmlns="http://w3.org" 
+          fill="none" 
+          viewBox="0 0 24 24" 
+          stroke-width="2.5" 
+          stroke="currentColor" 
+          class="w-5 h-5 text-[#4A5D4E] transform transition-transform duration-300"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+        </svg>
+      </button>
+
+      <!-- Answer Panel (hidden by default) -->
+      <div 
+        id="answer-${index}" 
+        class="max-h-0 overflow-hidden transition-all duration-300 ease-in-out bg-white"
+      >
+        <p class="p-5 text-justify font-jakarta text-[#8A9A86] md:text-base text-sm leading-relaxed border-t border-gray-100">
+          ${item.answer}
+        </p>
+      </div>
+    </div>
+  `,
+    )
+    .join("");
+
+  function toggleFaq(index) {
+    const answerPanel = document.getElementById(`answer-${index}`);
+    const chevronIcon = document.getElementById(`icon-${index}`);
+
+    if (answerPanel.style.maxHeight && answerPanel.style.maxHeight !== "0px") {
+      answerPanel.style.maxHeight = "0px";
+      chevronIcon.classList.remove("rotate-180");
+    } else {
+      faqData.forEach((_, i) => {
+        document.getElementById(`answer-${i}`).style.maxHeight = "0px";
+        document.getElementById(`icon-${i}`).classList.remove("rotate-180");
+      });
+      answerPanel.style.maxHeight = answerPanel.scrollHeight + "px";
+      chevronIcon.classList.add("rotate-180");
+    }
+  }
+</script>
 {% endblock %}
