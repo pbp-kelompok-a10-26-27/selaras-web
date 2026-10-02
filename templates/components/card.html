@@ -1,0 +1,20 @@
+{% load lucide %}
+{% if href %}<a href="{{ href }}"{% else %}<div{% endif %}
+  class="flex h-[190px] w-[164px] flex-col overflow-hidden rounded-[10px] bg-primary-50"
+>
+  {% if image %}
+    <img src="{{ image }}" alt="" class="h-[60px] w-full shrink-0 object-cover" />
+  {% else %}
+    <div class="h-[60px] w-full shrink-0 bg-tertiary-300" aria-hidden="true"></div>
+  {% endif %}
+  <div class="flex min-h-0 flex-1 flex-col px-3 pt-1 pb-[18px]">
+    <p class="truncate text-s5 text-secondary-600">{{ title }}</p>
+    {% if description %}
+      <p class="line-clamp-2 text-b5 text-primary-300">{{ description }}</p>
+    {% endif %}
+    <span class="mt-auto inline-flex items-center gap-0.5 self-start text-s6 text-secondary-300">
+      {{ cta|default:"Start challenge" }}
+      {% lucide "arrow-right" size=16 aria_hidden="true" %}
+    </span>
+  </div>
+{% if href %}</a>{% else %}</div>{% endif %}

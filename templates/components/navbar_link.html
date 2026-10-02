@@ -1,0 +1,11 @@
+{% if active or request.path == href %}
+  <a
+    href="{{ href }}" aria-current="page"
+    class="inline-block whitespace-nowrap text-center font-display text-h4 text-secondary-500 underline [-webkit-text-stroke:0.5px_currentColor]"
+  >{{ label }}</a>
+{% else %}
+  <a
+    href="{{ href }}"
+    class="inline-block whitespace-nowrap text-center font-display text-h4 text-secondary-500 bg-[linear-gradient(currentColor,currentColor)] bg-[length:0%_3px] bg-left-bottom bg-no-repeat transition-[background-size] duration-300 ease-out hover:bg-[length:100%_3px] motion-reduce:transition-none"
+  >{{ label }}</a>
+{% endif %}
