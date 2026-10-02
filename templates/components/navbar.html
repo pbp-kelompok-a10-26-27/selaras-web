@@ -1,0 +1,14 @@
+{% url 'home' as home_url %}
+<nav aria-label="Navigasi utama" class="relative flex items-center justify-center gap-16 px-8 py-4 z-100">
+  <ul class="flex items-center gap-8">
+    <li>{% include "components/navbar_link.html" with label="Home" href=home_url %}</li>
+    <li>{% include "components/navbar_link.html" with label="Article" href="#" %}</li>
+    <li>{% include "components/navbar_link.html" with label="Challenge" href="#" %}</li>
+    <li>{% include "components/navbar_link.html" with label="Feeds" href="#" %}</li>
+    <li>{% include "components/navbar_link.html" with label="Donation" href="#" %}</li>
+  </ul>
+  <ul class="flex items-center gap-8">
+    <li>{% include "components/navbar_link.html" with label="Login" href="#" %}</li>
+    <li>{% include "components/navbar_link.html" with label="Register" href="#" %}</li>
+  </ul>
+</nav>

@@ -1,46 +1,329 @@
-# SELARAS: Platform Membangun Kebiasaan Hidup Berkelanjutan
+# SELARAS — Sustainable Living Habit Platform
 
-## Deskripsi Aplikasi
-SELARAS adalah platform digital yang membantu penggunanya membangun kebiasaan hidup ramah lingkungan secara konsisten lewat lima layanan: **Artikel & Edukasi** (bacaan reflektif seputar eco-mindfulness), **Challenge** (tantangan terstruktur harian/mingguan dengan pelacakan progres), **Feed** (ruang berbagi progres dan momen sadar lingkungan antarpengguna), **Donasi & Aksi Lingkungan** (penggalangan dana untuk isu lingkungan lokal), serta **Help Desk** (dukungan seputar layanan dan akun).
+SELARAS is a digital platform that helps users build sustainable habits consistently through five integrated services: **Articles & Education**, **Challenges**, **Feed**, **Donations & Environmental Action**, and **Help Desk**.
 
-Aplikasi ini menjawab kesulitan yang umum dialami orang yang ingin hidup lebih berkelanjutan: niat baik yang mudah luntur karena tidak ada struktur atau pengingat, konten edukasi lingkungan yang sering generik dan menggurui tanpa konteks nyata, minimnya ruang untuk berbagi progres dengan sesama yang punya nilai serupa, serta kebingungan menyalurkan kepedulian terhadap isu lingkungan sekitar menjadi aksi kolektif yang nyata.
+The platform addresses common difficulties in sustainable living: good intentions that are difficult to maintain without structure, generic environmental education, limited spaces for sharing progress, and difficulty turning environmental concerns into concrete collective action.
 
-SELARAS menjawab hal tersebut lewat challenge terarah dengan pelacakan progres harian dan apresiasi berupa badge/streak, artikel yang dilengkapi rekomendasi produk ramah lingkungan sesuai konteks bacaan, saran aktivitas berbasis kondisi cuaca untuk challenge luar ruangan, feed komunitas untuk saling mendukung, serta kanal donasi khusus untuk isu lingkungan lokal yang progresnya transparan.
+SELARAS provides structured challenges with daily progress tracking and badges/streaks, contextual educational articles with real-world product recommendations, weather-based suggestions for outdoor activities, a community feed, local environmental donation campaigns, and a dedicated support channel.
 
-**Manfaat bagi masyarakat:**
-* **Kebiasaan berkelanjutan yang terstruktur** — challenge terjadwal dengan pelacakan progres harian, badge & streak sebagai bentuk apresiasi konsistensi
-* **Edukasi kontekstual** — artikel reflektif yang terhubung langsung dengan rekomendasi produk nyata ber-Eco-Score, bukan sekadar teori
-* **Aksi kolektif nyata** — kanal donasi untuk isu lingkungan lokal yang bisa dipantau progresnya, bukan sekadar wacana
-* **Dukungan komunitas** — feed untuk berbagi progres dan saling menyemangati, didukung layanan bantuan yang responsif
+### Progress
+- [x] Setup repository & modules
+- [x] Created design system palettes including colors, typography, icons, etc.
+- (Figma Link)[https://www.figma.com/design/ehFwOVTAobEXuoefdRIzAf/SELARAS?node-id=63-332&t=f8Pf6tkPLaACOtkz-0]
+- [x] Created simple landing page (unfinished - not a final design) (still not responsive, test for deployment only)
 
-## Anggota Kelompok
-| Nama | NPM |
-|---|---|
-| Callista Putri Anjola | 2506603740 |
-| Joel Sheldy Sucipto | 250662494 |
+### Group Members
+
+| Name                       | Student ID |
+| -------------------------- | ---------- |
+| Callista Putri Anjola      | 2506603740 |
+| Joel Sheldy Sucipto        | 250662494  |
 | Asfara Quaneisha Syafaziel | 2506603532 |
-| Fayyad Mohammad Madani | 2506622720 |
-| Steven Dyanizha Ananda | 2506616112 |
+| Fayyad Mohammad Madani     | 2506622720 |
+| Steven Dyanizha Ananda     | 2506616112 |
 
-## Daftar Modul & Pembagian Kerja
-| Modul | Deskripsi | Penanggung Jawab |
-|---|---|---|
-| Artikel & Edukasi | CRUD artikel edukatif-reflektif seputar eco-mindfulness, dikategorikan per topik; artikel bertema makanan/konsumsi menampilkan rekomendasi produk dari Open Food Facts | Caca |
-| Challenge | CRUD challenge terstruktur beserta pelacakan partisipasi & progres harian user, dengan badge/streak sebagai apresiasi; challenge outdoor menampilkan saran cuaca dari Open-Meteo | Fayyad |
-| Feed / Postingan | CRUD post berbagi progres/momen sadar lingkungan antaruser beserta like dan komentar | Joel |
-| Donasi & Aksi Lingkungan | CRUD kampanye penggalangan dana untuk isu lingkungan lokal beserta pencatatan & verifikasi donasi komunitas | Neisha |
-| Help Desk / Customer Service | CRUD tiket keluhan/pertanyaan seputar layanan, akun, atau kendala teknis pengguna | Steven |
+### Modules & Responsibilities
 
-## Sumber Public API
+| Module                               | Main Functionality                                                                                                                                           | Owner  |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------ |
+| **Articles & Education**             | CRUD educational/reflective articles, categories, article search/filter/detail, and Eco-Score product recommendations for relevant food/consumption articles | Caca   |
+| **Challenges**                       | CRUD challenges, participation, daily progress tracking, badges/streaks, and weather suggestions for outdoor challenges                                      | Fayyad |
+| **Feed / Posts**                     | CRUD posts, likes, comments, and community interaction                                                                                                       | Joel   |
+| **Donations & Environmental Action** | CRUD environmental campaigns, donation records, verification, and campaign progress                                                                          | Neisha |
+| **Help Desk / Customer Service**     | CRUD support tickets, responses, status tracking, and ticket closure                                                                                         | Steven |
 
-**1. Open Food Facts** — digunakan di Modul Artikel & Edukasi untuk menampilkan rekomendasi produk ramah lingkungan (nama, brand, kategori, Eco-Score) yang relevan pada artikel bertema makanan/konsumsi. Data diambil langsung saat halaman diakses (fetch-on-request, tidak disimpan sebagai model tersendiri) dan difilter berdasarkan grade Eco-Score. Tidak memerlukan API key.
+### Public APIs
 
-- Dokumentasi: https://openfoodfacts.github.io/openfoodfacts-server/api/
+| API                 | Usage                                                                                                                                                                   |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Open Food Facts** | Provides product information and Eco-Score recommendations for relevant Articles & Education content. Data is fetched on request and is not stored as a separate model. |
+| **Open-Meteo**      | Provides weather information for outdoor Challenges based on user-provided location/coordinates. No interactive map is required.                                        |
 
-**2. Open-Meteo** — digunakan di Modul Challenge untuk menampilkan saran aktivitas berdasarkan kondisi cuaca, khusus untuk challenge bertipe aktivitas luar ruangan. Data diambil berdasarkan lokasi (kota/koordinat) yang diinput pengguna secara teks, tanpa peta interaktif. Tidak memerlukan API key.
+* Open Food Facts: https://openfoodfacts.github.io/openfoodfacts-server/api/
+* Open-Meteo: https://open-meteo.com/en/docs
 
-- Dokumentasi: https://open-meteo.com/en/docs
+### User Roles
 
-## Jenis/Peran Pengguna
-1. **Admin** — mengelola dan mempublikasikan artikel, membuat dan mengatur challenge, memverifikasi donasi serta mengelola campaign, menjawab dan menutup tiket Help Desk, serta memoderasi konten yang melanggar di seluruh modul.
-2. **Pengguna (User)** — membaca artikel, mengikuti challenge dan mencatat progres harian, memposting momen di feed serta berinteraksi dengan pengguna lain, memberikan donasi ke campaign lingkungan, dan mengajukan tiket bantuan ke Help Desk.
+**Admin**
+
+* Manage and publish articles
+* Create and manage challenges
+* Manage campaigns and verify donations
+* Respond to and close Help Desk tickets
+* Moderate inappropriate content
+
+**User**
+
+* Read articles
+* Join challenges and track progress
+* Create and interact with posts
+* Donate to environmental campaigns
+* Submit and track Help Desk tickets
+
+## Branching & Development Rules
+
+### Branches
+
+```text
+main
+└── dev
+    ├── feat/<module>-<description>
+    ├── fix/<module>-<description>
+    ├── refactor/<module>-<description>
+    ├── docs/<description>
+    └── chore/<description>
+```
+
+* `main` → stable/production-ready code.
+* `dev` → team integration branch.
+* Feature/fix branches → individual development work.
+* Do not push directly to `main`.
+* Avoid direct pushes to `dev`; use Pull Requests.
+
+### Commit Convention
+
+Use Conventional Commits:
+
+```text
+feat: add article creation
+fix: fix challenge progress calculation
+refactor: simplify feed service
+docs: update API documentation
+test: add donation model tests
+chore: update dependencies
+```
+
+Prefer module scopes when useful:
+
+```text
+feat(articles): add article CRUD
+fix(challenges): fix daily progress validation
+docs(helpdesk): document ticket workflow
+```
+
+### Pull Requests
+
+Before opening a PR:
+
+```bash
+python manage.py check
+python manage.py test
+npm run build
+```
+
+A PR should contain:
+
+* Clear description of the change
+* Related module
+* Testing performed
+* Screenshots for UI changes
+* Migration information if models changed
+* API/external API impact if applicable
+
+Target:
+
+```text
+feature branch → dev
+dev → main
+```
+
+Keep PRs focused. Avoid mixing unrelated modules or features in one PR.
+
+## Repository & Module Structure
+
+```text
+selaras-web/
+├── apps/
+│   ├── core/
+│   ├── accounts/
+│   ├── articles/
+│   ├── challenges/
+│   ├── feed/
+│   ├── donations/
+│   └── helpdesk/
+│
+├── config/
+│   └── settings/
+│       ├── base.py
+│       ├── development.py
+│       └── production.py
+│
+├── templates/
+├── static/
+├── media/
+├── fixtures/
+├── docs/
+├── .github/
+├── manage.py
+├── package.json
+├── requirements.txt
+└── README.md
+```
+
+### Application Responsibilities
+
+#### `apps/core/`
+
+Shared project infrastructure.
+
+Contains:
+
+* Common abstract models such as `TimeStampedModel`
+* Shared permissions
+* Reusable decorators and mixins
+* Generic validators
+* Shared constants/utilities
+
+**Rule:** `core` must not contain business logic from Articles, Challenges, Feed, Donations, or Help Desk.
+
+#### `apps/accounts/`
+
+Authentication and user management.
+
+Contains:
+
+* Custom User model
+* Authentication
+* User profile functionality
+* Groups and role-related functionality
+
+Other business modules should reference the User model through Django's configured `AUTH_USER_MODEL`.
+
+#### `apps/articles/`
+
+Owns everything related to Articles & Education.
+
+```text
+models.py       → article/category data
+forms.py        → article forms
+services.py     → article business logic + Open Food Facts integration
+permissions.py  → article-specific permissions
+views.py        → request/response handling
+urls.py         → article routes
+templates/      → article pages
+tests/          → article tests
+```
+
+#### `apps/challenges/`
+
+Owns challenges and user progress.
+
+```text
+models.py       → challenge, participation, progress, badge/streak data
+forms.py        → challenge/progress forms
+services.py     → challenge business logic
+weather.py      → Open-Meteo integration
+permissions.py  → challenge-specific permissions
+views.py        → request/response handling
+urls.py         → challenge routes
+templates/      → challenge pages
+tests/          → challenge tests
+```
+
+#### `apps/feed/`
+
+Owns community posts and interactions.
+
+```text
+models.py       → posts, likes, comments
+forms.py        → post/comment forms
+services.py     → feed business logic
+permissions.py  → post/moderation permissions
+views.py        → request/response handling
+urls.py         → feed routes
+templates/      → feed pages
+tests/          → feed tests
+```
+
+#### `apps/donations/`
+
+Owns environmental campaigns and donations.
+
+```text
+models.py       → campaigns and donation records
+forms.py        → campaign/donation forms
+services.py     → donation and verification logic
+permissions.py  → campaign/donation permissions
+views.py        → request/response handling
+urls.py         → donation routes
+templates/      → donation pages
+tests/          → donation tests
+```
+
+#### `apps/helpdesk/`
+
+Owns customer support.
+
+```text
+models.py       → tickets and responses
+forms.py        → ticket forms
+services.py     → ticket workflow/business logic
+permissions.py  → ticket permissions
+views.py        → request/response handling
+urls.py         → Help Desk routes
+templates/      → Help Desk pages
+tests/          → Help Desk tests
+```
+
+### Development Rule
+
+Each module owns its own business logic.
+
+```text
+Good:
+apps/articles/services.py
+apps/feed/services.py
+apps/donations/services.py
+
+Avoid:
+apps/core/article_helpers.py
+apps/core/feed_logic.py
+apps/core/donation_utils.py
+```
+
+Use `core` only when functionality is genuinely shared across multiple modules.
+
+## Project Folders
+
+| Folder                | Purpose                                                                          |
+| --------------------- | -------------------------------------------------------------------------------- |
+| `apps/`               | Contains all Django applications organized by business domain                    |
+| `apps/core/`          | Shared Django infrastructure and reusable project-level functionality            |
+| `apps/accounts/`      | Authentication, users, profiles, and roles                                       |
+| `apps/*/templates/`   | Templates belonging to a specific application                                    |
+| `apps/*/tests/`       | Tests belonging to a specific application                                        |
+| `config/`             | Django project configuration                                                     |
+| `config/settings/`    | Environment-specific Django settings                                             |
+| `templates/`          | Global templates shared across applications                                      |
+| `templates/partials/` | Reusable HTML components such as navbar, footer, messages, pagination, and modal |
+| `templates/errors/`   | Global error pages such as 400, 403, 404, and 500                                |
+| `static/src/`         | Tailwind CSS source files                                                        |
+| `static/css/`         | Compiled CSS output                                                              |
+| `static/js/`          | Shared JavaScript                                                                |
+| `static/images/`      | Static project images/assets                                                     |
+| `media/`              | Runtime user-uploaded files; do not commit uploaded content                      |
+| `fixtures/`           | Development/test seed data and Django fixtures                                   |
+| `docs/`               | Project documentation such as PRD, API contract, and ERD                         |
+| `.github/`            | GitHub workflows and repository configuration                                    |
+| `manage.py`           | Django project management entry point                                            |
+| `requirements.txt`    | Python dependencies                                                              |
+| `package.json`        | Node.js/Tailwind dependencies and scripts                                        |
+
+### Documentation
+
+The `docs/` directory contains the project's technical references:
+
+```text
+docs/
+├── PRD.md
+├── API.md
+├── ERD.md
+└── architecture.md
+```
+
+Before implementing or changing a module, check the relevant documentation first.
+
+* `PRD.md` → product and development requirements
+* `API.md` → API contracts and integration rules
+* `ERD.md` → database relationships and model structure
+* `architecture.md` → system architecture and design decisions

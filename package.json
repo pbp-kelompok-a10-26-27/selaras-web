@@ -1,0 +1,30 @@
+{
+  "name": "selaras-web",
+  "version": "1.0.0",
+  "description": "SELARAS adalah platform digital yang membantu penggunanya membangun kebiasaan hidup ramah lingkungan secara konsisten lewat lima layanan: **Artikel & Edukasi** (bacaan reflektif seputar eco-mindfulness), **Challenge** (tantangan terstruktur harian/mingguan dengan pelacakan progres), **Feed** (ruang berbagi progres dan momen sadar lingkungan antarpengguna), **Donasi & Aksi Lingkungan** (penggalangan dana untuk isu lingkungan lokal), serta **Help Desk** (dukungan seputar layanan dan akun).",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "npx @tailwindcss/cli -i ./static/src/input.css -o ./static/css/output.css --watch",
+    "build": "npx @tailwindcss/cli -i ./static/src/input.css -o ./static/css/output.css --minify"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pbp-kelompok-a10-26-27/selaras-web.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/pbp-kelompok-a10-26-27/selaras-web/issues"
+  },
+  "homepage": "https://github.com/pbp-kelompok-a10-26-27/selaras-web#readme",
+  "dependencies": {
+    "@tailwindcss/cli": "^4.3.3",
+    "tailwindcss": "^4.3.3"
+  }
+}

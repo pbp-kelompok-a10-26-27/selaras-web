@@ -1,0 +1,19 @@
+{% load lucide %}
+{% if href %}<a{% if disabled %} aria-disabled="true"{% else %} href="{{ href }}"{% if selected %} aria-current="page"{% endif %}{% endif %}
+{% else %}<button type="{{ type|default:'button' }}"{% if disabled %} disabled{% elif selected %} aria-pressed="true"{% endif %}
+{% endif %}{% if icon_only %} aria-label="{% firstof aria_label label %}"{% endif %}
+  class="inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-[10px] text-neutral-50 transition-colors
+    {% if icon_only %}size-10 md:size-12{% else %}h-10 gap-2 px-6 py-2 text-s6 md:h-12 md:gap-3 md:text-s5{% endif %}
+    {% if disabled %}cursor-not-allowed bg-neutral-800
+    {% elif selected %}{% if variant == 'secondary' %}bg-secondary-400{% else %}bg-secondary-300{% endif %}
+    {% elif variant == 'secondary' %}bg-primary-400 hover:bg-tertiary-400
+    {% else %}bg-primary-300 hover:bg-tertiary-300{% endif %} {{ class }}"
+>
+  {% if icon_only %}
+    <span class="grid size-5 place-items-center md:size-6">{% lucide icon_only size=None class="size-4 md:size-5" aria_hidden="true" %}</span>
+  {% else %}
+    {% if icon_left %}<span class="grid size-5 place-items-center md:size-6">{% lucide icon_left size=None class="size-4 md:size-5" aria_hidden="true" %}</span>{% endif %}
+    <span>{{ label }}</span>
+    {% if icon_right %}<span class="grid size-5 place-items-center md:size-6">{% lucide icon_right size=None class="size-4 md:size-5" aria_hidden="true" %}</span>{% endif %}
+  {% endif %}
+{% if href %}</a>{% else %}</button>{% endif %}

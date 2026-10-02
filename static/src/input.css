@@ -1,0 +1,200 @@
+/* Tailwind */
+@import "tailwindcss";
+@source "../../templates/**/*.html";
+@source "../../apps/**/templates/**/*.html";
+
+@theme {
+  /* Primary (hijau muda / lime) */
+  --color-primary-50: #f7f9f0;
+  --color-primary-100: #f2f6e9;
+  --color-primary-200: #e5edd2;
+  --color-primary-300: #aac46d;
+  --color-primary-400: #99b062;
+  --color-primary-500: #889d57;
+  --color-primary-600: #809352;
+  --color-primary-700: #667641;
+  --color-primary-800: #4c5831;
+  --color-primary-900: #3b4526;
+
+  /* Secondary (hijau tua) */
+  --color-secondary-50: #eff2ed;
+  --color-secondary-100: #e7ebe5;
+  --color-secondary-200: #cdd6c8;
+  --color-secondary-300: #5f7a4f;
+  --color-secondary-400: #566e47;
+  --color-secondary-500: #4c623f;
+  --color-secondary-600: #475c3b;
+  --color-secondary-700: #39492f;
+  --color-secondary-800: #2b3724;
+  --color-secondary-900: #212b1c;
+
+  /* Tertiary (pink) */
+  --color-tertiary-50: #fef9fa;
+  --color-tertiary-100: #fdf6f8;
+  --color-tertiary-200: #fbedf0;
+  --color-tertiary-300: #f3c5cf;
+  --color-tertiary-400: #dbb1ba;
+  --color-tertiary-500: #c29ea6;
+  --color-tertiary-600: #b6949b;
+  --color-tertiary-700: #92767c;
+  --color-tertiary-800: #6d595d;
+  --color-tertiary-900: #554548;
+
+  /* Neutral (abu hangat) */
+  --color-neutral-50: #fffffe;
+  --color-neutral-100: #fffffe;
+  --color-neutral-200: #fffefd;
+  --color-neutral-300: #fffdf8;
+  --color-neutral-400: #e6e4df;
+  --color-neutral-500: #cccac6;
+  --color-neutral-600: #bfbeba;
+  --color-neutral-700: #999895;
+  --color-neutral-800: #737270;
+  --color-neutral-900: #595957;
+
+  /* Fonts */
+  --font-display: "Transcity", sans-serif;
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+
+  /* Warna teks */
+  --color-foreground: #252710;
+
+  /* Heading, Transcity Regular, line-height 120% */
+  --text-h1: 4rem;
+  --text-h1--line-height: 1.2;
+  --text-h1--font-weight: 400;
+  --text-h2: 3rem;
+  --text-h2--line-height: 1.2;
+  --text-h2--font-weight: 400;
+  --text-h3: 2rem;
+  --text-h3--line-height: 1.2;
+  --text-h3--font-weight: 400;
+  --text-h4: 1.5rem;
+  --text-h4--line-height: 1.2;
+  --text-h4--font-weight: 400;
+  --text-h5: 1.25rem;
+  --text-h5--line-height: 1.2;
+  --text-h5--font-weight: 400;
+  --text-h6: 1rem;
+  --text-h6--line-height: 1.2;
+  --text-h6--font-weight: 400;
+  --text-h7: 0.75rem;
+  --text-h7--line-height: 1.2;
+  --text-h7--font-weight: 400;
+
+  /* Subtitle, Plus Jakarta Sans SemiBold, line-height 200% */
+  --text-s1: 3rem;
+  --text-s1--line-height: 2;
+  --text-s1--font-weight: 600;
+  --text-s2: 2rem;
+  --text-s2--line-height: 2;
+  --text-s2--font-weight: 600;
+  --text-s3: 1.5rem;
+  --text-s3--line-height: 2;
+  --text-s3--font-weight: 600;
+  --text-s4: 1.25rem;
+  --text-s4--line-height: 2;
+  --text-s4--font-weight: 600;
+  --text-s5: 1rem;
+  --text-s5--line-height: 2;
+  --text-s5--font-weight: 600;
+  --text-s6: 0.75rem;
+  --text-s6--line-height: 2;
+  --text-s6--font-weight: 600;
+
+  /* Body, Plus Jakarta Sans Regular, line-height 150% */
+  --text-b1: 1.5rem;
+  --text-b1--line-height: 1.5;
+  --text-b1--font-weight: 400;
+  --text-b2: 1.25rem;
+  --text-b2--line-height: 1.5;
+  --text-b2--font-weight: 400;
+  --text-b3: 1rem;
+  --text-b3--line-height: 1.5;
+  --text-b3--font-weight: 400;
+  --text-b4: 0.75rem;
+  --text-b4--line-height: 1.5;
+  --text-b4--font-weight: 400;
+  --text-b5: 0.5rem;
+  --text-b5--line-height: 1.5;
+  --text-b5--font-weight: 400;
+}
+
+@layer base {
+  body {
+    color: var(--color-foreground);
+  }
+
+  h1 {
+    @apply font-display text-h1;
+  }
+  h2 {
+    @apply font-display text-h2;
+  }
+  h3 {
+    @apply font-display text-h3;
+  }
+  h4 {
+    @apply font-display text-h4;
+  }
+  h5 {
+    @apply font-display text-h5;
+  }
+  h6 {
+    @apply font-display text-h6;
+  }
+}
+
+/* ========================= ANIMATION ============================== */
+.fade-in {
+  opacity: 0;
+  animation: fadeIn 1.2s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.slide-in-up {
+  opacity: 0;
+  animation: slideInUp 0.9s ease-out forwards;
+}
+
+@keyframes slideInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(1.5rem);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(1.5rem);
+  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+.scroll-reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-in,
+  .slide-in-up,
+  .scroll-reveal {
+    animation: none;
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+/* ================================================================== */
