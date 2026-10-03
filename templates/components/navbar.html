@@ -1,14 +1,48 @@
-{% url 'home' as home_url %}
-<nav aria-label="Navigasi utama" class="relative flex items-center justify-center gap-16 px-8 py-4 z-100">
+{% url 'home' as home_url %} 
+{% url 'accounts:profile' as profile_url %} 
+{% url 'accounts:login' as login_url %} 
+{% url 'accounts:register' as register_url %}
+<nav
+  aria-label="Navigasi utama"
+  class="relative flex items-center justify-center gap-16 px-8 py-4 z-100"
+>
   <ul class="flex items-center gap-8">
-    <li>{% include "components/navbar_link.html" with label="Home" href=home_url %}</li>
-    <li>{% include "components/navbar_link.html" with label="Article" href="#" %}</li>
-    <li>{% include "components/navbar_link.html" with label="Challenge" href="#" %}</li>
-    <li>{% include "components/navbar_link.html" with label="Feeds" href="#" %}</li>
-    <li>{% include "components/navbar_link.html" with label="Donation" href="#" %}</li>
+    <li>
+      {% include "components/navbar_link.html" with label="Home" href=home_url %}
+    </li>
+    <li>
+      {% include "components/navbar_link.html" with label="Article" href="#" %}
+    </li>
+    <li>
+      {% include "components/navbar_link.html" with label="Challenge" href="#" %}
+    </li>
+    <li>
+      {% include "components/navbar_link.html" with label="Feeds" href="#" %}
+    </li>
+    <li>
+      {% include "components/navbar_link.html" with label="Donation" href="#" %}
+    </li>
   </ul>
   <ul class="flex items-center gap-8">
-    <li>{% include "components/navbar_link.html" with label="Login" href="#" %}</li>
-    <li>{% include "components/navbar_link.html" with label="Register" href="#" %}</li>
+    {% if user.is_authenticated %}
+    <li>
+      {% include "components/navbar_link.html" with label="Profile" href=profile_url %}
+    </li>
+    <li>
+      <form method="post" action="{% url 'accounts:logout' %}">
+        {% csrf_token %}
+        <button type="submit" class="font-display text-h4 text-secondary-500">
+          Logout
+        </button>
+      </form>
+    </li>
+    {% else %}
+    <li>
+      {% include "components/navbar_link.html" with label="Login" href=login_url %}
+    </li>
+    <li>
+      {% include "components/navbar_link.html" with label="Register" href=register_url %}
+    </li>
+    {% endif %}
   </ul>
 </nav>
