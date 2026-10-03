@@ -16,7 +16,7 @@ def admin_required(view_func):
 
         if not is_admin(request.user):
             messages.error(request, "You do not have permission to access this page.")
-            return redirect("core:dashboard")
+            return redirect("dashboard:user")
 
         return view_func(request, *args, **kwargs)
 

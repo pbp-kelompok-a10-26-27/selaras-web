@@ -38,7 +38,14 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'lucide',
+    'apps.core',
     'apps.accounts',
+    'apps.articles',
+    'apps.challenges',
+    'apps.feeds',
+    'apps.donations',
+    'apps.helpdesk',
+    'apps.dashboard',
 ]
 
 MIDDLEWARE = [

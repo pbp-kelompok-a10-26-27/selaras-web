@@ -15,6 +15,10 @@ SELARAS provides structured challenges with daily progress tracking and badges/s
 - [x] Created authentication system
 - [x] Created login and register form and page
 
+- [x] Setup overall models, views, and urls for each module
+- [x] Added dashboard module for admin and user
+
+
 ### Group Members
 
 | Name                       | Student ID |
