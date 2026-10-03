@@ -179,7 +179,9 @@
 .scroll-reveal {
   opacity: 0;
   transform: translateY(1.5rem);
-  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+  transition:
+    opacity 0.8s ease-out,
+    transform 0.8s ease-out;
 }
 
 .scroll-reveal.is-visible {
@@ -197,4 +199,54 @@
     transition: none;
   }
 }
+
+/* =================== FORM LOGIN & REGISTER ======================== */
+
+.floating-input:focus ~ .floating-label,
+.floating-input:not(:placeholder-shown) ~ .floating-label {
+  transform: translateY(-1.5rem) scale(0.85);
+  color: #475c3b; /* secondary-600 */
+  background-color: #fffffe; /* neutral-50 */
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
+}
+
+@keyframes gentle-float {
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(1.5deg);
+  }
+}
+
+@keyframes gentle-float-reverse {
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(6px) rotate(-1.5deg);
+  }
+}
+
+.animate-float {
+  animation: gentle-float 4.5s ease-in-out infinite;
+}
+
+.animate-float-reverse {
+  animation: gentle-float-reverse 5.5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-float,
+  .animate-float-reverse,
+  .fade-in,
+  .slide-in-up {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+/* ================================================================== */
 /* ================================================================== */

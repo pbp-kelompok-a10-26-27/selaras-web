@@ -1,11 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | SELARAS</title>
-
-     <!-- Fonts -->
+{% load static %}
+<!doctype html>
+<html lang="en" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Log In | SELARAS — Sustainable Living</title>
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -14,22 +14,435 @@
     />
     <link href="https://fonts.cdnfonts.com/css/transcity" rel="stylesheet" />
 
+    <!-- Favicon -->
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="{% static 'assets/images/logo.svg' %}"
+    />
+
     <link rel="stylesheet" href="{% static 'css/output.css' %}" />
+  </head>
+  <body
+    class="h-full font-sans bg-[#f7f9f0] text-[#212b1c] flex items-center justify-center p-4 sm:p-6 lg:p-8 selection:bg-[#aac46d] selection:text-[#212b1c]"
+  >
+    <!-- Main Authentication Container -->
+    <main
+      class="w-full max-w-5xl bg-[#fffffe] rounded-3xl border border-[#e6e4df] shadow-sm overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[600px] fade-in"
+    >
+      <!-- Left Background -->
+      <section
+        class="lg:col-span-5 bg-gradient-to-br from-[#f2f6e9] via-[#e5edd2] to-[#f7f9f0] p-8 lg:p-12 flex flex-col justify-between relative overflow-hidden border-b lg:border-b-0 lg:border-r border-[#e6e4df]"
+      >
+        <!-- Abstract Background Decorative Blobs & Leaves -->
+        <div
+          class="absolute -top-12 -left-12 w-48 h-48 bg-[#fbedf0] rounded-full blur-2xl opacity-60 pointer-events-none"
+        ></div>
+        <div
+          class="absolute -bottom-16 -right-16 w-64 h-64 bg-[#aac46d] rounded-full blur-3xl opacity-30 pointer-events-none"
+        ></div>
 
-</head>
-
-<body>
-
-    <!--  Main Login Layout -->
-    <main class="min-h-screen items-center justify-center mx-auto overflow-hidden max-w-full">
-
-        <!-- Login Form Card -->
-        <div class="flex flex-col lg:p-8 md:p-6 p-4 items-center justify-center">
-
+        <!-- Brand Header Mobile/Desktop -->
+        <div class="relative z-10 flex items-center gap-3">
+          <div
+            class="w-9 h-9 rounded-xl bg-[#4c623f] text-[#fffffe] flex items-center justify-center shadow-xs"
+          >
+            <!-- Leaf Icon SVG -->
+            <svg
+              class="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.75"
+                d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+              />
+            </svg>
+          </div>
+          <span
+            class="font-display text-2xl tracking-wide font-semibold text-[#212b1c]"
+            >SELARAS</span
+          >
         </div>
-        
 
+        <!-- Central Welcoming Visual & Organic Illustration -->
+        <div
+          class="relative z-10 my-8 lg:my-0 flex flex-col items-center justify-center text-center"
+        >
+          <div
+            class="relative w-48 h-48 sm:w-56 sm:h-56 flex items-center justify-center mb-6"
+          >
+            <!-- Background Organic Shape -->
+            <svg
+              class="absolute inset-0 w-full h-full text-[#aac46d]/40 animate-float"
+              viewBox="0 0 200 200"
+              fill="currentColor"
+            >
+              <path
+                d="M41.5,-52.1C52.6,-41.8,59.8,-27.5,62.4,-12.3C65,2.9,63,19,55.3,31.7C47.6,44.4,34.2,53.7,19.3,58.8C4.4,63.9,-12,64.8,-27.4,59.2C-42.8,53.6,-57.2,41.5,-64.1,25.8C-71,10,-70.4,-9.4,-62.7,-24.8C-55,-40.2,-40.2,-51.6,-25.4,-57.4C-10.6,-63.2,4.2,-63.4,18.8,-59.5C33.4,-55.6,30.4,-62.4,41.5,-52.1Z"
+                transform="translate(100 100)"
+              />
+            </svg>
+
+            <!-- Secondary Soft Pink Shape -->
+            <svg
+              class="absolute inset-2 w-11/12 h-11/12 text-[#f3c5cf]/50 animate-float-reverse"
+              viewBox="0 0 200 200"
+              fill="currentColor"
+            >
+              <path
+                d="M38.1,-48.5C48.8,-37.8,56.5,-23.7,58.8,-8.5C61.1,6.7,58,23,49.2,35.8C40.4,48.6,25.9,57.9,9.8,59.8C-6.3,61.7,-24,56.2,-37.7,45.8C-51.4,35.4,-61.1,20.1,-62.9,3.7C-64.7,-12.7,-58.6,-30.2,-46.8,-41.3C-35,-52.4,-17.5,-57.1,-0.7,-56.1C16.1,-55.1,27.4,-59.2,38.1,-48.5Z"
+                transform="translate(100 100)"
+              />
+            </svg>
+
+            <!-- Welcoming Leaf / Hand Wave Illustration (Inline SVG) -->
+            <div
+              class="relative z-10 p-4 bg-[#fffffe]/80 backdrop-blur-xs rounded-2xl border border-[#fffffe] shadow-sm flex items-center justify-center"
+            >
+              <svg
+                class="w-16 h-16 text-[#39492f]"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <!-- Sprouting plant with welcoming curves -->
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  d="M12 22V10M12 10C12 6 9 3 5 3c0 4 3 7 7 7zm0 0c0-4 3-7 7-7 0 4-3 7-7 7z"
+                />
+                <circle cx="12" cy="22" r="1" fill="currentColor" />
+              </svg>
+            </div>
+
+            <!-- Small Decorative Dots -->
+            <div
+              class="absolute top-2 right-4 w-2 h-2 rounded-full bg-[#809352]"
+            ></div>
+            <div
+              class="absolute bottom-4 left-6 w-3 h-3 rounded-full bg-[#dbb1ba]"
+            ></div>
+          </div>
+
+          <p
+            class="text-xs uppercase tracking-widest text-[#5f7a4f] font-semibold mb-1"
+          >
+            Sustainable Lifestyle
+          </p>
+          <p class="text-sm text-[#475c3b] max-w-xs leading-relaxed">
+            Continue your journey toward a calmer, more conscious way of living.
+          </p>
+        </div>
+
+        <!-- Footer micro-copy -->
+        <div
+          class="relative z-10 text-center lg:text-left text-xs text-[#999895]"
+        >
+          &copy; SELARAS. Mindful living choices.
+        </div>
+      </section>
+
+      <!-- RIGHT SIDE: Login Form Panel  -->
+      <section
+        class="lg:col-span-7 p-8 sm:p-10 lg:p-14 flex flex-col justify-center bg-[#fffffe]"
+      >
+        <div class="max-w-md w-full mx-auto slide-in-up">
+          <!-- Django Messages Notifications -->
+          {% if messages %}
+          <div class="mb-6 space-y-2" role="alert">
+            {% for message in messages %}
+            <div
+              class="p-3.5 rounded-xl text-sm font-medium flex items-center gap-3 border {% if message.tags == 'error' %}bg-[#fbedf0] text-[#6d595d] border-[#f3c5cf]{% else %}bg-[#f2f6e9] text-[#39492f] border-[#aac46d]{% endif %} transition-all"
+            >
+              <svg
+                class="w-5 h-5 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <span>{{ message }}</span>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          <!-- Non-Field Form Errors -->
+          {% if form.non_field_errors %}
+          <div
+            class="mb-6 p-3.5 rounded-xl bg-[#fbedf0] border border-[#f3c5cf] text-xs text-[#6d595d] space-y-1"
+            role="alert"
+          >
+            {% for error in form.non_field_errors %}
+            <p class="flex items-center gap-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-[#b6949b]"></span>
+              <span clas="font-sans">{{ error }}</span>
+            </p>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          <!-- Header Title -->
+          <div class="mb-8">
+            <h1
+              class="font-display text-3xl sm:text-4xl text-[#212b1c] tracking-tight mb-2"
+            >
+              Welcome Back!
+            </h1>
+            <p class="text-sm text-[#737270]">
+              Enter your details to sign in to your SELARAS account.
+            </p>
+          </div>
+
+          <!-- Login Form -->
+          <form
+            method="post"
+            action="{% url 'accounts:login' %}"
+            class="space-y-6"
+            novalidate
+          >
+            {% csrf_token %}
+
+            <!-- Username / Email Field -->
+            <div class="space-y-1">
+              <div class="relative flex items-center">
+                <!-- Left Icon (User) -->
+                <div
+                  class="absolute left-3.5 text-[#5f7a4f] pointer-events-none"
+                >
+                  <svg
+                    class="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.75"
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
+                  </svg>
+                </div>
+
+                <input
+                  type="text"
+                  name="username"
+                  id="id_username"
+                  required
+                  autocomplete="username"
+                  placeholder=""
+                  value="{{ form.username.value|default_if_none:'' }}"
+                  class="floating-input w-full pl-11 pr-4 py-3.5 text-sm text-[#212b1c] bg-[#fffffe] rounded-xl border border-[#e6e4df] focus:border-[#475c3b] focus:ring-1 focus:ring-[#475c3b] outline-none transition-all duration-200 peer"
+                />
+
+                <!-- Floating Label -->
+                <label
+                  for="id_username"
+                  class="floating-label absolute left-11 text-sm text-[#999895] pointer-events-none transition-all duration-200 ease-out origin-left"
+                >
+                  Username
+                </label>
+              </div>
+
+              {% if form.username.errors %}
+              <div class="text-xs text-[#b6949b] pt-1 pl-1">
+                {{ form.username.errors.0 }}
+              </div>
+              {% endif %}
+            </div>
+
+            <!-- Password Field -->
+            <div class="space-y-1">
+              <div class="relative flex items-center">
+                <!-- Left Icon (Lock) -->
+                <div
+                  class="absolute left-3.5 text-[#5f7a4f] pointer-events-none"
+                >
+                  <svg
+                    class="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.75"
+                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                    />
+                  </svg>
+                </div>
+
+                <input
+                  type="password"
+                  name="password"
+                  id="id_password"
+                  required
+                  autocomplete="current-password"
+                  placeholder=" "
+                  class="floating-input w-full pl-11 pr-11 py-3.5 text-sm text-[#212b1c] bg-[#fffffe] rounded-xl border border-[#e6e4df] focus:border-[#475c3b] focus:ring-1 focus:ring-[#475c3b] outline-none transition-all duration-200 peer"
+                />
+
+                <!-- Floating Label -->
+                <label
+                  for="id_password"
+                  class="floating-label absolute left-11 text-sm text-[#999895] pointer-events-none transition-all duration-200 ease-out origin-left"
+                >
+                  Password
+                </label>
+
+                <!-- Password Visibility Toggle Button -->
+                <button
+                  type="button"
+                  id="togglePassword"
+                  aria-label="Show password"
+                  class="absolute right-3.5 text-[#999895] hover:text-[#475c3b] focus:outline-none transition-colors"
+                >
+                  <!-- Eye Icon -->
+                  <svg
+                    id="eyeIcon"
+                    class="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.75"
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.75"
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                    />
+                  </svg>
+                  <!-- Eye Off Icon (Hidden by default) -->
+                  <svg
+                    id="eyeOffIcon"
+                    class="w-5 h-5 hidden"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.75"
+                      d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858-5.908a10.007 10.007 0 013.682-.763c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21f-3-3m-3.59-3.59L3 3"
+                    />
+                  </svg>
+                </button>
+              </div>
+
+              {% if form.password.errors %}
+              <div class="text-xs text-[#b6949b] pt-1 pl-1">
+                {{ form.password.errors.0 }}
+              </div>
+              {% endif %}
+            </div>
+
+            <!-- Submit Button -->
+            <button
+              type="submit"
+              class="group relative w-full py-3.5 px-6 rounded-xl bg-[#39492f] hover:bg-[#2b3724] text-[#fffffe] font-medium text-sm transition-all duration-200 shadow-sm hover:shadow active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <span>Log In</span>
+              <svg
+                class="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M14 5l7 7m0 0l-7 7m7-7H3"
+                />
+              </svg>
+            </button>
+          </form>
+
+          <!-- Navigation Switch to Register Page -->
+          <div class="mt-8 pt-6 border-t border-[#e6e4df] text-center">
+            <p class="text-sm text-[#737270]">
+              Don't have an account yet?
+              <a
+                href="{% url 'accounts:register' %}"
+                class="inline-flex items-center gap-1 font-semibold text-[#475c3b] hover:text-[#212b1c] transition-all group ml-1"
+              >
+                <span>Create one</span>
+                <svg
+                  class="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </a>
+            </p>
+          </div>
+        </div>
+      </section>
     </main>
-    
-</body>
+
+    <!-- Minimalistic Vanilla JavaScript -->
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // Password Visibility Toggle Logic
+        const togglePasswordBtn = document.getElementById("togglePassword");
+        const passwordInput = document.getElementById("id_password");
+        const eyeIcon = document.getElementById("eyeIcon");
+        const eyeOffIcon = document.getElementById("eyeOffIcon");
+
+        if (togglePasswordBtn && passwordInput) {
+          togglePasswordBtn.addEventListener("click", function () {
+            const isPassword =
+              passwordInput.getAttribute("type") === "password";
+            passwordInput.setAttribute(
+              "type",
+              isPassword ? "text" : "password",
+            );
+
+            eyeIcon.classList.toggle("hidden", isPassword);
+            eyeOffIcon.classList.toggle("hidden", !isPassword);
+
+            togglePasswordBtn.setAttribute(
+              "aria-label",
+              isPassword ? "Hide password" : "Show password",
+            );
+          });
+        }
+      });
+    </script>
+  </body>
 </html>
