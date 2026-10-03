@@ -1,0 +1,16 @@
+{% extends "base.html" %} 
+{% block title %}
+    Register | SELARAS
+{% endblock %} 
+{% block content %}
+<main class="mx-auto max-w-xl px-4 py-12">
+  <h1>Create an account</h1>
+  <form method="post" novalidate>
+    {% csrf_token %} {{ form.as_p }}
+    <button type="submit">Register</button>
+  </form>
+  <p>
+    <a href="{% url 'accounts:login' %}">Already have an account? Log in</a>
+  </p>
+</main>
+{% endblock %}

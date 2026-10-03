@@ -7,4 +7,4 @@ class AuthenticatedRequiredMixin(LoginRequiredMixin):
     Shared authentication mixin for class-based views.
     """
 
-    login_url = "login"
+    login_url = "accounts:login"
