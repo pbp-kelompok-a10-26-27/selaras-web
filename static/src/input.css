@@ -2,6 +2,7 @@
 @import "tailwindcss";
 @source "../../templates/**/*.html";
 @source "../../apps/**/templates/**/*.html";
+@source "../../../apps/**/components/**/*.html";
 
 @theme {
   /* Primary (hijau muda / lime) */
@@ -202,13 +203,29 @@
 
 /* =================== FORM LOGIN & REGISTER ======================== */
 
+.floating-input {
+  position: relative;
+}
+
 .floating-input:focus ~ .floating-label,
-.floating-input:not(:placeholder-shown) ~ .floating-label {
+.floating-input:not(:placeholder-shown) ~ .floating-label,
+.floating-input:-webkit-autofill ~ .floating-label,
+.floating-input:autofill ~ .floating-label {
   transform: translateY(-1.5rem) scale(0.85);
-  color: #475c3b; /* secondary-600 */
-  background-color: #fffffe; /* neutral-50 */
+  color: #475c3b;
+  background-color: #fffffe;
   padding-left: 0.25rem;
   padding-right: 0.25rem;
+}
+
+.floating-input:-webkit-autofill {
+  -webkit-text-fill-color: #212b1c;
+  caret-color: #212b1c;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
+.floating-input:-webkit-autofill ~ .floating-label {
+  z-index: 20;
 }
 
 @keyframes gentle-float {
@@ -249,4 +266,75 @@
   }
 }
 /* ================================================================== */
+
+.falling-leaf {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  pointer-events: none;
+
+  will-change: transform;
+
+  animation-name: falling-leaf-animation;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+.falling-leaf svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* =========================================================
+   FALLING MOTION
+   ========================================================= */
+
+@keyframes falling-leaf-animation {
+  0% {
+    transform: translate3d(0, -10vh, 0) rotate(0deg);
+  }
+
+  20% {
+    transform: translate3d(calc(var(--drift-x) * 0.25), 20vh, 0)
+      rotate(calc(var(--rotation) * 0.2));
+  }
+
+  40% {
+    transform: translate3d(calc(var(--drift-x) * -0.4), 40vh, 0)
+      rotate(calc(var(--rotation) * 0.45));
+  }
+
+  60% {
+    transform: translate3d(calc(var(--drift-x) * 0.6), 60vh, 0)
+      rotate(calc(var(--rotation) * 0.7));
+  }
+
+  80% {
+    transform: translate3d(calc(var(--drift-x) * -0.5), 80vh, 0)
+      rotate(calc(var(--rotation) * 0.85));
+  }
+
+  100% {
+    transform: translate3d(var(--drift-x), 115vh, 0) rotate(var(--rotation));
+  }
+}
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .falling-leaf {
+    display: none;
+    animation: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .leaf {
+    animation: none;
+    display: none;
+  }
+}
 /* ================================================================== */

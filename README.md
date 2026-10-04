@@ -18,6 +18,9 @@ SELARAS provides structured challenges with daily progress tracking and badges/s
 - [x] Setup overall models, views, and urls for each module
 - [x] Added dashboard module for admin and user
 
+- [x] Created reusable toast, dropdown, modal, skeleton, tabs, & main navigation bar component
+- [x] Adjusting landing, login, register page responsiveness and layout
+
 
 ### Group Members
 
