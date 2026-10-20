@@ -28,6 +28,11 @@ urlpatterns = [
     path('helpdesk/', include('apps.helpdesk.urls')),
     path('dashboard/', include('apps.dashboard.urls')),
     path(
+        "design-system/",
+        TemplateView.as_view(template_name="design_system.html"),
+        name="design-system",
+    ),
+    path(
         "",
         TemplateView.as_view(template_name="home.html"),
         name="home",

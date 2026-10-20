@@ -1,0 +1,838 @@
+{% extends "base.html" %}
+{% load lucide %}
+
+{% block title %}SELARAS - Design System{% endblock %}
+
+{% block content %}
+<main class="min-h-screen bg-primary-50 py-10 px-4 sm:px-6 lg:px-12 text-foreground font-sans">
+  <div class="max-w-7xl mx-auto space-y-16">
+
+    <!-- Header Section -->
+    <header class="border-b border-primary-200 pb-8">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-200 text-secondary-600 text-s6 mb-3 font-semibold">
+            {% lucide "layers" size=16 class="text-secondary-500" aria_hidden="true" %}
+            Design System Reference • Tailwind CSS v4
+          </div>
+          <h1 class="text-h2 md:text-h1 text-secondary-700 tracking-normal">SELARAS Design System</h1>
+          <p class="text-b2 text-secondary-500 mt-2 max-w-3xl">
+            Panduan komprehensif token desain, tipografi, ikonografi, dan komponen UI yang digunakan dalam repositori SELARAS berdasarkan spesifikasi Figma dan <code class="bg-primary-100 px-1.5 py-0.5 rounded text-secondary-800 text-sm">docs/DESIGN_SYSTEM.md</code>.
+          </p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          {% include "components/button.html" with label="Ke Beranda" href="/" icon_left="house" variant="secondary" %}
+        </div>
+      </div>
+
+      <!-- Quick Jump Links -->
+      <nav aria-label="Daftar Isi" class="mt-6 flex flex-wrap gap-2 pt-4 border-t border-primary-200/60">
+        <span class="text-s6 text-secondary-600 self-center mr-2 font-semibold">Lompat ke:</span>
+        <a href="#colors" class="px-3 py-1 rounded-lg bg-primary-100 hover:bg-primary-200 text-secondary-700 text-s6 transition-colors">Warna & Token</a>
+        <a href="#typography" class="px-3 py-1 rounded-lg bg-primary-100 hover:bg-primary-200 text-secondary-700 text-s6 transition-colors">Tipografi</a>
+        <a href="#icons" class="px-3 py-1 rounded-lg bg-primary-100 hover:bg-primary-200 text-secondary-700 text-s6 transition-colors">Ikonografi</a>
+        <a href="#chips" class="px-3 py-1 rounded-lg bg-primary-100 hover:bg-primary-200 text-secondary-700 text-s6 transition-colors">Chips</a>
+        <a href="#buttons" class="px-3 py-1 rounded-lg bg-primary-100 hover:bg-primary-200 text-secondary-700 text-s6 transition-colors">Buttons</a>
+        <a href="#search-bar" class="px-3 py-1 rounded-lg bg-primary-100 hover:bg-primary-200 text-secondary-700 text-s6 transition-colors">Search Bar</a>
+        <a href="#cards" class="px-3 py-1 rounded-lg bg-primary-100 hover:bg-primary-200 text-secondary-700 text-s6 transition-colors">Cards</a>
+        <a href="#navigation" class="px-3 py-1 rounded-lg bg-primary-100 hover:bg-primary-200 text-secondary-700 text-s6 transition-colors">Navbar & Footer</a>
+        <a href="#mobile-showcase" class="px-3 py-1 rounded-lg bg-secondary-200 hover:bg-secondary-300 text-secondary-800 text-s6 font-semibold transition-colors">Simulasi Mobile</a>
+      </nav>
+    </header>
+
+    <!-- SECTION 1: COLOR PALETTE & TOKENS -->
+    <section id="colors" class="scroll-mt-8 space-y-6">
+      <div class="border-b border-primary-200 pb-3">
+        <h2 class="text-h3 text-secondary-700 flex items-center gap-3">
+          {% lucide "palette" size=28 class="text-secondary-500" aria_hidden="true" %}
+          1. Color Palette & Design Tokens
+        </h2>
+        <p class="text-b3 text-secondary-500 mt-1">
+          Didefinisikan di <code class="bg-primary-100 px-1.5 py-0.5 rounded text-sm text-secondary-800">static/src/input.css</code> dalam blok <code class="bg-primary-100 px-1.5 py-0.5 rounded text-sm text-secondary-800">@theme</code>. Gunakan utility classes Tailwind seperti <code class="bg-primary-100 px-1.5 py-0.5 rounded text-sm text-secondary-800">bg-primary-300</code>, <code class="bg-primary-100 px-1.5 py-0.5 rounded text-sm text-secondary-800">text-secondary-600</code>, dll.
+        </p>
+      </div>
+
+      <!-- Color Scales Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+
+        <!-- Primary Scale (Light Green / Lime) -->
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-primary-200/70 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="font-sans text-s4 text-secondary-700">Primary (Hijau Muda)</h3>
+            <span class="text-xs font-semibold px-2 py-0.5 rounded bg-primary-200 text-primary-800">Brand Primary</span>
+          </div>
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between p-2 rounded-lg bg-primary-50 text-foreground border border-primary-100 text-xs"><span>primary-50</span><span class="font-mono">#F7F9F0</span></div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-primary-100 text-foreground border border-primary-200 text-xs"><span>primary-100</span><span class="font-mono">#F2F6E9</span></div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-primary-200 text-foreground text-xs"><span>primary-200</span><span class="font-mono">#E5EDD2</span></div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-primary-300 text-white font-medium text-xs"><span>primary-300 (Main)</span><span class="font-mono">#AAC46D</span></div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-primary-400 text-white text-xs"><span>primary-400</span><span class="font-mono">#99B062</span></div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-primary-500 text-white text-xs"><span>primary-500</span><span class="font-mono">#889D57</span></div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-primary-600 text-white text-xs"><span>primary-600</span><span class="font-mono">#809352</span></div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-primary-700 text-white text-xs"><span>primary-700</span><span class="font-mono">#667641</span></div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-primary-800 text-white text-xs"><span>primary-800</span><span class="font-mono">#4C5831</span></div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-primary-900 text-white text-xs"><span>primary-900</span><span class="font-mono">#3B4526</span></div>
+          </div>
+        </div>
+
+        <!-- Secondary Scale (Dark Green) -->
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-secondary-200/70 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="font-sans text-s4 text-secondary-800">Secondary (Hijau Tua)</h3>
+            <span class="text-xs font-semibold px-2 py-0.5 rounded bg-secondary-200 text-secondary-800">Forest Green</span>
+          </div>
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between p-2 rounded-lg bg-secondary-50 text-foreground border border-secondary-100 text-xs"><span>secondary-50</span><span class="font-mono">#EFF2ED</span></div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-secondary-100 text-foreground border border-secondary-200 text-xs"><span>secondary-100</span><span class="font-mono">#E7EBE5</span></div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-secondary-200 text-foreground text-xs"><span>secondary-200</span><span class="font-mono">#CDD6C8</span></div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-secondary-300 text-white font-medium text-xs"><span>secondary-300 (Main)</span><span class="font-mono">#5F7A4F</span></div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-secondary-400 text-white text-xs"><span>secondary-400</span><span class="font-mono">#566E47</span></div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-secondary-500 text-white text-xs"><span>secondary-500</span><span class="font-mono">#4C623F</span></div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-secondary-600 text-white text-xs"><span>secondary-600</span><span class="font-mono">#475C3B</span></div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-secondary-700 text-white text-xs"><span>secondary-700</span><span class="font-mono">#39492F</span></div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-secondary-800 text-white text-xs"><span>secondary-800</span><span class="font-mono">#2B3724</span></div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-secondary-900 text-white text-xs"><span>secondary-900</span><span class="font-mono">#212B1C</span></div>
+          </div>
+        </div>
+
+        <!-- Tertiary Scale (Pink) -->
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-tertiary-200/70 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="font-sans text-s4 text-tertiary-800">Tertiary (Pink)</h3>
+            <span class="text-xs font-semibold px-2 py-0.5 rounded bg-tertiary-200 text-tertiary-800">Accent Pink</span>
+          </div>
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between p-2 rounded-lg bg-tertiary-50 text-foreground border border-tertiary-100 text-xs"><span>tertiary-50</span><span class="font-mono">#FEF9FA</span></div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-tertiary-100 text-foreground border border-tertiary-200 text-xs"><span>tertiary-100</span><span class="font-mono">#FDF6F8</span></div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-tertiary-200 text-foreground text-xs"><span>tertiary-200</span><span class="font-mono">#FBEDF0</span></div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-tertiary-300 text-foreground font-medium text-xs"><span>tertiary-300 (Main)</span><span class="font-mono">#F3C5CF</span></div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-tertiary-400 text-foreground text-xs"><span>tertiary-400</span><span class="font-mono">#DBB1BA</span></div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-tertiary-500 text-white text-xs"><span>tertiary-500</span><span class="font-mono">#C29EA6</span></div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-tertiary-600 text-white text-xs"><span>tertiary-600</span><span class="font-mono">#B6949B</span></div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-tertiary-700 text-white text-xs"><span>tertiary-700</span><span class="font-mono">#92767C</span></div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-tertiary-800 text-white text-xs"><span>tertiary-800</span><span class="font-mono">#6D595D</span></div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-tertiary-900 text-white text-xs"><span>tertiary-900</span><span class="font-mono">#554548</span></div>
+          </div>
+        </div>
+
+        <!-- Neutral Scale (Warm Gray) -->
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-neutral-400/50 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="font-sans text-s4 text-neutral-800">Neutral (Abu Hangat)</h3>
+            <span class="text-xs font-semibold px-2 py-0.5 rounded bg-neutral-400/50 text-neutral-800">Base Grays</span>
+          </div>
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between p-2 rounded-lg bg-neutral-50 text-foreground border border-neutral-200 text-xs"><span>neutral-50</span><span class="font-mono">#FFFFFE</span></div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-neutral-100 text-foreground border border-neutral-200 text-xs"><span>neutral-100</span><span class="font-mono">#FFFFFE</span></div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-neutral-200 text-foreground border border-neutral-300 text-xs"><span>neutral-200</span><span class="font-mono">#FFFEFD</span></div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-neutral-300 text-foreground border border-neutral-400/60 text-xs"><span>neutral-300</span><span class="font-mono">#FFFDF8</span></div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-neutral-400 text-foreground text-xs"><span>neutral-400</span><span class="font-mono">#E6E4DF</span></div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-neutral-500 text-foreground text-xs"><span>neutral-500</span><span class="font-mono">#CCCAC6</span></div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-neutral-600 text-white text-xs"><span>neutral-600</span><span class="font-mono">#BFBEBA</span></div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-neutral-700 text-white text-xs"><span>neutral-700</span><span class="font-mono">#999895</span></div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-neutral-800 text-white text-xs"><span>neutral-800 (Disabled)</span><span class="font-mono">#737270</span></div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-neutral-900 text-white text-xs"><span>neutral-900</span><span class="font-mono">#595957</span></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Semantic Foreground Token Note -->
+      <div class="p-4 rounded-xl bg-white border border-primary-200 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="size-8 rounded-lg bg-[#252710] border border-gray-300 shrink-0"></div>
+          <div>
+            <h4 class="font-sans text-s5 text-foreground">Semantic Token: <code class="text-secondary-700 font-mono">--color-foreground</code></h4>
+            <p class="text-b4 text-secondary-600">Nilai: <code class="font-mono">#252710</code> — Diterapkan secara otomatis ke seluruh teks elemen <code class="font-mono">&lt;body&gt;</code>.</p>
+          </div>
+        </div>
+        <span class="text-s6 font-mono bg-primary-100 text-secondary-800 px-2 py-1 rounded">text-foreground</span>
+      </div>
+    </section>
+
+    <!-- SECTION 2: TYPOGRAPHY -->
+    <section id="typography" class="scroll-mt-8 space-y-6">
+      <div class="border-b border-primary-200 pb-3">
+        <h2 class="text-h3 text-secondary-700 flex items-center gap-3">
+          {% lucide "type" size=28 class="text-secondary-500" aria_hidden="true" %}
+          2. Typography System
+        </h2>
+        <p class="text-b3 text-secondary-500 mt-1">
+          Dua keluarga font: <strong>Transcity</strong> (Display / Judul) dan <strong>Plus Jakarta Sans</strong> (Sans / Subjudul &amp; Body).
+        </p>
+      </div>
+
+      <!-- Font Families Card -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-white rounded-2xl p-6 border border-primary-200 shadow-sm">
+          <div class="flex items-center justify-between mb-3">
+            <span class="font-display text-h4 text-secondary-700">Transcity</span>
+            <span class="text-xs px-2 py-1 rounded bg-primary-100 text-secondary-700 font-mono">font-display</span>
+          </div>
+          <p class="font-display text-h3 text-secondary-600 mb-2">Selaras untuk Kelestarian Bumi</p>
+          <p class="text-b4 text-secondary-500">
+            Sumber: CDNFonts (Weight 400). Digunakan pada heading H1–H7 dan navbar links. 
+            <strong class="text-amber-800">Peringatan:</strong> Jangan gunakan <code class="font-mono text-xs">font-bold</code> pada Transcity agar browser tidak membuat faux bold buatan. Untuk efek tebal, gunakan text-stroke (0.6px).
+          </p>
+        </div>
+
+        <div class="bg-white rounded-2xl p-6 border border-primary-200 shadow-sm">
+          <div class="flex items-center justify-between mb-3">
+            <span class="font-sans text-s3 text-secondary-700">Plus Jakarta Sans</span>
+            <span class="text-xs px-2 py-1 rounded bg-primary-100 text-secondary-700 font-mono">font-sans</span>
+          </div>
+          <p class="font-sans text-s4 text-secondary-600 mb-2">Membangun Kebiasaan Berkelanjutan</p>
+          <p class="text-b4 text-secondary-500">
+            Sumber: Google Fonts (Weight 400 &amp; 600). Menggantikan sans bawaan Tailwind. Digunakan untuk Subtitle (S1–S6, 600) dan Body copy (B1–B5, 400).
+          </p>
+        </div>
+      </div>
+
+      <!-- Type Scale Samples -->
+      <div class="bg-white rounded-2xl p-6 border border-primary-200 shadow-sm space-y-8">
+        
+        <!-- Headings H1 - H7 -->
+        <div class="space-y-4">
+          <div class="flex items-center justify-between border-b border-primary-100 pb-2">
+            <h3 class="font-sans text-s4 text-secondary-700">Headings (Transcity, 400, Line Height 120%)</h3>
+            <span class="text-xs text-secondary-500">Auto-mapped ke tag h1-h6 oleh base layer</span>
+          </div>
+          
+          <div class="space-y-4 divide-y divide-gray-100">
+            <div class="pt-2 flex flex-col md:flex-row md:items-baseline md:justify-between gap-2">
+              <div class="w-48 shrink-0 text-xs font-mono text-secondary-500">h1 / text-h1 • 64px (4rem)</div>
+              <div class="text-h1 text-secondary-700 overflow-hidden text-ellipsis">Heading 1 Display</div>
+            </div>
+            <div class="pt-4 flex flex-col md:flex-row md:items-baseline md:justify-between gap-2">
+              <div class="w-48 shrink-0 text-xs font-mono text-secondary-500">h2 / text-h2 • 48px (3rem)</div>
+              <div class="text-h2 text-secondary-700 overflow-hidden text-ellipsis">Heading 2 Section Title</div>
+            </div>
+            <div class="pt-4 flex flex-col md:flex-row md:items-baseline md:justify-between gap-2">
+              <div class="w-48 shrink-0 text-xs font-mono text-secondary-500">h3 / text-h3 • 32px (2rem)</div>
+              <div class="text-h3 text-secondary-700 overflow-hidden text-ellipsis">Heading 3 Subsection</div>
+            </div>
+            <div class="pt-4 flex flex-col md:flex-row md:items-baseline md:justify-between gap-2">
+              <div class="w-48 shrink-0 text-xs font-mono text-secondary-500">h4 / text-h4 • 24px (1.5rem)</div>
+              <div class="text-h4 text-secondary-700 overflow-hidden text-ellipsis">Heading 4 Card Title / Nav</div>
+            </div>
+            <div class="pt-4 flex flex-col md:flex-row md:items-baseline md:justify-between gap-2">
+              <div class="w-48 shrink-0 text-xs font-mono text-secondary-500">h5 / text-h5 • 20px (1.25rem)</div>
+              <div class="text-h5 text-secondary-700">Heading 5 Small Header</div>
+            </div>
+            <div class="pt-4 flex flex-col md:flex-row md:items-baseline md:justify-between gap-2">
+              <div class="w-48 shrink-0 text-xs font-mono text-secondary-500">h6 / text-h6 • 16px (1rem)</div>
+              <div class="text-h6 text-secondary-700">Heading 6 Inline Title</div>
+            </div>
+            <div class="pt-4 flex flex-col md:flex-row md:items-baseline md:justify-between gap-2">
+              <div class="w-48 shrink-0 text-xs font-mono text-secondary-500">text-h7 • 12px (0.75rem)</div>
+              <div class="font-display text-h7 text-secondary-700">Heading 7 Micro Heading (Class-only)</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Subtitles S1 - S6 -->
+        <div class="space-y-4">
+          <div class="flex items-center justify-between border-b border-primary-100 pb-2">
+            <h3 class="font-sans text-s4 text-secondary-700">Subtitles (Plus Jakarta Sans SemiBold 600, Line Height 200%)</h3>
+            <span class="text-xs text-secondary-500">Digunakan dengan class text-s*</span>
+          </div>
+
+          <div class="space-y-3 divide-y divide-gray-100">
+            <div class="pt-2 flex flex-col md:flex-row md:items-baseline md:justify-between gap-2">
+              <div class="w-48 shrink-0 text-xs font-mono text-secondary-500">text-s1 • 48px / 600</div>
+              <div class="text-s1 text-secondary-800">Subtitle 1 Preview</div>
+            </div>
+            <div class="pt-3 flex flex-col md:flex-row md:items-baseline md:justify-between gap-2">
+              <div class="w-48 shrink-0 text-xs font-mono text-secondary-500">text-s2 • 32px / 600</div>
+              <div class="text-s2 text-secondary-800">Subtitle 2 Featured Highlights</div>
+            </div>
+            <div class="pt-3 flex flex-col md:flex-row md:items-baseline md:justify-between gap-2">
+              <div class="w-48 shrink-0 text-xs font-mono text-secondary-500">text-s3 • 24px / 600</div>
+              <div class="text-s3 text-secondary-800">Subtitle 3 Lead Paragraph Title</div>
+            </div>
+            <div class="pt-3 flex flex-col md:flex-row md:items-baseline md:justify-between gap-2">
+              <div class="w-48 shrink-0 text-xs font-mono text-secondary-500">text-s4 • 20px / 600</div>
+              <div class="text-s4 text-secondary-800">Subtitle 4 Column &amp; Section Label</div>
+            </div>
+            <div class="pt-3 flex flex-col md:flex-row md:items-baseline md:justify-between gap-2">
+              <div class="w-48 shrink-0 text-xs font-mono text-secondary-500">text-s5 • 16px / 600</div>
+              <div class="text-s5 text-secondary-800">Subtitle 5 Button / Input / Chip Text</div>
+            </div>
+            <div class="pt-3 flex flex-col md:flex-row md:items-baseline md:justify-between gap-2">
+              <div class="w-48 shrink-0 text-xs font-mono text-secondary-500">text-s6 • 12px / 600</div>
+              <div class="text-s6 text-secondary-800">Subtitle 6 CTA &amp; Footer Link Label</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Body B1 - B5 -->
+        <div class="space-y-4">
+          <div class="flex items-center justify-between border-b border-primary-100 pb-2">
+            <h3 class="font-sans text-s4 text-secondary-700">Body Copy (Plus Jakarta Sans Regular 400, Line Height 150%)</h3>
+            <span class="text-xs text-secondary-500">Paragraf default otomatis B3</span>
+          </div>
+
+          <div class="space-y-3 divide-y divide-gray-100">
+            <div class="pt-2 flex flex-col md:flex-row md:items-baseline md:justify-between gap-2">
+              <div class="w-48 shrink-0 text-xs font-mono text-secondary-500">text-b1 • 24px / 400</div>
+              <div class="text-b1 text-foreground">B1: Selaras adalah platform digital untuk aksi nyata gaya hidup berkelanjutan.</div>
+            </div>
+            <div class="pt-3 flex flex-col md:flex-row md:items-baseline md:justify-between gap-2">
+              <div class="w-48 shrink-0 text-xs font-mono text-secondary-500">text-b2 • 20px / 400</div>
+              <div class="text-b2 text-foreground">B2: Selaras adalah platform digital untuk aksi nyata gaya hidup berkelanjutan.</div>
+            </div>
+            <div class="pt-3 flex flex-col md:flex-row md:items-baseline md:justify-between gap-2">
+              <div class="w-48 shrink-0 text-xs font-mono text-secondary-500">text-b3 • 16px (Default)</div>
+              <div class="text-b3 text-foreground">B3: Selaras adalah platform digital untuk aksi nyata gaya hidup berkelanjutan.</div>
+            </div>
+            <div class="pt-3 flex flex-col md:flex-row md:items-baseline md:justify-between gap-2">
+              <div class="w-48 shrink-0 text-xs font-mono text-secondary-500">text-b4 • 12px / 400</div>
+              <div class="text-b4 text-foreground">B4: Selaras adalah platform digital untuk aksi nyata gaya hidup berkelanjutan.</div>
+            </div>
+            <div class="pt-3 flex flex-col md:flex-row md:items-baseline md:justify-between gap-2">
+              <div class="w-48 shrink-0 text-xs font-mono text-secondary-500">text-b5 • 8px / 400</div>
+              <div class="text-b5 text-foreground">B5: Card short description micro text (8px).</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- SECTION 3: ICONOGRAPHY -->
+    <section id="icons" class="scroll-mt-8 space-y-6">
+      <div class="border-b border-primary-200 pb-3">
+        <h2 class="text-h3 text-secondary-700 flex items-center gap-3">
+          {% lucide "sparkles" size=28 class="text-secondary-500" aria_hidden="true" %}
+          3. Iconography (Lucide Icons)
+        </h2>
+        <p class="text-b3 text-secondary-500 mt-1">
+          Didukung oleh paket <code class="bg-primary-100 px-1.5 py-0.5 rounded text-sm text-secondary-800">lucide[django]</code> v1.1.4 (1700+ ikon SVG). Muat via <code class="bg-primary-100 px-1.5 py-0.5 rounded text-sm text-secondary-800">{% verbatim %}{% load lucide %}{% endverbatim %}</code>.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        <!-- Icon Sizes -->
+        <div class="bg-white rounded-2xl p-6 border border-primary-200 shadow-sm space-y-4">
+          <h3 class="font-sans text-s4 text-secondary-700">Skala Ukuran Standar</h3>
+          <div class="flex items-end gap-6 pt-2">
+            <div class="flex flex-col items-center gap-2">
+              <div class="p-3 bg-primary-100 rounded-xl text-secondary-600">
+                {% lucide "arrow-right" size=16 aria_hidden="true" %}
+              </div>
+              <span class="text-xs font-mono text-secondary-500">16px (Card/CTA)</span>
+            </div>
+            <div class="flex flex-col items-center gap-2">
+              <div class="p-3 bg-primary-100 rounded-xl text-secondary-600">
+                {% lucide "search" size=20 aria_hidden="true" %}
+              </div>
+              <span class="text-xs font-mono text-secondary-500">20px (Search/Btn)</span>
+            </div>
+            <div class="flex flex-col items-center gap-2">
+              <div class="p-3 bg-primary-100 rounded-xl text-secondary-600">
+                {% lucide "globe" size=24 aria_hidden="true" %}
+              </div>
+              <span class="text-xs font-mono text-secondary-500">24px (Default)</span>
+            </div>
+          </div>
+          <p class="text-xs text-secondary-500 mt-2">
+            Ikon menggunakan <code class="font-mono">currentColor</code> sehingga warnanya otomatis mengikuti warna teks induk atau kelas <code class="font-mono">text-*</code>.
+          </p>
+        </div>
+
+        <!-- Color Variations -->
+        <div class="bg-white rounded-2xl p-6 border border-primary-200 shadow-sm space-y-4">
+          <h3 class="font-sans text-s4 text-secondary-700">Pewarnaan Token Ikon</h3>
+          <div class="flex items-center gap-4 pt-2">
+            <div class="p-3 bg-primary-50 rounded-xl text-primary-500">
+              {% lucide "leaf" size=24 aria_hidden="true" %}
+            </div>
+            <div class="p-3 bg-secondary-50 rounded-xl text-secondary-600">
+              {% lucide "tree-pine" size=24 aria_hidden="true" %}
+            </div>
+            <div class="p-3 bg-tertiary-50 rounded-xl text-tertiary-600">
+              {% lucide "heart" size=24 aria_hidden="true" %}
+            </div>
+            <div class="p-3 bg-primary-200 rounded-xl text-primary-800">
+              {% lucide "shield-check" size=24 aria_hidden="true" %}
+            </div>
+          </div>
+          <p class="text-xs text-secondary-500">
+            Gunakan kelas <code class="font-mono">text-primary-*</code>, <code class="font-mono">text-secondary-*</code>, atau <code class="font-mono">text-tertiary-*</code> secara fleksibel.
+          </p>
+        </div>
+
+        <!-- Common SELARAS Icons -->
+        <div class="bg-white rounded-2xl p-6 border border-primary-200 shadow-sm space-y-4">
+          <h3 class="font-sans text-s4 text-secondary-700">Ikon Umum di Modul SELARAS</h3>
+          <div class="grid grid-cols-5 gap-3 pt-1 text-secondary-600">
+            <div class="flex flex-col items-center p-2 rounded-lg hover:bg-primary-50" title="search">{% lucide "search" size=20 aria_hidden="true" %}</div>
+            <div class="flex flex-col items-center p-2 rounded-lg hover:bg-primary-50" title="menu">{% lucide "menu" size=20 aria_hidden="true" %}</div>
+            <div class="flex flex-col items-center p-2 rounded-lg hover:bg-primary-50" title="headset">{% lucide "headset" size=20 aria_hidden="true" %}</div>
+            <div class="flex flex-col items-center p-2 rounded-lg hover:bg-primary-50" title="arrow-right">{% lucide "arrow-right" size=20 aria_hidden="true" %}</div>
+            <div class="flex flex-col items-center p-2 rounded-lg hover:bg-primary-50" title="heart">{% lucide "heart" size=20 aria_hidden="true" %}</div>
+            <div class="flex flex-col items-center p-2 rounded-lg hover:bg-primary-50" title="share-2">{% lucide "share-2" size=20 aria_hidden="true" %}</div>
+            <div class="flex flex-col items-center p-2 rounded-lg hover:bg-primary-50" title="circle-check">{% lucide "circle-check" size=20 aria_hidden="true" %}</div>
+            <div class="flex flex-col items-center p-2 rounded-lg hover:bg-primary-50" title="calendar">{% lucide "calendar" size=20 aria_hidden="true" %}</div>
+            <div class="flex flex-col items-center p-2 rounded-lg hover:bg-primary-50" title="user">{% lucide "user" size=20 aria_hidden="true" %}</div>
+            <div class="flex flex-col items-center p-2 rounded-lg hover:bg-primary-50" title="hand-heart">{% lucide "hand-heart" size=20 aria_hidden="true" %}</div>
+          </div>
+          <p class="text-xs text-secondary-500">
+            Selalu cantumkan <code class="font-mono">aria_hidden="true"</code> jika ikon bersifat dekoratif.
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- SECTION 4: CHIPS COMPONENT -->
+    <section id="chips" class="scroll-mt-8 space-y-6">
+      <div class="border-b border-primary-200 pb-3">
+        <h2 class="text-h3 text-secondary-700 flex items-center gap-3">
+          {% lucide "tag" size=28 class="text-secondary-500" aria_hidden="true" %}
+          4. Chips Component (<code class="text-h4 font-mono">components/chips.html</code>)
+        </h2>
+        <p class="text-b3 text-secondary-500 mt-1">
+          Digunakan untuk tag kategori, filter artikel, status challenge, dan label interaktif.
+        </p>
+      </div>
+
+      <div class="bg-white rounded-2xl p-6 border border-primary-200 shadow-sm space-y-6">
+        
+        <!-- Live Examples Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+          <!-- Primary Variant -->
+          <div class="p-5 rounded-xl bg-primary-50/60 border border-primary-200 space-y-4">
+            <h4 class="font-sans text-s4 text-secondary-700">Variant: Primary (Default)</h4>
+            <div class="space-y-3">
+              <div>
+                <p class="text-xs text-secondary-500 mb-1.5">Static (Default state)</p>
+                {% include "components/chips.html" with label="Gaya Hidup" variant="primary" %}
+              </div>
+              <div>
+                <p class="text-xs text-secondary-500 mb-1.5">Interactive Link (Hoverable)</p>
+                {% include "components/chips.html" with label="Edukasi Eco" href="#chips" variant="primary" %}
+              </div>
+              <div>
+                <p class="text-xs text-secondary-500 mb-1.5">Selected State (Active)</p>
+                {% include "components/chips.html" with label="Terpilih" href="#chips" variant="primary" selected=True %}
+              </div>
+            </div>
+          </div>
+
+          <!-- Secondary Variant -->
+          <div class="p-5 rounded-xl bg-secondary-50/60 border border-secondary-200 space-y-4">
+            <h4 class="font-sans text-s4 text-secondary-800">Variant: Secondary</h4>
+            <div class="space-y-3">
+              <div>
+                <p class="text-xs text-secondary-500 mb-1.5">Static (Default state)</p>
+                {% include "components/chips.html" with label="Tantangan" variant="secondary" %}
+              </div>
+              <div>
+                <p class="text-xs text-secondary-500 mb-1.5">Interactive Link (Hoverable)</p>
+                {% include "components/chips.html" with label="Kompos 7 Hari" href="#chips" variant="secondary" %}
+              </div>
+              <div>
+                <p class="text-xs text-secondary-500 mb-1.5">Selected State (Turns primary-800)</p>
+                {% include "components/chips.html" with label="Aktif Bergabung" href="#chips" variant="secondary" selected=True %}
+              </div>
+            </div>
+          </div>
+
+          <!-- Tertiary Variant -->
+          <div class="p-5 rounded-xl bg-tertiary-50/60 border border-tertiary-200 space-y-4">
+            <h4 class="font-sans text-s4 text-tertiary-800">Variant: Tertiary (Pink)</h4>
+            <div class="space-y-3">
+              <div>
+                <p class="text-xs text-secondary-500 mb-1.5">Static (Default state)</p>
+                {% include "components/chips.html" with label="Aksi Peduli" variant="tertiary" %}
+              </div>
+              <div>
+                <p class="text-xs text-secondary-500 mb-1.5">Interactive Link (Hoverable)</p>
+                {% include "components/chips.html" with label="Donasi Pohon" href="#chips" variant="tertiary" %}
+              </div>
+              <div>
+                <p class="text-xs text-secondary-500 mb-1.5">Selected State (Active)</p>
+                {% include "components/chips.html" with label="Kampanye Terpilih" href="#chips" variant="tertiary" selected=True %}
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Specifications & Code -->
+        <div class="bg-gray-50 rounded-xl p-4 border border-gray-200 text-xs text-secondary-700 space-y-2">
+          <p class="font-semibold text-secondary-800">Parameter Komponen Chips:</p>
+          <ul class="list-disc list-inside space-y-1 text-secondary-600">
+            <li><code class="font-mono">label</code> (Wajib): Teks yang ditampilkan pada chip.</li>
+            <li><code class="font-mono">variant</code> (Opsional): <code class="font-mono">'primary'</code> (default), <code class="font-mono">'secondary'</code>, atau <code class="font-mono">'tertiary'</code>.</li>
+            <li><code class="font-mono">href</code> (Opsional): Jika diisi, chip dirender sebagai tautan <code class="font-mono">&lt;a&gt;</code> yang memiliki efek hover. Jika kosong, dirender sebagai <code class="font-mono">&lt;span&gt;</code>.</li>
+            <li><code class="font-mono">selected</code> (Opsional): <code class="font-mono">True</code> untuk menandai chip aktif (menambahkan <code class="font-mono">aria-current="true"</code> jika tautan).</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 5: BUTTON COMPONENT -->
+    <section id="buttons" class="scroll-mt-8 space-y-6">
+      <div class="border-b border-primary-200 pb-3">
+        <h2 class="text-h3 text-secondary-700 flex items-center gap-3">
+          {% lucide "mouse-pointer-click" size=28 class="text-secondary-500" aria_hidden="true" %}
+          5. Button Component (<code class="text-h4 font-mono">components/button.html</code>)
+        </h2>
+        <p class="text-b3 text-secondary-500 mt-1">
+          Tombol utama untuk aksi pengguna, tautan CTA, form submissions, dan tombol ikon.
+        </p>
+      </div>
+
+      <div class="bg-white rounded-2xl p-6 border border-primary-200 shadow-sm space-y-8">
+        
+        <!-- Variants & States -->
+        <div class="space-y-4">
+          <h3 class="font-sans text-s4 text-secondary-700">Varian Warna &amp; Status Aksi</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            <!-- Primary Buttons -->
+            <div class="p-5 rounded-xl border border-primary-200 space-y-3">
+              <h4 class="font-sans text-s5 text-secondary-700 font-semibold">Variant: Primary (Default)</h4>
+              <div class="flex flex-wrap items-center gap-3">
+                {% include "components/button.html" with label="Default State" %}
+                {% include "components/button.html" with label="Selected State" selected=True %}
+                {% include "components/button.html" with label="Disabled State" disabled=True %}
+              </div>
+            </div>
+
+            <!-- Secondary Buttons -->
+            <div class="p-5 rounded-xl border border-secondary-200 space-y-3">
+              <h4 class="font-sans text-s5 text-secondary-800 font-semibold">Variant: Secondary</h4>
+              <div class="flex flex-wrap items-center gap-3">
+                {% include "components/button.html" with label="Default State" variant="secondary" %}
+                {% include "components/button.html" with label="Selected State" variant="secondary" selected=True %}
+                {% include "components/button.html" with label="Disabled State" variant="secondary" disabled=True %}
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Icons Configurations -->
+        <div class="space-y-4">
+          <h3 class="font-sans text-s4 text-secondary-700">Konfigurasi Ikon pada Button</h3>
+          <div class="flex flex-wrap items-center gap-4">
+            <!-- Icon Left -->
+            <div>
+              <p class="text-xs text-secondary-500 mb-1">Icon Left</p>
+              {% include "components/button.html" with label="Simpan Artikel" icon_left="bookmark" %}
+            </div>
+
+            <!-- Icon Right -->
+            <div>
+              <p class="text-xs text-secondary-500 mb-1">Icon Right</p>
+              {% include "components/button.html" with label="Mulai Challenge" icon_right="arrow-right" %}
+            </div>
+
+            <!-- Both Icons -->
+            <div>
+              <p class="text-xs text-secondary-500 mb-1">Both Icons</p>
+              {% include "components/button.html" with label="Help Desk" icon_left="headset" icon_right="chevron-right" %}
+            </div>
+
+            <!-- Icon Only -->
+            <div>
+              <p class="text-xs text-secondary-500 mb-1">Icon Only (Primary)</p>
+              {% include "components/button.html" with icon_only="share-2" aria_label="Bagikan" %}
+            </div>
+
+            <div>
+              <p class="text-xs text-secondary-500 mb-1">Icon Only (Secondary)</p>
+              {% include "components/button.html" with icon_only="heart" variant="secondary" aria_label="Sukai" %}
+            </div>
+
+            <div>
+              <p class="text-xs text-secondary-500 mb-1">Icon Only (Disabled)</p>
+              {% include "components/button.html" with icon_only="trash-2" disabled=True aria_label="Hapus" %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Button as Link vs Button Element -->
+        <div class="p-4 rounded-xl bg-gray-50 border border-gray-200 space-y-3">
+          <h4 class="font-sans text-s5 text-secondary-800 font-semibold">Tipe Elemen: Tautan (<code class="font-mono">&lt;a&gt;</code>) vs Tombol Form (<code class="font-mono">&lt;button&gt;</code>)</h4>
+          <p class="text-xs text-secondary-600">
+            Jika parameter <code class="font-mono">href</code> diberikan, komponen otomatis merender tag <code class="font-mono">&lt;a&gt;</code>. Jika tidak ada <code class="font-mono">href</code>, komponen merender tag <code class="font-mono">&lt;button type="button|submit"&gt;</code>.
+          </p>
+          <div class="flex flex-wrap items-center gap-4 pt-1">
+            {% include "components/button.html" with label="Kirim Formulir (Submit)" type="submit" icon_right="send" %}
+            {% include "components/button.html" with label="Buka Halaman Eksternal (Link)" href="https://github.com" icon_right="external-link" variant="secondary" %}
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- SECTION 6: SEARCH BAR COMPONENT -->
+    <section id="search-bar" class="scroll-mt-8 space-y-6">
+      <div class="border-b border-primary-200 pb-3">
+        <h2 class="text-h3 text-secondary-700 flex items-center gap-3">
+          {% lucide "search" size=28 class="text-secondary-500" aria_hidden="true" %}
+          6. Search Bar Component (<code class="text-h4 font-mono">components/search_bar.html</code>)
+        </h2>
+        <p class="text-b3 text-secondary-500 mt-1">
+          Komponen pencarian terpadu dengan integrasi form GET (?q=...), ikon search di sisi kiri, dan tombol aksi filter di sisi kanan.
+        </p>
+      </div>
+
+      <div class="bg-white rounded-2xl p-6 border border-primary-200 shadow-sm space-y-6">
+        
+        <!-- Live Examples -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+          
+          <div class="space-y-3">
+            <h4 class="font-sans text-s5 text-secondary-700 font-semibold">Default Width (Maksimal 364px)</h4>
+            <p class="text-xs text-secondary-500">Cocok untuk header atau navigasi samping.</p>
+            {% include "components/search_bar.html" with placeholder="Cari Artikel Lingkungan..." %}
+          </div>
+
+          <div class="space-y-3">
+            <h4 class="font-sans text-s5 text-secondary-700 font-semibold">Wide Container Version (<code class="font-mono">wide=True</code>)</h4>
+            <p class="text-xs text-secondary-500">Melebar penuh sesuai ukuran container induk.</p>
+            {% include "components/search_bar.html" with placeholder="Cari Challenge atau Aksi Komunitas..." wide=True %}
+          </div>
+
+        </div>
+
+        <div class="bg-primary-50 rounded-xl p-4 border border-primary-200 text-xs text-secondary-700 space-y-1">
+          <p class="font-semibold text-secondary-800">Spesifikasi Interaksi:</p>
+          <ul class="list-disc list-inside space-y-1 text-secondary-600">
+            <li>Tinggi: 42px dengan sudut membulat <code class="font-mono">rounded-[10px]</code>.</li>
+            <li>Keadaan Standar: Background <code class="font-mono">primary-200</code> dengan border 1px <code class="font-mono">primary-500</code>.</li>
+            <li>Keadaan Fokus: Saat input diklik/difokuskan, background berubah halus menjadi <code class="font-mono">primary-300</code> dan border menjadi transparan.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 7: CARD COMPONENT -->
+    <section id="cards" class="scroll-mt-8 space-y-6">
+      <div class="border-b border-primary-200 pb-3">
+        <h2 class="text-h3 text-secondary-700 flex items-center gap-3">
+          {% lucide "layout-grid" size=28 class="text-secondary-500" aria_hidden="true" %}
+          7. Card Component (<code class="text-h4 font-mono">components/card.html</code>)
+        </h2>
+        <p class="text-b3 text-secondary-500 mt-1">
+          Kartu grid konten ringkas (164px × 190px) untuk katalog tantangan, daftar rekomendasi artikel, atau ringkasan donasi.
+        </p>
+      </div>
+
+      <div class="bg-white rounded-2xl p-6 border border-primary-200 shadow-sm space-y-6">
+        
+        <div class="space-y-3">
+          <h4 class="font-sans text-s4 text-secondary-700">Contoh Kartu dalam Berbagai Skenario</h4>
+          <p class="text-xs text-secondary-500">Mendukung gambar kustom, fallback placeholder pink, pemotongan judul 1 baris, dan deskripsi hingga 2 baris.</p>
+        </div>
+
+        <div class="flex flex-wrap gap-6 items-start">
+          
+          <!-- Card with Default Pink Placeholder -->
+          <div class="space-y-2">
+            <span class="text-xs font-mono text-secondary-500">Placeholder Image</span>
+            {% include "components/card.html" with title="Tanpa Sedotan Plastik" description="Hindari penggunaan sedotan sekali pakai selama seminggu." href="#cards" %}
+          </div>
+
+          <!-- Card with Custom Image -->
+          <div class="space-y-2">
+            <span class="text-xs font-mono text-secondary-500">Custom Image</span>
+            {% include "components/card.html" with title="Hemat Listrik Rumah" description="Matikan lampu dan peralatan elektronik yang tidak terpakai." image="/static/assets/images/landing/bg-landing-page.webp" href="#cards" %}
+          </div>
+
+          <!-- Card with Custom CTA text -->
+          <div class="space-y-2">
+            <span class="text-xs font-mono text-secondary-500">Custom CTA</span>
+            {% include "components/card.html" with title="Kompos Sampah Organik" description="Kelola sisa makanan dapur menjadi pupuk tanaman bermanfaat." cta="Lihat detail" href="#cards" %}
+          </div>
+
+          <!-- Card with Long Text (Testing Clamp & Truncate) -->
+          <div class="space-y-2">
+            <span class="text-xs font-mono text-secondary-500">Long Text Clamp</span>
+            {% include "components/card.html" with title="Tantangan Bersepeda ke Kantor atau Kampus Setiap Hari Kerja" description="Gunakan sepeda sebagai sarana transportasi utama demi menekan emisi karbon dan menjaga kebugaran tubuh setiap pagi dan sore hari." href="#cards" %}
+          </div>
+
+        </div>
+
+        <div class="bg-gray-50 rounded-xl p-4 border border-gray-200 text-xs text-secondary-700 space-y-1">
+          <p class="font-semibold text-secondary-800">Spesifikasi Kartu:</p>
+          <ul class="list-disc list-inside space-y-1 text-secondary-600">
+            <li>Ukuran presisi: lebar 164px dan tinggi 190px dengan radius 10px.</li>
+            <li>Area Banner/Image: tinggi 60px dengan <code class="font-mono">object-cover</code>. Jika <code class="font-mono">image</code> tidak disediakan, otomatis menggunakan background <code class="font-mono">tertiary-300</code>.</li>
+            <li>Tombol CTA disematkan di bagian bawah kartu dengan panah kanan otomatis.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 8: NAVIGATION & FOOTER COMPONENT -->
+    <section id="navigation" class="scroll-mt-8 space-y-6">
+      <div class="border-b border-primary-200 pb-3">
+        <h2 class="text-h3 text-secondary-700 flex items-center gap-3">
+          {% lucide "compass" size=28 class="text-secondary-500" aria_hidden="true" %}
+          8. Navigation &amp; Footer Components
+        </h2>
+        <p class="text-b3 text-secondary-500 mt-1">
+          Struktur navigasi utama dan kaki halaman yang membungkus layout global SELARAS.
+        </p>
+      </div>
+
+      <!-- Navbar Link Demo -->
+      <div class="bg-white rounded-2xl p-6 border border-primary-200 shadow-sm space-y-4">
+        <h3 class="font-sans text-s4 text-secondary-700">Navbar Link Component (<code class="text-s5 font-mono">components/navbar_link.html</code>)</h3>
+        <p class="text-xs text-secondary-500">
+          Menggunakan font Transcity (H4). State aktif menggunakan text-stroke (0.5px) agar tidak memicu layout shift, serta garis bawah statis. State hover menampilkan animasi garis bawah yang tumbuh dari kiri dalam 300ms.
+        </p>
+
+        <div class="p-6 rounded-xl bg-primary-100/50 border border-primary-200 flex flex-wrap items-center gap-8 justify-center">
+          <div>
+            <p class="text-xs font-mono text-secondary-500 mb-2 text-center">Default (Hover me!)</p>
+            {% include "components/navbar_link.html" with label="Article" href="#navigation" %}
+          </div>
+          <div>
+            <p class="text-xs font-mono text-secondary-500 mb-2 text-center">Active State</p>
+            {% include "components/navbar_link.html" with label="Challenge" href="#navigation" active=True %}
+          </div>
+          <div>
+            <p class="text-xs font-mono text-secondary-500 mb-2 text-center">Feeds</p>
+            {% include "components/navbar_link.html" with label="Feeds" href="#navigation" %}
+          </div>
+          <div>
+            <p class="text-xs font-mono text-secondary-500 mb-2 text-center">Donation</p>
+            {% include "components/navbar_link.html" with label="Donation" href="#navigation" %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Navbar & Footer Note -->
+      <div class="bg-primary-100 rounded-2xl p-6 border border-primary-300 space-y-3">
+        <div class="flex items-start gap-3">
+          {% lucide "info" size=24 class="text-secondary-600 shrink-0 mt-0.5" aria_hidden="true" %}
+          <div>
+            <h4 class="font-sans text-s4 text-secondary-800">Navbar &amp; Footer Global</h4>
+            <p class="text-b3 text-secondary-700 mt-1">
+              Halaman ini telah menggunakan template dasar <code class="font-mono bg-white/70 px-1.5 py-0.5 rounded text-sm">templates/base.html</code>, sehingga <strong>Navbar</strong> (<code class="font-mono text-sm">components/navbar.html</code>) secara nyata sedang aktif di bagian paling atas halaman, dan <strong>Footer</strong> (<code class="font-mono text-sm">components/footer.html</code>) aktif di bagian paling bawah halaman lengkap dengan logo jargon Selaras, tautan sosial, info kontak, dan tahun hak cipta dinamis.
+            </p>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- SECTION 9: MOBILE VIEWPORT & RESPONSIVENESS SHOWCASE -->
+    <section id="mobile-showcase" class="scroll-mt-8 space-y-6">
+      <div class="border-b border-primary-200 pb-3">
+        <h2 class="text-h3 text-secondary-700 flex items-center gap-3">
+          {% lucide "smartphone" size=28 class="text-secondary-500" aria_hidden="true" %}
+          9. Mobile Viewport &amp; Responsiveness Showcase
+        </h2>
+        <p class="text-b3 text-secondary-500 mt-1">
+          Semua 7 komponen di <code class="bg-primary-100 px-1.5 py-0.5 rounded text-sm text-secondary-800">templates/components/</code> kini telah diadaptasi untuk viewport ponsel (&lt; 768px). Di bawah ini adalah ringkasan perbandingan serta simulasi interaktif frame mobile (375px).
+        </p>
+      </div>
+
+      <!-- Comparison Matrix Table -->
+      <div class="bg-white rounded-2xl p-6 border border-primary-200 shadow-sm overflow-x-auto">
+        <h3 class="font-sans text-s4 text-secondary-700 mb-4">Tabel Spesifikasi Responsif 7 Komponen</h3>
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="border-b border-primary-200 bg-primary-50/70 text-secondary-800 font-semibold">
+              <th class="py-3 px-4">Komponen</th>
+              <th class="py-3 px-4">Tampilan Desktop (≥ 768px)</th>
+              <th class="py-3 px-4">Tampilan Mobile (&lt; 768px)</th>
+              <th class="py-3 px-4">Status Mobile</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 text-secondary-700">
+            <tr>
+              <td class="py-3 px-4 font-mono font-semibold">1. navbar.html</td>
+              <td class="py-3 px-4">Baris menu horizontal terpusat (gap-16 &amp; gap-8).</td>
+              <td class="py-3 px-4">Header ringkas dengan logo, tombol hamburger toggle, dan drawer menu vertikal.</td>
+              <td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-medium">Ready</span></td>
+            </tr>
+            <tr>
+              <td class="py-3 px-4 font-mono font-semibold">2. navbar_link.html</td>
+              <td class="py-3 px-4">Font H4 Transcity dengan efek garis bawah hover animasi 300ms.</td>
+              <td class="py-3 px-4">Target ketukan nyaman (py-1) dengan dukungan status aktif &amp; touch focus.</td>
+              <td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-medium">Ready</span></td>
+            </tr>
+            <tr>
+              <td class="py-3 px-4 font-mono font-semibold">3. footer.html</td>
+              <td class="py-3 px-4">Layout horizontal penuh, padding pr-[126px], pl-10.</td>
+              <td class="py-3 px-4">Stacking vertikal (flex-col), grid kolom adaptif (grid-cols-1 sm:grid-cols-3), bebas horizontal overflow.</td>
+              <td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-medium">Ready</span></td>
+            </tr>
+            <tr>
+              <td class="py-3 px-4 font-mono font-semibold">4. search_bar.html</td>
+              <td class="py-3 px-4">Tinggi 42px, padding px-4, font S5.</td>
+              <td class="py-3 px-4">Lebar fleksibel w-full max-w-full, padding px-3.5, font teks responsif (text-s6 md:text-s5).</td>
+              <td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-medium">Ready</span></td>
+            </tr>
+            <tr>
+              <td class="py-3 px-4 font-mono font-semibold">5. button.html</td>
+              <td class="py-3 px-4">Tinggi 48px, teks S5 (16px), slot ikon 24px.</td>
+              <td class="py-3 px-4">Tinggi 40px, teks S6 (12px), slot ikon 20px, icon-only 40px × 40px (sesuai spesifikasi Section 13.4).</td>
+              <td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-medium">Ready</span></td>
+            </tr>
+            <tr>
+              <td class="py-3 px-4 font-mono font-semibold">6. chips.html</td>
+              <td class="py-3 px-4">Tinggi 33px, teks S5, min-w-[74px].</td>
+              <td class="py-3 px-4">Tinggi 33px, teks S6 di mobile (text-s6 sm:text-s5), min-w-[70px] agar tag panjang tetap rapi.</td>
+              <td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-medium">Ready</span></td>
+            </tr>
+            <tr>
+              <td class="py-3 px-4 font-mono font-semibold">7. card.html</td>
+              <td class="py-3 px-4">164px × 190px dengan image cover dan CTA arrow.</td>
+              <td class="py-3 px-4">Tetap konsisten 164px × 190px, mendukung shrink-0 untuk scroll horizontal / 2 kolom, feedback sentuhan (active:scale-98).</td>
+              <td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-medium">Ready</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Animated Hamburger Demo Box -->
+      <div class="bg-white rounded-2xl p-6 border border-primary-200 shadow-sm space-y-4">
+        <h3 class="font-sans text-s4 text-secondary-700">Animasi Morfing Ikon Hamburger Mobile</h3>
+        <p class="text-xs text-secondary-600">
+          Ikon burger pada <code class="font-mono bg-primary-100 text-secondary-800 px-1.5 py-0.5 rounded">components/navbar.html</code> menggunakan animasi morfing 3-bar yang bertransformasi halus menjadi simbol <strong>"X"</strong> dengan transisi <code class="font-mono">duration-300 ease-in-out</code>, sementara dropdown menu meluncur turun dengan perpaduan efek <em>fade-in</em> dan <em>slide-down</em>.
+        </p>
+
+        <div class="p-6 rounded-xl bg-primary-50/70 border border-primary-200 flex flex-wrap items-center gap-6 justify-center">
+          <div class="flex flex-col items-center gap-2">
+            <span class="text-xs text-secondary-500 font-mono">Status Tertutup (Burger)</span>
+            <div class="inline-flex size-10 items-center justify-center rounded-[10px] bg-primary-100 text-secondary-700 shadow-xs">
+              <div class="relative flex h-4 w-5 flex-col justify-between items-center" aria-hidden="true">
+                <span class="h-0.5 w-5 rounded-full bg-current"></span>
+                <span class="h-0.5 w-5 rounded-full bg-current"></span>
+                <span class="h-0.5 w-5 rounded-full bg-current"></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="text-secondary-400 font-mono text-lg">&xrarr;</div>
+
+          <div class="flex flex-col items-center gap-2">
+            <span class="text-xs text-secondary-500 font-mono">Status Terbuka (Morphed 'X')</span>
+            <div class="inline-flex size-10 items-center justify-center rounded-[10px] bg-primary-100 text-secondary-700 shadow-xs">
+              <div class="relative flex h-4 w-5 flex-col justify-between items-center" aria-hidden="true">
+                <span class="h-0.5 w-5 rounded-full bg-current translate-y-[7px] rotate-45"></span>
+                <span class="h-0.5 w-5 rounded-full bg-current opacity-0 scale-x-0"></span>
+                <span class="h-0.5 w-5 rounded-full bg-current -translate-y-[7px] -rotate-45"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+</main>
+{% endblock %}

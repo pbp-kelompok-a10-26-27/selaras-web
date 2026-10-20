@@ -1,12 +1,12 @@
 {% load static %}
 {% url 'home' as home_url %}
 <footer class="w-full bg-tertiary-300 text-secondary-300">
-  <div class="flex items-start justify-between pt-9 pr-[126px] pb-[13px] pl-10">
+  <div class="flex flex-col lg:flex-row items-start justify-between p-6 sm:p-8 lg:pt-9 lg:pr-[126px] lg:pb-[13px] lg:pl-10 gap-8 lg:gap-0">
     <a href="{{ home_url }}" class="shrink-0">
-      <img src="{% static 'assets/images/logo-w-jargon.svg' %}" alt="SELARAS, selaras untuk bumi" class="h-auto w-[250px]" />
+      <img src="{% static 'assets/images/logo-w-jargon.svg' %}" alt="SELARAS, selaras untuk bumi" class="h-auto w-[200px] sm:w-[220px] lg:w-[250px]" />
     </a>
-    <nav aria-label="Footer" class="flex pt-8">
-      <div class="w-[171px]">
+    <nav aria-label="Footer" class="grid grid-cols-1 sm:grid-cols-3 gap-8 w-full lg:w-auto lg:flex lg:pt-8 lg:gap-0">
+      <div class="w-full lg:w-[171px]">
         <h2 class="font-sans text-s4">Socials</h2>
         <ul class="mt-0.5 flex flex-col gap-3 text-s6">
           <li>
@@ -29,7 +29,7 @@
           </li>
         </ul>
       </div>
-      <div class="w-[199px]">
+      <div class="w-full lg:w-[199px]">
         <h2 class="font-sans text-s4">Support</h2>
         <ul class="mt-0.5 flex flex-col gap-3 text-s6">
           <li><a href="#">FAQs</a></li>
@@ -37,7 +37,7 @@
           <li><a href="#">Privacy Policy</a></li>
         </ul>
       </div>
-      <div>
+      <div class="w-full lg:w-auto">
         <h2 class="font-sans text-s4">Contact Us</h2>
         <ul class="mt-0.5 flex flex-col gap-3 text-s6">
           <li><a href="tel:+6287875745182">0878 7574 5182</a></li>
@@ -47,7 +47,7 @@
       </div>
     </nav>
   </div>
-  <div class="border-t border-neutral-50 pt-2 pb-[13px] pl-10">
-    <p class="text-s5">copyright &copy; Selaras {% now "Y" %} All rights reserved.</p>
+  <div class="border-t border-neutral-50 px-6 sm:px-8 lg:pl-10 pt-3 pb-4 lg:pt-2 lg:pb-[13px]">
+    <p class="text-s6 sm:text-s5">copyright &copy; Selaras {% now "Y" %} All rights reserved.</p>
   </div>
 </footer>

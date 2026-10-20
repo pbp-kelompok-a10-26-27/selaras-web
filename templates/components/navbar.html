@@ -1,48 +1,177 @@
+{% load static %}
+{% load lucide %}
 {% url 'home' as home_url %} 
 {% url 'accounts:profile' as profile_url %} 
 {% url 'accounts:login' as login_url %} 
 {% url 'accounts:register' as register_url %}
-<nav
-  aria-label="Navigasi utama"
-  class="relative flex items-center justify-center gap-16 px-8 py-4 z-100"
->
-  <ul class="flex items-center gap-8">
-    <li>
-      {% include "components/navbar_link.html" with label="Home" href=home_url %}
-    </li>
-    <li>
-      {% include "components/navbar_link.html" with label="Article" href="#" %}
-    </li>
-    <li>
-      {% include "components/navbar_link.html" with label="Challenge" href="#" %}
-    </li>
-    <li>
-      {% include "components/navbar_link.html" with label="Feeds" href="#" %}
-    </li>
-    <li>
-      {% include "components/navbar_link.html" with label="Donation" href="#" %}
-    </li>
-  </ul>
-  <ul class="flex items-center gap-8">
-    {% if user.is_authenticated %}
-    <li>
-      {% include "components/navbar_link.html" with label="Profile" href=profile_url %}
-    </li>
-    <li>
-      <form method="post" action="{% url 'accounts:logout' %}">
-        {% csrf_token %}
-        <button type="submit" class="font-display text-h4 text-secondary-500">
-          Logout
-        </button>
-      </form>
-    </li>
-    {% else %}
-    <li>
-      {% include "components/navbar_link.html" with label="Login" href=login_url %}
-    </li>
-    <li>
-      {% include "components/navbar_link.html" with label="Register" href=register_url %}
-    </li>
-    {% endif %}
-  </ul>
-</nav>
+
+<header class="relative w-full z-50">
+  <nav aria-label="Navigasi utama" class="w-full">
+    
+    <!-- Mobile Navigation Bar (< md) -->
+    <div class="flex md:hidden items-center justify-between px-4 py-3 bg-white/95 backdrop-blur-sm border-b border-primary-200/70 shadow-xs">
+      <a href="{{ home_url }}" class="flex items-center gap-2">
+        <img src="{% static 'assets/images/logo.svg' %}" alt="SELARAS logo" class="h-8 w-8 object-contain" />
+        <span class="font-display text-h5 text-secondary-700">SELARAS</span>
+      </a>
+
+      <!-- Animated Hamburger / Close Toggle Button -->
+      <button
+        type="button"
+        id="mobile-menu-toggle"
+        aria-label="Buka menu navigasi"
+        aria-expanded="false"
+        aria-controls="mobile-menu-dropdown"
+        class="inline-flex size-10 items-center justify-center rounded-[10px] bg-primary-100 text-secondary-700 hover:bg-primary-200 active:bg-primary-300 transition-colors focus:outline-none"
+      >
+        <span class="sr-only">Toggle navigation</span>
+        <div class="relative flex h-4 w-5 flex-col justify-between items-center" aria-hidden="true">
+          <span id="burger-bar-1" class="h-0.5 w-5 rounded-full bg-current transition-all duration-300 ease-in-out origin-center"></span>
+          <span id="burger-bar-2" class="h-0.5 w-5 rounded-full bg-current transition-all duration-300 ease-in-out"></span>
+          <span id="burger-bar-3" class="h-0.5 w-5 rounded-full bg-current transition-all duration-300 ease-in-out origin-center"></span>
+        </div>
+      </button>
+    </div>
+
+    <!-- Mobile Dropdown Menu Drawer -->
+    <div
+      id="mobile-menu-dropdown"
+      class="hidden md:hidden absolute top-full left-0 w-full bg-white border-b border-primary-200 shadow-lg px-6 py-5 transition-all duration-300 ease-out opacity-0 -translate-y-2 pointer-events-none"
+    >
+      <ul class="flex flex-col gap-3">
+        <li>
+          {% include "components/navbar_link.html" with label="Home" href=home_url %}
+        </li>
+        <li>
+          {% include "components/navbar_link.html" with label="Article" href="#" %}
+        </li>
+        <li>
+          {% include "components/navbar_link.html" with label="Challenge" href="#" %}
+        </li>
+        <li>
+          {% include "components/navbar_link.html" with label="Feeds" href="#" %}
+        </li>
+        <li>
+          {% include "components/navbar_link.html" with label="Donation" href="#" %}
+        </li>
+      </ul>
+
+      <hr class="my-4 border-primary-100" />
+
+      <ul class="flex flex-col gap-3">
+        {% if user.is_authenticated %}
+        <li>
+          {% include "components/navbar_link.html" with label="Profile" href=profile_url %}
+        </li>
+        <li>
+          <form method="post" action="{% url 'accounts:logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="font-display text-h4 text-secondary-500 py-1">
+              Logout
+            </button>
+          </form>
+        </li>
+        {% else %}
+        <li>
+          {% include "components/navbar_link.html" with label="Login" href=login_url %}
+        </li>
+        <li>
+          {% include "components/navbar_link.html" with label="Register" href=register_url %}
+        </li>
+        {% endif %}
+      </ul>
+    </div>
+
+    <!-- Desktop Navigation Bar (>= md) -->
+    <div class="hidden md:flex items-center justify-center gap-16 px-8 py-4">
+      <ul class="flex items-center gap-8">
+        <li>
+          {% include "components/navbar_link.html" with label="Home" href=home_url %}
+        </li>
+        <li>
+          {% include "components/navbar_link.html" with label="Article" href="#" %}
+        </li>
+        <li>
+          {% include "components/navbar_link.html" with label="Challenge" href="#" %}
+        </li>
+        <li>
+          {% include "components/navbar_link.html" with label="Feeds" href="#" %}
+        </li>
+        <li>
+          {% include "components/navbar_link.html" with label="Donation" href="#" %}
+        </li>
+      </ul>
+      <ul class="flex items-center gap-8">
+        {% if user.is_authenticated %}
+        <li>
+          {% include "components/navbar_link.html" with label="Profile" href=profile_url %}
+        </li>
+        <li>
+          <form method="post" action="{% url 'accounts:logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="font-display text-h4 text-secondary-500">
+              Logout
+            </button>
+          </form>
+        </li>
+        {% else %}
+        <li>
+          {% include "components/navbar_link.html" with label="Login" href=login_url %}
+        </li>
+        <li>
+          {% include "components/navbar_link.html" with label="Register" href=register_url %}
+        </li>
+        {% endif %}
+      </ul>
+    </div>
+
+  </nav>
+</header>
+
+<script>
+  (function() {
+    const toggleBtn = document.getElementById('mobile-menu-toggle');
+    const mobileMenu = document.getElementById('mobile-menu-dropdown');
+    const bar1 = document.getElementById('burger-bar-1');
+    const bar2 = document.getElementById('burger-bar-2');
+    const bar3 = document.getElementById('burger-bar-3');
+
+    if (toggleBtn && mobileMenu && bar1 && bar2 && bar3) {
+      toggleBtn.addEventListener('click', function() {
+        const isExpanded = toggleBtn.getAttribute('aria-expanded') === 'true';
+        const willExpand = !isExpanded;
+
+        toggleBtn.setAttribute('aria-expanded', String(willExpand));
+        toggleBtn.setAttribute('aria-label', willExpand ? 'Tutup menu navigasi' : 'Buka menu navigasi');
+
+        if (willExpand) {
+          // Morph bars smoothly into 'X'
+          bar1.classList.add('translate-y-[7px]', 'rotate-45');
+          bar2.classList.add('opacity-0', 'scale-x-0');
+          bar3.classList.add('-translate-y-[7px]', '-rotate-45');
+
+          // Reveal and slide dropdown down
+          mobileMenu.classList.remove('hidden');
+          requestAnimationFrame(function() {
+            mobileMenu.classList.remove('opacity-0', '-translate-y-2', 'pointer-events-none');
+            mobileMenu.classList.add('opacity-100', 'translate-y-0');
+          });
+        } else {
+          // Morph 'X' smoothly back into hamburger bars
+          bar1.classList.remove('translate-y-[7px]', 'rotate-45');
+          bar2.classList.remove('opacity-0', 'scale-x-0');
+          bar3.classList.remove('-translate-y-[7px]', '-rotate-45');
+
+          // Slide dropdown up and hide
+          mobileMenu.classList.remove('opacity-100', 'translate-y-0');
+          mobileMenu.classList.add('opacity-0', '-translate-y-2', 'pointer-events-none');
+          setTimeout(function() {
+            if (toggleBtn.getAttribute('aria-expanded') === 'false') {
+              mobileMenu.classList.add('hidden');
+            }
+          }, 300);
+        }
+      });
+    }
+  })();
+</script>

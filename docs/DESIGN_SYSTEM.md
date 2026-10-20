@@ -451,7 +451,7 @@ Add once in `templates/base.html`, above `{% block content %}`:
 | Gap between items | 32px (placeholder)                 |
 | Padding           | 32px horizontal, 16px vertical (placeholder) |
 | Background        | None (placeholder)                 |
-| Mobile version    | Not implemented                    |
+| Mobile version    | Implemented: compact top-bar with logo and hamburger toggle button (`size-10`), opening a vertical navigation drawer with backdrop blur |
 
 ---
 
@@ -643,7 +643,7 @@ All values are measured from the Figma frame (1440px wide).
 
 * Column headings use `<h2>` with `font-sans text-s4`, overriding the base heading style.
 * There are no hover states in the design.
-* There is no mobile layout yet.
+* Mobile layout: column stacking with `flex-col lg:flex-row`, responsive columns grid (`grid-cols-1 sm:grid-cols-3 lg:flex`), and responsive horizontal padding (`px-6 sm:px-8 lg:pl-10`).
 
 ---
 
@@ -660,13 +660,11 @@ All values are measured from the Figma frame (1440px wide).
 | Search bar padding and gap | Measured from Figma screenshots, not confirmed                         |
 | Navbar layout              | Gap values, padding, and background are placeholders                   |
 | Navbar links               | Only Home has a real route                                             |
-| Navbar mobile              | Not implemented                                                        |
 | Login and Register         | Static links; final form (link or button) not decided                  |
 | Button breakpoint          | `md` (768px) assumed                                                   |
 | Footer links               | Social and Support URLs are placeholders                               |
 | Footer Twitter icon        | Design uses the old Twitter bird; the brand now uses X                 |
 | Footer logo file           | `logo-w-jargon.svg` contains an embedded raster image, not vectors     |
-| Footer mobile              | Not implemented                                                        |
 | Transcity license          | Loaded from CDNFonts as `Transcity Demo.woff` (demo version); license not confirmed |
 
 ---
