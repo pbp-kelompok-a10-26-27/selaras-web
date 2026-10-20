@@ -7,8 +7,8 @@ class TimeStamp(models.Model):
     Abstract base model for providing datetime creation and updation purpose.
     """
 
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
 
     class Meta:
 

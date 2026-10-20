@@ -1,0 +1,16 @@
+{% if href %}
+  <a
+    href="{{ href }}"{% if selected %} aria-current="true"{% endif %}
+    class="inline-flex h-[33px] min-w-[74px] items-center justify-center whitespace-nowrap rounded-[10px] px-[10px] text-s5 text-neutral-50 transition-colors
+      {% if variant == 'secondary' %}{% if selected %}bg-primary-800{% else %}bg-secondary-300 hover:bg-secondary-400{% endif %}
+      {% elif variant == 'tertiary' %}{% if selected %}bg-tertiary-500{% else %}bg-tertiary-300 hover:bg-tertiary-400{% endif %}
+      {% else %}{% if selected %}bg-primary-500{% else %}bg-primary-300 hover:bg-primary-400{% endif %}{% endif %}"
+  >{{ label }}</a>
+{% else %}
+  <span
+    class="inline-flex h-[33px] min-w-[74px] items-center justify-center whitespace-nowrap rounded-[10px] px-[10px] text-s5 text-neutral-50
+      {% if variant == 'secondary' %}{% if selected %}bg-primary-800{% else %}bg-secondary-300{% endif %}
+      {% elif variant == 'tertiary' %}{% if selected %}bg-tertiary-500{% else %}bg-tertiary-300{% endif %}
+      {% else %}{% if selected %}bg-primary-500{% else %}bg-primary-300{% endif %}{% endif %}"
+  >{{ label }}</span>
+{% endif %}

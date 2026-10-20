@@ -1,0 +1,53 @@
+{% load static %}
+{% url 'home' as home_url %}
+<footer class="w-full bg-tertiary-300 text-secondary-300">
+  <div class="flex items-start justify-between pt-9 pr-[126px] pb-[13px] pl-10">
+    <a href="{{ home_url }}" class="shrink-0">
+      <img src="{% static 'assets/images/logo-w-jargon.svg' %}" alt="SELARAS, selaras untuk bumi" class="h-auto w-[250px]" />
+    </a>
+    <nav aria-label="Footer" class="flex pt-8">
+      <div class="w-[171px]">
+        <h2 class="font-sans text-s4">Socials</h2>
+        <ul class="mt-0.5 flex flex-col gap-3 text-s6">
+          <li>
+            <a href="#" class="flex items-center gap-2">
+              <img src="{% static 'assets/icons/Linkedin.svg' %}" alt="" class="h-[18px] w-[17px]" />
+              <span class="sr-only">LinkedIn:</span> selaras.id
+            </a>
+          </li>
+          <li>
+            <a href="#" class="flex items-center gap-2">
+              <img src="{% static 'assets/icons/Instagram.svg' %}" alt="" class="h-[18px] w-[17px]" />
+              <span class="sr-only">Instagram:</span> selaras.id
+            </a>
+          </li>
+          <li>
+            <a href="#" class="flex items-center gap-2">
+              <img src="{% static 'assets/icons/Twitter.svg' %}" alt="" class="h-[18px] w-[17px]" />
+              <span class="sr-only">Twitter:</span> selaras.id
+            </a>
+          </li>
+        </ul>
+      </div>
+      <div class="w-[199px]">
+        <h2 class="font-sans text-s4">Support</h2>
+        <ul class="mt-0.5 flex flex-col gap-3 text-s6">
+          <li><a href="#">FAQs</a></li>
+          <li><a href="#">Terms &amp; Conditions</a></li>
+          <li><a href="#">Privacy Policy</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2 class="font-sans text-s4">Contact Us</h2>
+        <ul class="mt-0.5 flex flex-col gap-3 text-s6">
+          <li><a href="tel:+6287875745182">0878 7574 5182</a></li>
+          <li><a href="mailto:contact@selaras.co.id">contact@selaras.co.id</a></li>
+          <li><a href="https://www.selaras.co.id">www.selaras.co.id</a></li>
+        </ul>
+      </div>
+    </nav>
+  </div>
+  <div class="border-t border-neutral-50 pt-2 pb-[13px] pl-10">
+    <p class="text-s5">copyright &copy; Selaras {% now "Y" %} All rights reserved.</p>
+  </div>
+</footer>

@@ -1,0 +1,1 @@
+"""Dashboard has no persistent entities; it presents data owned by other apps."""
