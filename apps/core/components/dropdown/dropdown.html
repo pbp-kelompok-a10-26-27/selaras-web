@@ -1,0 +1,111 @@
+{% load lucide %}
+
+<div class="relative w-full custom-dropdown">
+    {% if label %}
+    <label class="block mb-2 font-sans text-s5 text-foreground">
+        {{ label }}
+    </label>
+    {% endif %}
+
+    {# Hidden input for Django form submission #}
+    <input type="hidden" name="{{ name }}" id="{{ id }}" value="{{ initial_value|default:'' }}">
+
+    {# Trigger Button #}
+    <button 
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded="false"
+        class="dropdown-trigger w-full flex items-center justify-between px-4 py-3 bg-neutral-50 border border-neutral-400 rounded-xl font-sans text-b3 text-foreground shadow-sm transition-all duration-200 hover:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-500/50 cursor-pointer {{ class_ }}"
+    >
+        <span class="dropdown-label truncate text-foreground/80">
+            {{ default_label|default:placeholder|default:"Select an option..." }}
+        </span>
+        <span class="dropdown-arrow transition-transform duration-300 text-secondary-500">
+            {% lucide "chevron-down" class="w-5 h-5" %}
+        </span>
+    </button>
+
+    {# Animated Dropdown Menu Panel #}
+    <div 
+        role="listbox"
+        tabindex="-1"
+        class="dropdown-menu hidden absolute left-0 right-0 z-50 mt-2 bg-neutral-50 border border-neutral-400 rounded-2xl shadow-xl overflow-hidden max-h-60 overflow-y-auto p-1.5 opacity-0 translate-y-2 transition-all duration-200 ease-out {{ option_class }}"
+    >
+        <div class="space-y-0.5">
+            {# Added .items here #}
+            {% for key, values in options.items %}
+                {% if values|stringformat:"s" == values %}
+                    {% with val=values icon="" %}
+                    <div 
+                        role="option"
+                        tabindex="0"
+                        data-value="{{ val }}"
+                        data-label="{{ key }}"
+                        class="dropdown-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left font-sans text-b3 text-foreground cursor-pointer transition-colors duration-150 hover:bg-primary-100 focus:bg-primary-100 focus:outline-none select-none"
+                    >
+                        <span class="truncate">{{ key }}</span>
+                    </div>
+                    {% endwith %}
+                {% else %}
+                    {% with val=values.0 icon=values.1 %}
+                    <div 
+                        role="option"
+                        tabindex="0"
+                        data-value="{{ val }}"
+                        data-label="{{ key }}"
+                        class="dropdown-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left font-sans text-b3 text-foreground cursor-pointer transition-colors duration-150 hover:bg-primary-100 focus:bg-primary-100 focus:outline-none select-none"
+                    >
+                        {% if icon %}
+                        <span class="text-secondary-500 flex-shrink-0">
+                            {% lucide icon class="w-5 h-5" %}
+                        </span>
+                        {% endif %}
+                        <span class="truncate">{{ key }}</span>
+                    </div>
+                    {% endwith %}
+                {% endif %}
+            {% endfor %}
+
+            {% if options_group %}
+                {# Added .items here as well #}
+                {% for group_label, group_items in options_group.items %}
+                <div class="pt-2 pb-1 px-3 font-sans text-s6 uppercase tracking-wider text-neutral-700 select-none {{ option_group_class }}">
+                    {{ group_label }}
+                </div>
+                    {% for key, values in group_items.items %}
+                        {% if values|stringformat:"s" == values %}
+                            {% with val=values icon="" %}
+                            <div 
+                                role="option"
+                                tabindex="0"
+                                data-value="{{ val }}"
+                                data-label="{{ key }}"
+                                class="dropdown-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left font-sans text-b3 text-foreground cursor-pointer transition-colors duration-150 hover:bg-primary-100 focus:bg-primary-100 focus:outline-none select-none"
+                            >
+                                <span class="truncate">{{ key }}</span>
+                            </div>
+                            {% endwith %}
+                        {% else %}
+                            {% with val=values.0 icon=values.1 %}
+                            <div 
+                                role="option"
+                                tabindex="0"
+                                data-value="{{ val }}"
+                                data-label="{{ key }}"
+                                class="dropdown-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left font-sans text-b3 text-foreground cursor-pointer transition-colors duration-150 hover:bg-primary-100 focus:bg-primary-100 focus:outline-none select-none"
+                            >
+                                {% if icon %}
+                                <span class="text-secondary-500 flex-shrink-0">
+                                    {% lucide icon class="w-5 h-5" %}
+                                </span>
+                                {% endif %}
+                                <span class="truncate">{{ key }}</span>
+                            </div>
+                            {% endwith %}
+                        {% endif %}
+                    {% endfor %}
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+</div>

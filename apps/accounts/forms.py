@@ -1,36 +1,43 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserChangeForm, UserCreationForm
+from django.core.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
 
 from .models import User
 
 
-class RegistrationForm(UserCreationForm):
+class NormalizedEmailMixin:
+    """Lowercases the email and rejects case-insensitive duplicates."""
 
-    email = forms.EmailField(required=True)
+    def clean_email(self):
+        email = self.cleaned_data["email"].strip().lower()
+        qs = User.objects.filter(email__iexact=email)
+        if self.instance and self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise ValidationError(_("A user with this email already exists."))
+        return email
 
-    class Meta:
+
+class RegistrationForm(NormalizedEmailMixin, UserCreationForm):
+    class Meta(UserCreationForm.Meta):
         model = User
         fields = ("username", "email")
 
-    def clean_email(self):
-        email = self.cleaned_data["email"].lower()
-        if User.objects.filter(email__iexact=email).exists():
-            raise forms.ValidationError("A user with that email already exists.")
-        return email
 
-
-class ProfileForm(forms.ModelForm):
-
+class ProfileForm(NormalizedEmailMixin, forms.ModelForm):
     class Meta:
         model = User
-        fields = ("username", "email", "first_name", "last_name","bio")
-        widgets = {
-            "username": forms.TextInput(attrs={"readonly": "readonly", "class": "bg-gray-100 cursor-not-allowed"}),
-            "bio": forms.Textarea(attrs={"rows": 3}),
-        }
+        fields = ("first_name", "last_name", "email", "bio")  # never role/is_staff
 
-    def clean_email(self):
-        email = self.cleaned_data["email"].lower()
-        if User.objects.exclude(pk=self.instance.pk).filter(email__iexact=email).exists():
-            raise forms.ValidationError("A user with that email already exists.")
-        return email
+
+class AdminUserCreationForm(NormalizedEmailMixin, UserCreationForm):
+    class Meta(UserCreationForm.Meta):
+        model = User
+        fields = ("username", "email", "role")
+
+
+class AdminUserChangeForm(NormalizedEmailMixin, UserChangeForm):
+    class Meta(UserChangeForm.Meta):
+        model = User
+        fields = "__all__"

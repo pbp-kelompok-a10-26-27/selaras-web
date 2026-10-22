@@ -17,6 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 from django.views.generic import TemplateView
+from apps.core.views import design_system
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -26,6 +27,7 @@ urlpatterns = [
     path('feed/', include('apps.feeds.urls')),
     path('donations/', include('apps.donations.urls')),
     path('helpdesk/', include('apps.helpdesk.urls')),
+    path('design-system/', design_system, name='design_system'),
     path('dashboard/', include('apps.dashboard.urls')),
     path(
         "",

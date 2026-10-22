@@ -1,0 +1,46 @@
+{% load component_tags lucide %}
+
+<div
+  id="{{ id }}"
+  class="modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-neutral-900/60 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300 ease-out"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="{{ id }}-title"
+>
+  <div
+    class="modal-dialog w-full bg-neutral-50 border border-neutral-400 rounded-3xl shadow-2xl overflow-hidden transform scale-95 translate-y-4 opacity-0 transition-all duration-300 ease-out flex flex-col max-h-[90vh]
+      {% if size == 'sm' %}max-w-sm
+      {% elif size == 'lg' %}max-w-2xl
+      {% elif size == 'xl' %}max-w-4xl
+      {% elif size == 'full' %}max-w-[95vw] h-[95vh]
+      {% else %}max-w-lg{% endif %}
+      {{ class_ }}"
+  >
+    {# Modal Header #}
+    <div class="flex items-center justify-between px-6 py-4 border-b border-neutral-400 bg-neutral-100/50">
+      <h3 id="{{ id }}-title" class="font-display text-h4 text-foreground truncate">
+        {% slot "header" %}{{ title }}{% endslot %}
+      </h3>
+      <button
+        type="button"
+        class="modal-close p-2 rounded-xl text-neutral-700 hover:text-foreground hover:bg-neutral-200 transition-colors cursor-pointer"
+        aria-label="Close modal"
+      >
+        {% lucide "x" class="w-5 h-5" %}
+      </button>
+    </div>
+
+    {# Modal Body (Scrollable) #}
+    <div class="p-6 overflow-y-auto font-sans text-b3 text-foreground/90 space-y-4 flex-1">
+      {% slot "content" default %}{% endslot %}
+    </div>
+
+    {# Modal Footer (Optional) #}
+    {% if has_footer %}
+      <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-neutral-400 bg-neutral-100/50">
+        {% slot "footer" %}
+        {% endslot %}
+      </div>
+    {% endif %}
+  </div>
+</div>

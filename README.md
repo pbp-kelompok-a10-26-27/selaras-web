@@ -18,6 +18,25 @@ SELARAS provides structured challenges with daily progress tracking and badges/s
 - [x] Setup overall models, views, and urls for each module
 - [x] Added dashboard module for admin and user
 
+- [x] Created reusable navbar and button components (refactored using `django-components`)
+- [x] Created login and register page
+- [x] Created design system page for design system tokens and components overview in URL `/design-system/`
+
+- [x] Finalized design system components 
+- [x] Modified authentication system
+
+
+### Design System Notes
+All components will be using `django-components` configuration (still not applied for the others), in progress. For more details, read the existing navbar and button configuration components. Furthermore, you can read [Django Components](https://django-components.github.io/django-components/docs/). Components will be placed in `apps/core/components/` with this given structure.
+
+```text
+core
+└── components
+    └── component-1
+        └── component-1.html
+        └── component-1.py
+
+```
 
 ### Group Members
 

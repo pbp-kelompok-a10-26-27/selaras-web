@@ -1,10 +1,10 @@
-{% load static %}
+{% load static lucide component_tags %}
 <!doctype html>
 <html lang="en" class="h-full">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Create Account | SELARAS — Sustainable Living</title>
+    <title>Register | SELARAS</title>
 
     <!-- Favicon -->
     <link
@@ -27,8 +27,13 @@
     class="h-full font-sans bg-[#f7f9f0] text-[#212b1c] flex items-center justify-center p-4 sm:p-6 lg:p-8 selection:bg-[#aac46d] selection:text-[#212b1c]"
   >
     <!-- Main Authentication Container  -->
+    <div
+      id="falling-leaves"
+      class="pointer-events-none fixed inset-0 z-0 overflow-hidden"
+      aria-hidden="true"
+    ></div>
     <main
-      class="w-full max-w-5xl bg-[#fffffe] rounded-3xl border border-[#e6e4df] shadow-sm overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[600px] fade-in"
+      class="relative z-30 w-full max-w-5xl bg-[#fffffe] rounded-3xl border border-[#e6e4df] shadow-sm overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[600px] fade-in"
     >
       <!-- LEFT SIDE: Registration Form Panel  -->
       <section
@@ -64,7 +69,7 @@
           <!-- Non-Field Form Errors -->
           {% if form.non_field_errors %}
           <div
-            class="mb-6 p-3.5 rounded-xl bg-[#fbedf0] border border-[#f3c5cf] text-xs text-[#6d595d] space-y-1"
+            class="mb-6 p-3.5 rounded-xl bg-[#fbedf0] border border-[#f3c5cf] text-xs font-display text-[#6d595d] space-y-1"
             role="alert"
           >
             {% for error in form.non_field_errors %}
@@ -101,22 +106,9 @@
             <div class="space-y-1">
               <div class="relative flex items-center">
                 <div
-                  class="absolute left-3.5 text-[#5f7a4f] pointer-events-none"
+                  class="absolute left-3.5 z-20 text-[#5f7a4f] pointer-events-none"
                 >
-                  <svg
-                    class="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="1.75"
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                    />
-                  </svg>
+                  <span>{% lucide "user" class="w-5 h-5" %}</span>
                 </div>
                 <input
                   type="text"
@@ -130,7 +122,7 @@
                 />
                 <label
                   for="id_username"
-                  class="floating-label absolute left-11 text-sm text-[#999895] pointer-events-none transition-all duration-200 ease-out origin-left"
+                  class="floating-label absolute z-10 left-11 text-sm text-[#999895] pointer-events-none transition-all duration-200 ease-out origin-left"
                 >
                   Username
                 </label>
@@ -146,22 +138,9 @@
             <div class="space-y-1">
               <div class="relative flex items-center">
                 <div
-                  class="absolute left-3.5 text-[#5f7a4f] pointer-events-none"
+                  class="absolute left-3.5 z-20 text-[#5f7a4f] pointer-events-none"
                 >
-                  <svg
-                    class="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="1.75"
-                      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                    />
-                  </svg>
+                  <span>{% lucide "mail" class="w-5 h-5" %}</span>
                 </div>
                 <input
                   type="email"
@@ -175,7 +154,7 @@
                 />
                 <label
                   for="id_email"
-                  class="floating-label absolute left-11 text-sm text-[#999895] pointer-events-none transition-all duration-200 ease-out origin-left"
+                  class="floating-label absolute z-10 left-11 text-sm text-[#999895] pointer-events-none transition-all duration-200 ease-out origin-left"
                 >
                   Email Address
                 </label>
@@ -191,22 +170,9 @@
             <div class="space-y-1">
               <div class="relative flex items-center">
                 <div
-                  class="absolute left-3.5 text-[#5f7a4f] pointer-events-none"
+                  class="absolute left-3.5 z-20 text-[#5f7a4f] pointer-events-none"
                 >
-                  <svg
-                    class="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="1.75"
-                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                    />
-                  </svg>
+                  <span>{% lucide "lock" class="w-5 h-5" %}</span>
                 </div>
                 <input
                   type="password"
@@ -219,49 +185,27 @@
                 />
                 <label
                   for="id_password1"
-                  class="floating-label absolute left-11 text-sm text-[#999895] pointer-events-none transition-all duration-200 ease-out origin-left"
+                  class="floating-label absolute z-10 left-11 text-sm text-[#999895] pointer-events-none transition-all duration-200 ease-out origin-left"
                 >
                   Password
                 </label>
 
                 <button
                   type="button"
-                  class="toggle-password absolute right-3.5 text-[#999895] hover:text-[#475c3b] focus:outline-none"
+                  class="toggle-password absolute right-3.5 w-5 h-5 text-[#999895] hover:text-[#475c3b] focus:outline-none"
                   data-target="id_password1"
                   aria-label="Show password"
                 >
-                  <svg
-                    class="eye-icon w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+                  <span
+                    class="eye-icon absolute inset-0 flex items-center justify-center transition-all duration-200 ease-in-out opacity-100 scale-100"
                   >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="1.75"
-                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="1.75"
-                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                    />
-                  </svg>
-                  <svg
-                    class="eye-off-icon w-5 h-5 hidden"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+                    {% lucide "eye" class="w-5 h-5" %}
+                  </span>
+                  <span
+                    class="eye-off-icon absolute inset-0 flex items-center justify-center transition-all duration-200 ease-in-out opacity-0 scale-75 pointer-events-none"
                   >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="1.75"
-                      d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858-5.908a10.007 10.007 0 013.682-.763c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21f-3-3m-3.59-3.59L3 3"
-                    />
-                  </svg>
+                    {% lucide "eye-off" class="w-5 h-5" %}
+                  </span>
                 </button>
               </div>
               {% if form.password1.errors %}
@@ -275,22 +219,9 @@
             <div class="space-y-1">
               <div class="relative flex items-center">
                 <div
-                  class="absolute left-3.5 text-[#5f7a4f] pointer-events-none"
+                  class="absolute left-3.5 z-20 text-[#5f7a4f] pointer-events-none"
                 >
-                  <svg
-                    class="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="1.75"
-                      d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                    />
-                  </svg>
+                  <span>{% lucide "shield-check" class="w-5 h-5" %}</span>
                 </div>
                 <input
                   type="password"
@@ -303,49 +234,27 @@
                 />
                 <label
                   for="id_password2"
-                  class="floating-label absolute left-11 text-sm text-[#999895] pointer-events-none transition-all duration-200 ease-out origin-left"
+                  class="floating-label absolute z-10 left-11 text-sm text-[#999895] pointer-events-none transition-all duration-200 ease-out origin-left"
                 >
                   Confirm Password
                 </label>
 
                 <button
                   type="button"
-                  class="toggle-password absolute right-3.5 text-[#999895] hover:text-[#475c3b] focus:outline-none"
+                  class="toggle-password absolute right-3.5 w-5 h-5 text-[#999895] hover:text-[#475c3b] focus:outline-none"
                   data-target="id_password2"
                   aria-label="Show password"
                 >
-                  <svg
-                    class="eye-icon w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+                  <span
+                    class="eye-icon absolute inset-0 flex items-center justify-center transition-all duration-200 ease-in-out opacity-100 scale-100"
                   >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="1.75"
-                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="1.75"
-                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                    />
-                  </svg>
-                  <svg
-                    class="eye-off-icon w-5 h-5 hidden"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+                    {% lucide "eye" class="w-5 h-5" %}
+                  </span>
+                  <span
+                    class="eye-off-icon absolute inset-0 flex items-center justify-center transition-all duration-200 ease-in-out opacity-0 scale-75 pointer-events-none"
                   >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="1.75"
-                      d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858-5.908a10.007 10.007 0 013.682-.763c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21f-3-3m-3.59-3.59L3 3"
-                    />
-                  </svg>
+                    {% lucide "eye-off" class="w-5 h-5" %}
+                  </span>
                 </button>
               </div>
               {% if form.password2.errors %}
@@ -356,26 +265,9 @@
             </div>
 
             <!-- Submit Button -->
-            <button
-              type="submit"
-              class="group relative w-full py-3.5 px-6 rounded-xl bg-[#39492f] hover:bg-[#2b3724] text-[#fffffe] font-medium text-sm transition-all duration-200 shadow-sm hover:shadow active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer mt-2"
-            >
-              <span>Create Account</span>
-              <svg
-                class="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M14 5l7 7m0 0l-7 7m7-7H3"
-                />
-              </svg>
-            </button>
+            {% component "button" text="Create Account" type="submit"
+            variant="secondary" size="large" full_width=True
+            icon_right="arrow-right" class="w-full mt-2" %} {% endcomponent %}
           </form>
 
           <!-- Navigation Switch to Login Page -->
@@ -387,20 +279,9 @@
                 class="inline-flex items-center gap-1 font-semibold text-[#475c3b] hover:text-[#212b1c] transition-all group ml-1"
               >
                 <span>Log in</span>
-                <svg
-                  class="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
+                <span
+                  >{% lucide "chevron-right" class="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" %}</span
                 >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
               </a>
             </p>
           </div>
@@ -422,25 +303,14 @@
         <!-- Brand Header Mobile/Desktop -->
         <div class="relative z-10 flex items-center gap-3">
           <div
-            class="w-9 h-9 rounded-xl bg-[#4c623f] text-[#fffffe] flex items-center justify-center shadow-xs"
+            class="w-20 h-20 rounded-xl bg-none text-[#fffffe] flex items-center justify-center shadow-xs"
           >
-            <svg
-              class="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="1.75"
-                d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-              />
-            </svg>
+            <img
+              src="{% static 'assets/images/logo.svg' %}"
+              class="w-full h-full"
+            />
           </div>
-          <span
-            class="font-display text-2xl tracking-wide font-semibold text-[#212b1c]"
+          <span class="font-display text-2xl tracking-wide text-primary-900"
             >SELARAS</span
           >
         </div>
@@ -477,24 +347,6 @@
             </svg>
 
             <!-- Welcoming User Plus Illustration -->
-            <div
-              class="relative z-10 p-4 bg-[#fffffe]/80 backdrop-blur-xs rounded-2xl border border-[#fffffe] shadow-sm flex items-center justify-center"
-            >
-              <svg
-                class="w-16 h-16 text-[#39492f]"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="1.5"
-                  d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
-                />
-              </svg>
-            </div>
 
             <!-- Small Decorative Dots -->
             <div
@@ -542,8 +394,23 @@
               const isPassword = input.getAttribute("type") === "password";
               input.setAttribute("type", isPassword ? "text" : "password");
 
-              eyeIcon.classList.toggle("hidden", isPassword);
-              eyeOffIcon.classList.toggle("hidden", !isPassword);
+              if (isPassword) {
+                eyeIcon.classList.replace("opacity-100", "opacity-0");
+                eyeIcon.classList.replace("scale-100", "scale-75");
+                eyeIcon.classList.add("pointer-events-none");
+
+                eyeOffIcon.classList.replace("opacity-0", "opacity-100");
+                eyeOffIcon.classList.replace("scale-75", "scale-100");
+                eyeOffIcon.classList.remove("pointer-events-none");
+              } else {
+                eyeIcon.classList.replace("opacity-0", "opacity-100");
+                eyeIcon.classList.replace("scale-75", "scale-100");
+                eyeIcon.classList.remove("pointer-events-none");
+
+                eyeOffIcon.classList.replace("opacity-100", "opacity-0");
+                eyeOffIcon.classList.replace("scale-100", "scale-75");
+                eyeOffIcon.classList.add("pointer-events-none");
+              }
 
               this.setAttribute(
                 "aria-label",
@@ -552,6 +419,89 @@
             }
           });
         });
+
+        // Leaves falling animation
+        const fallingLeavesContainer =
+          document.getElementById("falling-leaves");
+        if (!fallingLeavesContainer) return;
+
+        const isMobile = window.innerWidth < 768;
+        const leafCount = isMobile ? 40 : 60;
+
+        const colors = [
+          "#809352",
+          "#889d57",
+          "#99b062",
+          "#aac46d",
+          "#5f7a4f",
+          "#c29ea6",
+          "#dbb1ba",
+        ];
+
+        for (let i = 0; i < leafCount; i++) {
+          createLeaf(fallingLeavesContainer, colors);
+        }
+
+        function createLeaf(container, colors) {
+          const leaf = document.createElement("span");
+          const size = random(40, 60);
+          const startX = random(-5, 105);
+          const duration = random(12, 24);
+          const delay = random(-24, 0);
+          const opacity = random(0.12, 0.28);
+
+          const driftX = random(-100, 100);
+          const rotation = random(240, 600);
+
+          const color = colors[Math.floor(Math.random() * colors.length)];
+
+          /*
+           * Leaf styling
+           */
+          leaf.style.position = "absolute";
+          leaf.style.left = `${startX}%`;
+          leaf.style.top = "-40px";
+
+          leaf.style.width = `${size}px`;
+          leaf.style.height = `${size}px`;
+
+          leaf.style.color = color;
+          leaf.style.opacity = opacity;
+
+          leaf.style.animationDuration = `${duration}s`;
+          leaf.style.animationDelay = `${delay}s`;
+
+          leaf.style.setProperty("--drift-x", `${driftX}px`);
+          leaf.style.setProperty("--rotation", `${rotation}deg`);
+
+          leaf.className = "falling-leaf";
+
+          /*
+           * Use an SVG leaf icon.
+           * This is equivalent to the Lucide leaf icon,
+           * but avoids Django template tags inside JS.
+           */
+          leaf.innerHTML = `
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M11 20A7 7 0 0 1 9.8 6.2C15.5 3.7 20 4 20 4s.3 4.5-2.2 10.2A7 7 0 0 1 11 20Z" />
+        <path d="M8 16c2.5-2.5 5-4.5 8-6" />
+      </svg>
+    `;
+
+          container.appendChild(leaf);
+        }
+
+        function random(min, max) {
+          return Math.random() * (max - min) + min;
+        }
       });
     </script>
   </body>

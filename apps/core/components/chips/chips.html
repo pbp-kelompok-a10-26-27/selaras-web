@@ -1,0 +1,71 @@
+{% load lucide %}
+
+<button
+  type="{{ type|default:'button' }}"
+  class="
+    group relative inline-flex shrink-0 items-center justify-center gap-2
+    rounded-full border px-4 py-2
+    font-sans text-sm font-semibold
+    outline-none transition-all duration-200
+
+    {% if variant == 'primary' %}
+      border-primary-500 bg-primary-500 text-white
+      hover:bg-primary-300
+      data-[selected=true]:ring-2
+      data-[selected=true]:ring-primary-300
+      data-[selected=true]:ring-offset-2
+
+    {% elif variant == 'secondary' %}
+      border-secondary-700 bg-secondary-700 text-white
+      hover:bg-secondary-500
+      data-[selected=true]:ring-2
+      data-[selected=true]:ring-secondary-300
+      data-[selected=true]:ring-offset-2
+
+    {% elif variant == 'tertiary' %}
+      border-tertiary-400 bg-tertiary-300 text-neutral-200
+      hover:bg-tertiary-500
+      data-[selected=true]:ring-2
+      data-[selected=true]:ring-tertiary-300
+      data-[selected=true]:ring-offset-2
+
+    {% elif variant == 'neutral' %}
+      border-neutral-400 bg-neutral-50 text-secondary-800
+      hover:bg-neutral-400
+      data-[selected=true]:ring-2
+      data-[selected=true]:ring-neutral-900
+      data-[selected=true]:ring-offset-2
+
+    {% else %}
+      border-primary-500 bg-primary-500 text-white
+    {% endif %}
+
+    {% if disabled %}
+      cursor-not-allowed opacity-45
+    {% endif %}
+
+    {{ class_ }}
+  "
+  {%
+  if
+  disabled
+  %}disabled{%
+  endif
+  %}
+  aria-pressed="{% if selected %}true{% else %}false{% endif %}"
+  data-toggleable="true"
+  data-selected="{% if selected %}true{% else %}false{% endif %}"
+  data-id="{{ id|default:'' }}"
+>
+  {% if icon_left %}
+  <span class="relative inline-flex shrink-0" aria-hidden="true">
+    {% lucide icon_left class="w-4 h-4" %}
+  </span>
+  {% endif %} {% if text %}
+  <span class="relative">{{ text }}</span>
+  {% endif %} {% if icon_right %}
+  <span class="relative inline-flex shrink-0" aria-hidden="true">
+    {% lucide icon_right class="w-4 h-4" %}
+  </span>
+  {% endif %}
+</button>
