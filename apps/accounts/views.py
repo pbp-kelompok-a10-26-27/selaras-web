@@ -1,32 +1,31 @@
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login, views as auth_views
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, UpdateView
 
+from apps.core.mixins import AuthenticatedRequiredMixin
+
 from .forms import ProfileForm, RegistrationForm
 from .models import User
-from .services import assign_default_role
 
 
 class RegisterView(CreateView):
     form_class = RegistrationForm
     template_name = "accounts/register.html"
-    success_url = reverse_lazy("accounts:login")
 
     def dispatch(self, request, *args, **kwargs):
         if request.user.is_authenticated:
-            return redirect(self.success_url)
+            return redirect(settings.LOGIN_REDIRECT_URL)
         return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
-        user = form.save()
-        assign_default_role(user)
-        login(self.request, user)
-        messages.success(self.request, f"Welcome to SELARAS, {user.username}!")
-        return redirect(self.success_url)
+        self.object = form.save()  # role defaults to User
+        login(self.request, self.object)
+        messages.success(self.request, f"Welcome to SELARAS, {self.object.username}!")
+        return redirect(settings.LOGIN_REDIRECT_URL)
 
 
 class UserLoginView(LoginView):
@@ -38,7 +37,7 @@ class UserLoginView(LoginView):
         return super().form_valid(form)
 
 
-class ProfileView(LoginRequiredMixin, UpdateView):
+class ProfileView(AuthenticatedRequiredMixin, UpdateView):
     model = User
     form_class = ProfileForm
     template_name = "accounts/profile.html"
@@ -52,7 +51,7 @@ class ProfileView(LoginRequiredMixin, UpdateView):
         return super().form_valid(form)
 
 
-class UserPasswordChangeView(LoginRequiredMixin, auth_views.PasswordChangeView):
+class UserPasswordChangeView(AuthenticatedRequiredMixin, auth_views.PasswordChangeView):
     template_name = "accounts/password_change.html"
     success_url = reverse_lazy("accounts:password_change_done")
 
@@ -61,5 +60,7 @@ class UserPasswordChangeView(LoginRequiredMixin, auth_views.PasswordChangeView):
         return super().form_valid(form)
 
 
-class UserPasswordChangeDoneView(LoginRequiredMixin, auth_views.PasswordChangeDoneView):
+class UserPasswordChangeDoneView(
+    AuthenticatedRequiredMixin, auth_views.PasswordChangeDoneView
+):
     template_name = "accounts/password_change_done.html"

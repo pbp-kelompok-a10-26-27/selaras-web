@@ -3,10 +3,7 @@ def is_authenticated_user(user) -> bool:
 
 
 def is_admin(user) -> bool:
-    """Return True if user is authenticated and has Admin role or superuser status."""
-    if not is_authenticated_user(user):
-        return False
-    return getattr(user, "role", None) == "ADMIN" or user.is_superuser
+    return bool(user.is_authenticated and getattr(user, "is_admin", False))
 
 
 def is_user(user) -> bool:
