@@ -6,7 +6,9 @@ class Button(component.Component):
     template_file = "button.html"
 
     def get_template_data(self, args, kwargs, slots, context):
+
         return {
+            "id": kwargs.get("id", ""),
             "text": kwargs.get("text", "Button"),
             "variant": kwargs.get("variant", "primary"),
             "size": kwargs.get("size", "md"),
@@ -24,4 +26,6 @@ class Button(component.Component):
 
             "aria_label": kwargs.get("aria_label", ""),
             "class_": kwargs.get("class_", ""),
+
+            "attrs": kwargs.get("attrs", ""),
         }

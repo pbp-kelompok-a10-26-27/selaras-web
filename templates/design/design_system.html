@@ -28,6 +28,7 @@
 
     <!-- Tailwind -->
     <link rel="stylesheet" href="{% static 'css/output.css' %}" />
+    <script type="module" src="{% static 'js/main.js' %}" defer></script>
   </head>
 
   <body class="min-h-screen bg-neutral-300 font-sans text-secondary-900">
@@ -117,17 +118,67 @@
             </a>
 
             <a
+              href="#chips"
+              class="block rounded-xl px-3 py-2.5 text-sm font-semibold text-secondary-700 transition-all duration-200 hover:bg-neutral-50 hover:text-secondary-900"
+            >
+              Chips
+            </a>
+
+            <a
               href="#buttons"
               class="block rounded-xl px-3 py-2.5 text-sm font-semibold text-secondary-700 transition-all duration-200 hover:bg-neutral-50 hover:text-secondary-900"
             >
               Buttons
             </a>
 
+
             <a
               href="#navbar"
               class="block rounded-xl px-3 py-2.5 text-sm font-semibold text-secondary-700 transition-all duration-200 hover:bg-neutral-50 hover:text-secondary-900"
             >
               Navbar
+            </a>
+
+            <a
+              href="#dropdown"
+              class="block rounded-xl px-3 py-2.5 text-sm font-semibold text-secondary-700 transition-all duration-200 hover:bg-neutral-50 hover:text-secondary-900"
+            >
+                Dropdown
+            </a>
+
+            <a
+              href="#toast"
+              class="block rounded-xl px-3 py-2.5 text-sm font-semibold text-secondary-700 transition-all duration-200 hover:bg-neutral-50 hover:text-secondary-900"
+            >
+                Toast
+            </a>
+
+            <a
+              href="#modal"
+              class="block rounded-xl px-3 py-2.5 text-sm font-semibold text-secondary-700 transition-all duration-200 hover:bg-neutral-50 hover:text-secondary-900"
+            >
+                Modal
+            </a>
+
+            <a
+              href="#skeleton"
+              class="block rounded-xl px-3 py-2.5 text-sm font-semibold text-secondary-700 transition-all duration-200 hover:bg-neutral-50 hover:text-secondary-900"
+            >
+                Skeleton
+            </a>
+
+            <a
+              href="#tooltip"
+              class="block rounded-xl px-3 py-2.5 text-sm font-semibold text-secondary-700 transition-all duration-200 hover:bg-neutral-50 hover:text-secondary-900"
+            >
+                Tooltip
+            </a>
+
+            <a
+              href="#input"
+              class="block rounded-xl px-3 py-2.5 text-sm font-semibold text-secondary-700 transition-all duration-200 hover:bg-neutral-50 hover:text-secondary-900"
+            >
+                Input
             </a>
 
             <a
@@ -186,6 +237,20 @@
             class="shrink-0 rounded-full border border-neutral-400 px-4 py-2 text-xs font-semibold"
           >
             Buttons
+          </a>
+
+          <a
+            href="#chips"
+            class="shrink-0 rounded-full border border-neutral-400 px-4 py-2 text-xs font-semibold"
+          >
+            Chips
+          </a>
+
+          <a
+            href="#modal"
+            class="shrink-0 rounded-full border border-neutral-400 px-4 py-2 text-xs font-semibold"
+          >
+            Modal
           </a>
 
           <a
@@ -482,8 +547,76 @@
         </section>
 
         <!-- ===================================================== -->
-        <!-- BUTTONS                                                 -->
+        <!-- CHIPS                                                 -->
         <!-- ===================================================== -->
+
+        <section
+          id="chips"
+          class="scroll-mt-8 border-b border-neutral-400 py-12"
+        >
+          <div class="mb-8">
+            <p
+              class="text-xs font-semibold uppercase tracking-[0.18em] text-secondary-600"
+            >
+              Components
+            </p>
+
+            <h2 class="mt-2 font-display text-3xl text-secondary-900">Chips</h2>
+
+            <p class="mt-2 max-w-2xl text-sm leading-6 text-neutral-800">
+              Three semantic chips component with primary, secondary and
+              tertiary colours.
+            </p>
+          </div>
+
+          <!-- Solid -->
+          <div
+            class="overflow-hidden rounded-2xl border border-neutral-400 bg-neutral-50"
+          >
+            <div class="border-b border-neutral-400 px-5 py-4">
+              <h3 class="text-sm font-semibold text-secondary-900">Variants</h3>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-3 p-5 sm:p-8">
+              {% component "chips" text="Primary" variant="primary" / %} {%
+              component "chips" text="Secondary" variant="secondary" / %} {%
+              component "chips" text="Tertiary" variant="tertiary" / %} {%
+              component "chips" text="Neutral" variant="neutral" / %}
+            </div>
+          </div>
+
+          <!-- States -->
+          <div
+            class="mt-5 overflow-hidden rounded-2xl border border-neutral-400 bg-neutral-50"
+          >
+            <div class="border-b border-neutral-400 px-5 py-4">
+              <h3 class="text-sm font-semibold text-secondary-900">States</h3>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-3 p-5 sm:p-8">
+              {% component "chips" text="Default" variant="primary"
+              selected=False / %} {% component "chips" text="Selected"
+              variant="secondary" selected=True / %} {% component "chips"
+              text="Disabled" variant="tertiary" selected=False disabled=True /
+              %}
+            </div>
+          </div>
+
+          <!-- Usage -->
+          <div
+            class="mt-5 rounded-2xl bg-secondary-900 p-5 text-neutral-50 sm:p-6"
+          >
+            <p
+              class="mb-3 text-xs font-semibold uppercase tracking-widest text-primary-300"
+            >
+              Usage
+            </p>
+
+            <pre
+              class="overflow-x-auto font-mono text-xs leading-6 text-neutral-200"
+            ><code>{% templatetag openblock %} component "chips" text="Get Started" variant="primary" size="md" / {% templatetag closeblock %}</code></pre>
+          </div>
+        </section>
 
         <section
           id="buttons"
@@ -643,6 +776,326 @@
             <pre
               class="overflow-x-auto font-mono text-xs leading-6 text-neutral-200"
             ><code>{% templatetag openblock %} component "navbar" /{% templatetag closeblock %}</code></pre>
+          </div>
+        </section>
+
+        <!-- ===================================================== -->
+        <!-- DROPDOWN                                              -->
+        <!-- ===================================================== -->
+
+        <section
+          id="dropdown"
+          class="scroll-mt-8 border-b border-neutral-400 py-12"
+        >
+          <div class="mb-8">
+            <p
+              class="text-xs font-semibold uppercase tracking-[0.18em] text-secondary-600"
+            >
+              Components
+            </p>
+
+            <h2 class="mt-2 font-display text-3xl text-secondary-900">
+              Dropdown
+            </h2>
+
+            <p class="mt-2 max-w-2xl text-sm leading-6 text-neutral-800">
+              A responsive dropdown menu component for navigation and actions.
+            </p>
+          </div>
+
+          <!-- Dropdown preview -->
+          <div
+            class="relative min-h-[300px] overflow-visible rounded-3xl border border-neutral-400 bg-neutral-100 p-3 sm:p-5"
+          >
+            {% component "dropdown" with id="dropdown-preview" label="Category" name="Category" options=dropdown_options / %}
+          </div>
+
+          <!-- Usage -->
+          <div
+            class="mt-5 rounded-2xl bg-secondary-900 p-5 text-neutral-50 sm:p-6"
+          >
+            <p
+              class="mb-3 text-xs font-semibold uppercase tracking-widest text-primary-300"
+            >
+              Usage
+            </p>
+
+            <pre
+              class="overflow-x-auto font-mono text-xs leading-6 text-neutral-200"
+            ><code>{% templatetag openblock %} component "dropdown" with id="dropdown-preview" label="Category" name="Category" options=dropdown_options /{% templatetag closeblock %}</code></pre>
+          </div>
+        </section>
+
+        <!-- ===================================================== -->
+        <!-- TOAST                                                 -->
+        <!-- ===================================================== -->
+
+        <section
+          id="toast"
+          class="scroll-mt-8 border-b border-neutral-400 py-12"
+        >
+          <div class="mb-8">
+            <p
+              class="text-xs font-semibold uppercase tracking-[0.18em] text-secondary-600"
+            >
+              Components
+            </p>
+
+            <h2 class="mt-2 font-display text-3xl text-secondary-900">
+              Toast
+            </h2>
+
+            <p class="mt-2 max-w-2xl text-sm leading-6 text-neutral-800">
+              A lightweight notification component for brief messages and
+              alerts.
+            </p>
+          </div>
+
+          <!-- Toast preview -->
+          <div
+            class="relative min-h-[100px] overflow-visible rounded-3xl border border-neutral-400 bg-neutral-100 p-3 sm:p-5"
+          >
+            {% component "button" with id="toast-preview-1" variant="secondary" text="Success!" size="lg" icon_left="arrow-right" / %}
+            {% component "button" with id="toast-preview-2" variant="secondary" text="Error!" size="lg" icon_left="arrow-right" / %}
+            {% component "button" with id="toast-preview-3" variant="secondary" text="Warning!" size="lg" icon_left="arrow-right" / %}
+            {% component "button" with id="toast-preview-4" variant="secondary" text="Info!" size="lg" icon_left="arrow-right" / %}
+          </div>
+
+          <!-- Usage -->
+          <div
+            class="mt-5 rounded-2xl bg-secondary-900 p-5 text-neutral-50 sm:p-6"
+          >
+            <p
+              class="mb-3 text-xs font-semibold uppercase tracking-widest text-primary-300"
+            >
+              Usage
+            </p>
+
+            <pre
+              class="overflow-x-auto font-mono text-xs leading-6 text-neutral-200"
+            ><code>{% templatetag openblock %} showToast({ type, title, message, duration: 4000 }); /{% templatetag closeblock %}</code></pre>
+          </div>
+        </section>
+
+        <!-- ===================================================== -->
+        <!-- MODAL                                                 -->
+        <!-- ===================================================== -->
+
+        <section
+          id="modal"
+          class="scroll-mt-8 border-b border-neutral-400 py-12"
+        >
+          <div class="mb-8">
+            <p
+              class="text-xs font-semibold uppercase tracking-[0.18em] text-secondary-600"
+            >
+              Components
+            </p>
+
+            <h2 class="mt-2 font-display text-3xl text-secondary-900">
+              Modal
+            </h2>
+
+            <p class="mt-2 max-w-2xl text-sm leading-6 text-neutral-800">
+              A modal dialog component for displaying content and actions in a
+              focused overlay.
+            </p>
+          </div>
+
+          <!-- Modal preview -->
+          <div
+            class="relative min-h-[100px] overflow-visible rounded-3xl border border-neutral-400 bg-neutral-100 p-3 sm:p-5"
+          >
+
+          {% component "button" with type="button" attrs="data-modal-open='my-custom-modal'" variant="secondary" size="lg" text="Open Modal" / %}
+          {% component "modal" id="my-custom-modal" title="Edit Profile" size="md" %}
+            {% fill "content" %}
+              <form method="POST" id="profile-form" class="flex flex-col gap-10">
+                {% csrf_token %}
+                <label class="block font-sans text-s5 text-foreground mb-1">Username</label>
+                <input type="text" name="username" class="w-full px-4 py-2 border border-neutral-400 rounded-xl bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-primary-500">
+                {% component "input" label="Password" id="password-input" type="password" name="password" icon="arrow-right" %} {% endcomponent %}
+                {% component "input" label="Email" id="email-input" type="email" name="email" icon="arrow-right" %} {% endcomponent %}
+              </form>
+            {% endfill %}
+
+            {% fill "footer" %}
+              <button type="button" data-modal-close class="px-4 py-2 rounded-xl border border-neutral-400 hover:bg-neutral-200 transition-colors cursor-pointer font-sans text-b3">
+                Cancel
+              </button>
+              <button type="submit" form="profile-form" class="px-4 py-2 rounded-xl bg-primary-500 text-foreground hover:bg-primary-600 transition-colors cursor-pointer font-sans text-b3">
+                Save Changes
+              </button>
+            {% endfill %}
+          {% endcomponent %}
+          </div>
+
+          <!-- Usage -->
+          <div
+            class="mt-5 rounded-2xl bg-secondary-900 p-5 text-neutral-50 sm:p-6"
+          >
+            <p
+              class="mb-3 text-xs font-semibold uppercase tracking-widest text-primary-300"
+            >
+              Usage
+            </p>
+
+            <pre
+              class="overflow-x-auto font-mono text-xs leading-6 text-neutral-200"
+            ><code>{% templatetag openblock %} showToast({ type, title, message, duration: 4000 }); /{% templatetag closeblock %}</code></pre>
+          </div>
+        </section>
+
+        <!-- ===================================================== -->
+        <!-- SKELETON                                              -->
+        <!-- ===================================================== -->
+
+        <section
+          id="skeleton"
+          class="scroll-mt-8 border-b border-neutral-400 py-12"
+        >
+          <div class="mb-8">
+            <p
+              class="text-xs font-semibold uppercase tracking-[0.18em] text-secondary-600"
+            >
+              Components
+            </p>
+
+            <h2 class="mt-2 font-display text-3xl text-secondary-900">
+              Skeleton
+            </h2>
+
+            <p class="mt-2 max-w-2xl text-sm leading-6 text-neutral-800">
+              A skeleton component for displaying loading states and placeholders
+              in the interface.
+            </p>
+          </div>
+
+          <!-- Skeleton preview -->
+          <div
+            class="relative min-h-[200px] overflow-visible rounded-3xl border border-neutral-400 bg-neutral-100 p-3 sm:p-5"
+          >
+        
+          {% component "skeleton" variant="card" width="max-w-sm" / %}
+          
+          </div>
+
+          <!-- Usage -->
+          <div
+            class="mt-5 rounded-2xl bg-secondary-900 p-5 text-neutral-50 sm:p-6"
+          >
+            <p
+              class="mb-3 text-xs font-semibold uppercase tracking-widest text-primary-300"
+            >
+              Usage
+            </p>
+
+            <pre
+              class="overflow-x-auto font-mono text-xs leading-6 text-neutral-200"
+            ><code>{% templatetag openblock %} component "skeleton" variant="card" width="max-w-sm" /{% templatetag closeblock %}</code></pre>
+          </div>
+        </section>
+
+        <!-- ===================================================== -->
+        <!-- TOOLTIP                                               -->
+        <!-- ===================================================== -->
+
+        <section
+          id="tooltip"
+          class="scroll-mt-8 border-b border-neutral-400 py-12"
+        >
+          <div class="mb-8">
+            <p
+              class="text-xs font-semibold uppercase tracking-[0.18em] text-secondary-600"
+            >
+              Components
+            </p>
+
+            <h2 class="mt-2 font-display text-3xl text-secondary-900">
+              Tooltip
+            </h2>
+
+            <p class="mt-2 max-w-2xl text-sm leading-6 text-neutral-800">
+              A tooltip component for displaying contextual information on hover
+              or focus.
+            </p>
+          </div>
+
+          <!-- Tooltip preview -->
+          <div
+            class="relative min-h-[200px] overflow-visible rounded-3xl border border-neutral-400 bg-neutral-100 p-3 sm:p-5"
+          >
+        
+          {% component "tooltip" text="Copy text to clipboard" position="top" %}
+            {% component "button" text="Hover me" variant="primary" / %}
+          {% endcomponent %}
+          
+          </div>
+
+          <!-- Usage -->
+          <div
+            class="mt-5 rounded-2xl bg-secondary-900 p-5 text-neutral-50 sm:p-6"
+          >
+            <p
+              class="mb-3 text-xs font-semibold uppercase tracking-widest text-primary-300"
+            >
+              Usage
+            </p>
+
+            <pre
+              class="overflow-x-auto font-mono text-xs leading-6 text-neutral-200"
+            ><code>{% templatetag openblock %} component "tooltip" text="Copy text to clipboard" position="top" /{% templatetag closeblock %}</code></pre>
+          </div>
+        </section>
+
+        <!-- ===================================================== -->
+        <!-- INPUT                                                 -->
+        <!-- ===================================================== -->
+
+        <section
+          id="input"
+          class="scroll-mt-8 border-b border-neutral-400 py-12"
+        >
+          <div class="mb-8">
+            <p
+              class="text-xs font-semibold uppercase tracking-[0.18em] text-secondary-600"
+            >
+              Components
+            </p>
+
+            <h2 class="mt-2 font-display text-3xl text-secondary-900">
+              Input
+            </h2>
+
+            <p class="mt-2 max-w-2xl text-sm leading-6 text-neutral-800">
+              A responsive input component for text, email, password, and other types of user input.
+            </p>
+          </div>
+
+          <!-- Input preview -->
+          <div
+            class="relative flex flex-col gap-10 min-h-[100px] overflow-visible rounded-3xl border border-neutral-400 bg-neutral-100 p-3 sm:p-5"
+          >
+
+          {% component "input" label="Text Type Input" id="username-input" type="text" name="username" icon="user" %} {% endcomponent %}
+          {% component "input" label="Email Type Input" id="email-input" type="email" name="email" icon="mail" %} {% endcomponent %}
+          {% component "input" label="Password Type Input" id="password-input" type="password" name="password" icon="lock" %} {% endcomponent %}
+          {% component "input" label="Disabled Type Input" id="disabled-input" type="text" name="disabled_input" icon="ban" disabled=True %} {% endcomponent %}
+          </div>
+
+          <!-- Usage --> 
+          <div
+            class="mt-5 rounded-2xl bg-secondary-900 p-5 text-neutral-50 sm:p-6"
+          >
+            <p
+              class="mb-3 text-xs font-semibold uppercase tracking-widest text-primary-300"
+            >
+              Usage
+            </p>
+
+            <pre
+              class="overflow-x-auto font-mono text-xs leading-6 text-neutral-200"
+            ><code>{% templatetag openblock %} component "input" label="Text Type Input" id="username-input" type="text" name="username" icon="user" {% templatetag closeblock %}</code></pre>
           </div>
         </section>
 

@@ -41,6 +41,17 @@
   --color-tertiary-800: #6d595d;
   --color-tertiary-900: #554548;
 
+  /* Red */
+  --color-red-100: #df2525;
+  
+  /* Yellow */
+  --color-yellow-100: #fff49b;
+  --color-yellow-200: #ffe37e;
+
+  /* Blue */
+  --color-blue-100: #3b82f6;
+  --color-blue-200: #2563eb;
+
   /* Neutral (abu hangat) */
   --color-neutral-50: #fffffe;
   --color-neutral-100: #fffffe;

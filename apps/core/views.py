@@ -1,10 +1,6 @@
 from django.shortcuts import render
 
 def design_system(request):
-    from django.shortcuts import render
-
-
-def design_system(request):
     primary_colors = [
         {"name": "50", "value": "#f7f9f0"},
         {"name": "100", "value": "#f2f6e9"},
@@ -57,6 +53,12 @@ def design_system(request):
         {"name": "900", "value": "#595957"},
     ]
 
+    dropdown_options = {
+            "PBP": ["PeBePeh", "arrow-right"],
+            "DSA": ["Data Structures and Algorithms", "arrow-right"],
+            "CS": ["Computer Science", "arrow-right"]
+    }
+
     return render(
         request,
         "design/design_system.html",
@@ -65,5 +67,6 @@ def design_system(request):
             "secondary_colors": secondary_colors,
             "tertiary_colors": tertiary_colors,
             "neutral_colors": neutral_colors,
+            "dropdown_options": dropdown_options,
         },
     )
