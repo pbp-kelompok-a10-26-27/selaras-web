@@ -1,54 +1,309 @@
-from django.http import HttpResponse, JsonResponse
+from django.contrib import messages
+from django.db.models import Q
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 
 from apps.core.decorators import admin_required, login_required
-from apps.core.utils import get_query_params
+
+from .forms import ChallengeForm
+from .models import (
+    Challenge,
+    ChallengeParticipation,
+    ChallengeProgress,
+    UserBadge,
+)
+from .weather import get_current_weather_suggestion
 
 
 def challenge_list(request):
-	"""Placeholder for searching and filtering published challenges."""
-	query_params = get_query_params(request, ("search", "status", "start_date", "end_date"))
-	return JsonResponse(
-		{"message": "Challenge search is not implemented yet.", **query_params},
-		status=501,
-	)
+    """List published challenges with search, status filters, and weather recommendations."""
+    search_query = request.GET.get("search", "").strip()
+    status_filter = request.GET.get("status", "all")
+    today = timezone.localdate()
+
+    challenges = Challenge.objects.filter(is_published=True).order_by("-created_at")
+
+    if search_query:
+        challenges = challenges.filter(
+            Q(title__icontains=search_query) | Q(description__icontains=search_query)
+        )
+
+    is_authenticated = hasattr(request, "user") and request.user.is_authenticated
+
+    joined_challenge_ids = set()
+    if is_authenticated:
+        joined_challenge_ids = set(
+            request.user.challenge_participations.values_list("challenge_id", flat=True)
+        )
+
+    if status_filter == "my" and is_authenticated:
+        challenges = challenges.filter(id__in=joined_challenge_ids)
+    elif status_filter == "active":
+        challenges = challenges.filter(start_date__lte=today, end_date__gte=today)
+    elif status_filter == "upcoming":
+        challenges = challenges.filter(start_date__gt=today)
+
+    weather = get_current_weather_suggestion()
+
+    context = {
+        "challenges": challenges,
+        "weather": weather,
+        "search_query": search_query,
+        "status_filter": status_filter,
+        "joined_challenge_ids": joined_challenge_ids,
+        "today": today,
+    }
+    return render(request, "challenges/challenges.html", context)
 
 
 def challenge_detail(request, slug):
-	"""Placeholder for displaying challenge details."""
-	return HttpResponse("Challenge detail is not implemented yet.", status=501)
+    """Display comprehensive challenge details, participation status, and progress timeline."""
+    challenge = get_object_or_404(Challenge, slug=slug, is_published=True)
+    today = timezone.localdate()
+
+    duration_days = max(1, (challenge.end_date - challenge.start_date).days + 1)
+    is_active = challenge.start_date <= today <= challenge.end_date
+    is_ended = challenge.end_date < today
+    is_upcoming = challenge.start_date > today
+
+    participation = None
+    is_joined = False
+    already_checked_in_today = False
+    days_completed = 0
+    progress_percentage = 0
+    progress_records = []
+
+    if hasattr(request, "user") and request.user.is_authenticated:
+        participation = ChallengeParticipation.objects.filter(
+            challenge=challenge, user=request.user
+        ).first()
+
+        if participation:
+            is_joined = True
+            progress_records = participation.progress_records.order_by("-progress_date")
+            already_checked_in_today = progress_records.filter(
+                progress_date=today
+            ).exists()
+            days_completed = progress_records.filter(is_completed=True).count()
+            progress_percentage = min(100, int((days_completed / duration_days) * 100))
+
+            if days_completed >= duration_days and not participation.completed_at:
+                participation.completed_at = timezone.now()
+                participation.save()
+
+    context = {
+        "challenge": challenge,
+        "today": today,
+        "duration_days": duration_days,
+        "is_active": is_active,
+        "is_ended": is_ended,
+        "is_upcoming": is_upcoming,
+        "participation": participation,
+        "is_joined": is_joined,
+        "already_checked_in_today": already_checked_in_today,
+        "days_completed": days_completed,
+        "progress_percentage": progress_percentage,
+        "progress_records": progress_records,
+    }
+    return render(request, "challenges/challenge_detail.html", context)
 
 
 @login_required
 def join_challenge(request, slug):
-	"""Placeholder for joining a challenge as the authenticated user."""
-	return HttpResponse("Joining a challenge is not implemented yet.", status=501)
+    """Enables authenticated users to join an active challenge."""
+    challenge = get_object_or_404(Challenge, slug=slug, is_published=True)
+    today = timezone.localdate()
+
+    if challenge.end_date < today:
+        messages.warning(
+            request, "Tantangan ini sudah berakhir dan tidak dapat diikuti lagi."
+        )
+        return redirect("challenges:detail", slug=slug)
+
+    participation, created = ChallengeParticipation.objects.get_or_create(
+        challenge=challenge, user=request.user
+    )
+
+    if created:
+        messages.success(
+            request,
+            f"Selamat! Kamu berhasil bergabung dengan tantangan '{challenge.title}'.",
+        )
+    else:
+        messages.info(request, "Kamu sudah terdaftar dalam tantangan ini.")
+
+    return redirect("challenges:detail", slug=slug)
 
 
 @login_required
 def record_progress(request, slug):
-	"""Placeholder for recording the authenticated user's daily progress."""
-	return HttpResponse("Challenge progress is not implemented yet.", status=501)
+    """Record or update the daily challenge progress for the authenticated user."""
+    challenge = get_object_or_404(Challenge, slug=slug, is_published=True)
+    participation = get_object_or_404(
+        ChallengeParticipation, challenge=challenge, user=request.user
+    )
+    today = timezone.localdate()
+
+    if request.method == "POST":
+        notes = request.POST.get("notes", "").strip()
+
+        progress, created = ChallengeProgress.objects.get_or_create(
+            participation=participation,
+            progress_date=today,
+            defaults={"notes": notes, "is_completed": True},
+        )
+
+        duration_days = max(1, (challenge.end_date - challenge.start_date).days + 1)
+        days_completed = participation.progress_records.filter(
+            is_completed=True
+        ).count()
+
+        if not created:
+            progress.notes = notes
+            progress.is_completed = True
+            progress.save()
+            messages.success(request, "Catatan progres hari ini berhasil diperbarui.")
+        else:
+            if days_completed >= duration_days and not participation.completed_at:
+                participation.completed_at = timezone.now()
+                participation.save()
+                messages.success(
+                    request,
+                    "Luar biasa! Kamu telah menyelesaikan seluruh target tantangan ini! 🎉",
+                )
+            else:
+                messages.success(
+                    request,
+                    f"Progres hari ini ({today.strftime('%d %B %Y')}) berhasil dicatat!",
+                )
+
+    return redirect("challenges:detail", slug=slug)
 
 
 @login_required
 def challenge_history(request):
-	"""Placeholder for viewing the authenticated user's challenge history."""
-	return HttpResponse("Challenge history is not implemented yet.", status=501)
+    """View the authenticated user's challenge participation history, metrics, and earned badges."""
+    tab = request.GET.get("tab", "all")
+
+    raw_participations = (
+        ChallengeParticipation.objects.filter(user=request.user)
+        .select_related("challenge")
+        .prefetch_related("progress_records")
+        .order_by("-created_at")
+    )
+
+    participations_list = []
+    total_completed = 0
+
+    for p in raw_participations:
+        duration_days = max(1, (p.challenge.end_date - p.challenge.start_date).days + 1)
+        days_completed = p.progress_records.filter(is_completed=True).count()
+        progress_percentage = min(100, int((days_completed / duration_days) * 100))
+        is_completed = (p.completed_at is not None) or (days_completed >= duration_days)
+
+        if is_completed:
+            total_completed += 1
+
+        p.duration_days = duration_days
+        p.days_completed = days_completed
+        p.progress_percentage = progress_percentage
+        p.is_completed = is_completed
+        participations_list.append(p)
+
+    total_joined = len(participations_list)
+    total_ongoing = total_joined - total_completed
+    total_checkins = ChallengeProgress.objects.filter(
+        participation__user=request.user, is_completed=True
+    ).count()
+
+    if tab == "ongoing":
+        display_participations = [p for p in participations_list if not p.is_completed]
+    elif tab == "completed":
+        display_participations = [p for p in participations_list if p.is_completed]
+    else:
+        display_participations = participations_list
+
+    user_badges = (
+        UserBadge.objects.filter(user=request.user)
+        .select_related("badge")
+        .order_by("-awarded_at")
+    )
+
+    context = {
+        "participations": display_participations,
+        "total_joined": total_joined,
+        "total_completed": total_completed,
+        "total_ongoing": total_ongoing,
+        "total_checkins": total_checkins,
+        "user_badges": user_badges,
+        "active_tab": tab,
+    }
+    return render(request, "challenges/challenge_history.html", context)
 
 
 @admin_required
 def challenge_create(request):
-	"""Placeholder for admin challenge creation."""
-	return HttpResponse("Challenge creation is not implemented yet.", status=501)
+    """Handle creation of a new challenge by administrator."""
+    if request.method == "POST":
+        form = ChallengeForm(request.POST)
+        if form.is_valid():
+            challenge = form.save()
+            messages.success(request, f"Tantangan '{challenge.title}' berhasil dibuat!")
+            return redirect("challenges:detail", slug=challenge.slug)
+    else:
+        form = ChallengeForm()
+
+    context = {
+        "form": form,
+        "is_edit": False,
+        "title": "Buat Tantangan Baru",
+    }
+    return render(request, "challenges/challenge_form.html", context)
 
 
 @admin_required
 def challenge_update(request, slug):
-	"""Placeholder for admin challenge editing."""
-	return HttpResponse("Challenge update is not implemented yet.", status=501)
+    """Handle editing of an existing challenge by administrator."""
+    challenge = get_object_or_404(Challenge, slug=slug)
+
+    if request.method == "POST":
+        form = ChallengeForm(request.POST, instance=challenge)
+        if form.is_valid():
+            challenge = form.save()
+            messages.success(
+                request, f"Tantangan '{challenge.title}' berhasil diperbarui!"
+            )
+            return redirect("challenges:detail", slug=challenge.slug)
+    else:
+        form = ChallengeForm(instance=challenge)
+
+    context = {
+        "form": form,
+        "challenge": challenge,
+        "is_edit": True,
+        "title": f"Edit Tantangan: {challenge.title}",
+    }
+    return render(request, "challenges/challenge_form.html", context)
 
 
 @admin_required
 def challenge_delete(request, slug):
-	"""Placeholder for admin challenge deletion."""
-	return HttpResponse("Challenge deletion is not implemented yet.", status=501)
+    """Handle safe deletion of an unparticipated challenge by administrator."""
+    challenge = get_object_or_404(Challenge, slug=slug)
+
+    if request.method == "POST":
+        participants_count = challenge.participations.count()
+        if participants_count > 0:
+            messages.error(
+                request,
+                f"Tantangan '{challenge.title}' tidak dapat dihapus karena sudah memiliki {participants_count} peserta. "
+                "Nonaktifkan status publikasinya jika program ingin dihentikan.",
+            )
+            return redirect("challenges:detail", slug=challenge.slug)
+
+        challenge_title = challenge.title
+        challenge.delete()
+        messages.success(request, f"Tantangan '{challenge_title}' berhasil dihapus.")
+        return redirect("challenges:list")
+
+    return redirect("challenges:detail", slug=challenge.slug)
