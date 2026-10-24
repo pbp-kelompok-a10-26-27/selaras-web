@@ -49,10 +49,10 @@
 
       <!-- Weather Suggestion Widget (Open-Meteo Integration) -->
       {% if weather %}
-      <section class="mb-10 rounded-3xl border border-secondary-300/60 bg-gradient-to-r from-secondary-50 via-primary-50 to-neutral-50 p-5 sm:p-6 shadow-sm">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <section class="mb-10 rounded-3xl border border-secondary-300/60 bg-gradient-to-r from-secondary-50 via-primary-50 to-neutral-50 p-5 sm:p-6 shadow-sm transition-all duration-300">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-5">
           <div class="flex items-start sm:items-center gap-4">
-            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-secondary-700 text-primary-300 shadow-inner">
+            <div id="weather-icon-box" class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-secondary-700 text-primary-300 shadow-inner">
               {% if weather.icon == "sun" or weather.icon == "cloud-sun" %}
                 {% lucide "sun" class="w-6 h-6 text-primary-300 animate-pulse" %}
               {% elif weather.icon == "cloud-rain" %}
@@ -63,28 +63,28 @@
             </div>
             <div>
               <div class="flex flex-wrap items-center gap-2">
-                <span class="font-display text-lg sm:text-xl text-secondary-900">
+                <span id="weather-temp-cond" class="font-display text-lg sm:text-xl text-secondary-900">
                   Cuaca Hari Ini: {{ weather.temperature }}°C, {{ weather.condition }}
                 </span>
-                {% if weather.is_outdoor_friendly %}
-                  <span class="inline-flex items-center rounded-full bg-primary-200 px-2.5 py-0.5 text-xs font-semibold text-secondary-800">
-                    Outdoor Friendly 🌿
-                  </span>
-                {% else %}
-                  <span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-800">
-                    Indoor Recommended 🏠
-                  </span>
-                {% endif %}
+                <span id="weather-badge" class="inline-flex items-center rounded-full {% if weather.is_outdoor_friendly %}bg-primary-200 text-secondary-800{% else %}bg-blue-100 text-blue-800{% endif %} px-2.5 py-0.5 text-xs font-semibold">
+                  {% if weather.is_outdoor_friendly %}Outdoor Friendly 🌿{% else %}Indoor Recommended 🏠{% endif %}
+                </span>
+                <span class="inline-flex items-center gap-1 rounded-full bg-secondary-200/80 px-2.5 py-0.5 text-xs font-medium text-secondary-900">
+                  {% lucide "map-pin" class="w-3 h-3 text-secondary-700" %}
+                  <span id="weather-location-label">{{ weather.location_label|default:"Jabodetabek (Default)" }}</span>
+                </span>
               </div>
-              <p class="mt-1 text-xs sm:text-sm text-secondary-800">
+              <p id="weather-suggestion" class="mt-1 text-xs sm:text-sm text-secondary-800">
                 {{ weather.suggestion }}
               </p>
             </div>
           </div>
-          <div class="shrink-0 text-xs text-neutral-600 sm:text-right">
-            <span>Didukung oleh Open-Meteo API</span>
+          <div class="flex flex-col sm:items-end gap-2 shrink-0">
+            {% component "button" id="btn-detect-location" text="Gunakan Lokasi Saya" variant="neutral" size="sm" icon_left="locate-fixed" / %}
+            <span class="text-[11px] text-neutral-600 sm:text-right">Didukung oleh Open-Meteo API</span>
           </div>
         </div>
+        <div id="weather-location-status" class="hidden mt-3 pt-3 border-t border-secondary-200/50 text-xs"></div>
       </section>
       {% endif %}
 
@@ -251,5 +251,114 @@
     <!-- Footer Template Include (templates/components/footer.html) -->
     {% include "components/footer.html" %}
 
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const detectBtn = document.getElementById("btn-detect-location");
+        const statusMsg = document.getElementById("weather-location-status");
+        const tempCondEl = document.getElementById("weather-temp-cond");
+        const badgeEl = document.getElementById("weather-badge");
+        const locationLabelEl = document.getElementById("weather-location-label");
+        const suggestionEl = document.getElementById("weather-suggestion");
+        const iconBoxEl = document.getElementById("weather-icon-box");
+
+        function setStatus(message, isError = false) {
+          if (!statusMsg) return;
+          statusMsg.classList.remove("hidden", "text-red-600", "text-secondary-800");
+          statusMsg.classList.add(isError ? "text-red-600" : "text-secondary-800");
+          statusMsg.textContent = message;
+        }
+
+        function updateWeatherUI(data) {
+          if (tempCondEl) {
+            tempCondEl.textContent = `Cuaca Hari Ini: ${data.temperature}°C, ${data.condition}`;
+          }
+          if (suggestionEl) {
+            suggestionEl.textContent = data.suggestion;
+          }
+          if (locationLabelEl) {
+            locationLabelEl.textContent = data.location_label || "Lokasi Perangkat";
+          }
+          if (badgeEl) {
+            if (data.is_outdoor_friendly) {
+              badgeEl.className = "inline-flex items-center rounded-full bg-primary-200 px-2.5 py-0.5 text-xs font-semibold text-secondary-800";
+              badgeEl.textContent = "Outdoor Friendly 🌿";
+            } else {
+              badgeEl.className = "inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-800";
+              badgeEl.textContent = "Indoor Recommended 🏠";
+            }
+          }
+          if (iconBoxEl) {
+            if (data.icon === "sun" || data.icon === "cloud-sun") {
+              iconBoxEl.innerHTML = `<svg class="w-6 h-6 text-primary-300 animate-pulse" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>`;
+            } else if (data.icon === "cloud-rain") {
+              iconBoxEl.innerHTML = `<svg class="w-6 h-6 text-blue-200" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M16 14v6"/><path d="M8 14v6"/><path d="M12 16v6"/></svg>`;
+            } else {
+              iconBoxEl.innerHTML = `<svg class="w-6 h-6 text-neutral-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>`;
+            }
+          }
+        }
+
+        function fetchWeatherForCoords(lat, lon) {
+          setStatus("Menghubungi server untuk prakiraan cuaca lokasi Anda...");
+          fetch(`{% url 'challenges:weather_api' %}?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`)
+            .then(function (res) {
+              if (!res.ok) throw new Error("Gagal mengambil data cuaca dari server.");
+              return res.json();
+            })
+            .then(function (data) {
+              updateWeatherUI(data);
+              setStatus("Cuaca berhasil disinkronkan dengan lokasi perangkat Anda.");
+              localStorage.setItem("selaras_weather_lat", lat);
+              localStorage.setItem("selaras_weather_lon", lon);
+              setTimeout(function () {
+                if (statusMsg) statusMsg.classList.add("hidden");
+              }, 4000);
+            })
+            .catch(function (err) {
+              setStatus("Gagal menyinkronkan cuaca lokal. Prakiraan default tetap aktif.", true);
+            });
+        }
+
+        if (detectBtn) {
+          detectBtn.addEventListener("click", function () {
+            if (!navigator.geolocation) {
+              setStatus("Peramban Anda tidak mendukung akses lokasi.", true);
+              return;
+            }
+
+            setStatus("Mendeteksi koordinat perangkat...");
+            detectBtn.setAttribute("disabled", "true");
+
+            navigator.geolocation.getCurrentPosition(
+              function (position) {
+                detectBtn.removeAttribute("disabled");
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+                fetchWeatherForCoords(lat, lon);
+              },
+              function (error) {
+                detectBtn.removeAttribute("disabled");
+                let msg = "Tidak dapat mengakses lokasi.";
+                if (error.code === error.PERMISSION_DENIED) {
+                  msg = "Izin akses lokasi ditolak oleh peramban.";
+                } else if (error.code === error.TIMEOUT) {
+                  msg = "Waktu permintaan lokasi peramban habis.";
+                }
+                setStatus(`${msg} Prakiraan default tetap aktif.`, true);
+              },
+              { timeout: 8000, maximumAge: 300000 }
+            );
+          });
+        }
+
+        // Auto-sync jika pengguna sebelumnya sudah mengizinkan lokasi di peramban ini
+        const cachedLat = localStorage.getItem("selaras_weather_lat");
+        const cachedLon = localStorage.getItem("selaras_weather_lon");
+        const isAlreadyCustom = {{ weather.is_custom_location|yesno:"true,false" }};
+        if (cachedLat && cachedLon && !isAlreadyCustom) {
+          fetchWeatherForCoords(cachedLat, cachedLon);
+        }
+      });
+    </script>
   </body>
 </html>

@@ -6,6 +6,7 @@ app_name = "challenges"
 
 urlpatterns = [
     path("", views.challenge_list, name="list"),
+    path("api/weather/", views.weather_api, name="weather_api"),
     path("history/", views.challenge_history, name="history"),
     path("create/", views.challenge_create, name="create"),
     path("<slug:slug>/", views.challenge_detail, name="detail"),

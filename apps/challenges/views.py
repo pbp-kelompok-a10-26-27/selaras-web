@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.db.models import Q
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
@@ -43,7 +44,12 @@ def challenge_list(request):
     elif status_filter == "upcoming":
         challenges = challenges.filter(start_date__gt=today)
 
-    weather = get_current_weather_suggestion()
+    user_lat = request.GET.get("lat") or request.session.get("user_lat")
+    user_lon = request.GET.get("lon") or request.session.get("user_lon")
+    weather = get_current_weather_suggestion(lat=user_lat, lon=user_lon)
+    if weather.get("is_custom_location"):
+        request.session["user_lat"] = weather["latitude"]
+        request.session["user_lon"] = weather["longitude"]
 
     context = {
         "challenges": challenges,
@@ -307,3 +313,19 @@ def challenge_delete(request, slug):
         return redirect("challenges:list")
 
     return redirect("challenges:detail", slug=challenge.slug)
+
+
+def weather_api(request):
+    """
+    Internal server-side API proxy for weather recommendations.
+    Accepts lat and lon query parameters, returns interpreted weather data,
+    and caches coordinates in user session. Adheres to PRD Section 29.
+    """
+    lat = request.GET.get("lat")
+    lon = request.GET.get("lon")
+    weather_data = get_current_weather_suggestion(lat=lat, lon=lon)
+    if weather_data.get("is_custom_location"):
+        request.session["user_lat"] = weather_data["latitude"]
+        request.session["user_lon"] = weather_data["longitude"]
+    return JsonResponse(weather_data)
+
