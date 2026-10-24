@@ -1,3 +1,4 @@
+from django.middleware.csrf import get_token
 from django_components import component
 
 
@@ -6,7 +7,13 @@ class Navbar(component.Component):
     template_file = "navbar.html"
 
     def get_template_data(self, args, kwargs, slots, context):
+        request = context.get("request")
+
         return {
+            # Logout is a POST form: Django's LogoutView rejects GET, so a link to it fails.
+            # (Not named "csrf_token": that name is reserved by Django's context processor.)
+            "logout_csrf_token": get_token(request) if request else "",
+
 
             "logo_url": kwargs.get("logo_url", "/"),
             "logo_text": kwargs.get("logo_text", "SELARAS"),
