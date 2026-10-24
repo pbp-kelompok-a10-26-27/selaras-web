@@ -2,8 +2,12 @@
 @import "tailwindcss";
 @source "../../templates/**/*.html";
 @source "../../apps/**/templates/**/*.html";
-@source "../../../apps/**/components/**/*.html";
+@source "../../apps/**/components/**/*.html";
 @source "../js/**/*.js";
+
+/* Admin dashboard: true while <html data-sidebar-state="collapsed"> (set by sidebar.js, and
+   before first paint by templates/dashboard/base.html so it never flickers) */
+@custom-variant sidebar-collapsed (&:where([data-sidebar-state="collapsed"] *));
 
 @theme {
   /* Primary (hijau muda / lime) */
