@@ -32,86 +32,22 @@
   <!-- Reply composer: a real form, so replying still works without JS.
        ticket_detail.js submits it in the background instead of reloading. -->
   <section aria-labelledby="ticketReplyTitle" id="ticketReplySection">
-    {% if ticket.status == "closed" %}
-    <div class="flex items-start gap-3 rounded-2xl border border-secondary-200 bg-secondary-50 p-4 font-sans text-sm text-secondary-800 sm:p-5">
-      {% lucide "lock" class="w-5 h-5 shrink-0 mt-0.5" %}
+    {% if can_post %}
+      {% url 'helpdesk:ticket_message_create' ticket.id as action_url %}
+      {% url 'helpdesk:ticket_message_api' ticket.id as api_url %}
+      {% include "helpdesk/_reply_composer.html" with action_url=action_url api_url=api_url draft_key="ticket-reply-draft:"|add:ticket_id_str closed=ticket_is_closed %}
+    {% else %}
+    <div class="flex items-start gap-3 rounded-2xl border border-neutral-400 bg-neutral-50 p-4 font-sans text-sm text-neutral-900 sm:p-5">
+      {% lucide "eye" class="w-5 h-5 shrink-0 mt-0.5 text-secondary-500" %}
       <div>
-        <h2 id="ticketReplyTitle" class="font-semibold text-foreground">This ticket is closed</h2>
-        <p>Replies are turned off. Open a new ticket if you still need help.</p>
+        <h2 id="ticketReplyTitle" class="font-semibold text-foreground">View only</h2>
+        <p>Only the requester and the assigned coordinator can reply here.</p>
       </div>
     </div>
-    {% else %}
-    <form
-      id="ticketReplyForm"
-      method="post"
-      action="{% url 'helpdesk:ticket_message_create' ticket.id %}"
-      data-api-url="{% url 'helpdesk:ticket_message_api' ticket.id %}"
-      data-draft-key="ticket-reply-draft:{{ ticket.id }}"
-      class="flex flex-col gap-3 rounded-3xl border border-neutral-400 bg-neutral-50 p-4 shadow-sm transition-shadow duration-200 focus-within:border-primary-400 focus-within:shadow-md sm:p-6"
-    >
-      {% csrf_token %}
-      <div class="flex items-center gap-2">
-        <span class="text-secondary-500">{% lucide "reply" class="w-5 h-5" %}</span>
-        <h2 id="ticketReplyTitle" class="font-sans text-base font-semibold text-foreground">Add a reply</h2>
-      </div>
-
-      <label for="ticketReplyMessage" class="sr-only">Your reply</label>
-      <textarea
-        id="ticketReplyMessage"
-        name="message"
-        rows="3"
-        maxlength="5000"
-        required
-        placeholder="Write your reply…"
-        aria-describedby="ticketReplyHint ticketReplyCount"
-        class="max-h-80 min-h-24 w-full resize-none rounded-2xl border border-neutral-400 bg-neutral-50 px-4 py-3 font-sans text-b3 text-foreground transition-colors duration-200 placeholder:text-neutral-800 hover:border-primary-400 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/40"
-      ></textarea>
-
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <p class="flex items-center gap-3 font-sans text-xs text-neutral-800">
-          <span id="ticketReplyHint" class="hidden sm:inline">
-            <kbd class="rounded border border-neutral-500 bg-neutral-300 px-1.5 py-0.5 font-mono text-[0.6875rem]">Ctrl</kbd>
-            +
-            <kbd class="rounded border border-neutral-500 bg-neutral-300 px-1.5 py-0.5 font-mono text-[0.6875rem]">Enter</kbd>
-            to send
-          </span>
-          <span id="ticketReplyCount" class="tabular-nums">0 / 5000</span>
-        </p>
-
-        {% component "button" id="ticketReplySubmit" type="submit" text="Send reply" variant="secondary" icon_right="send-horizontal" full_width=True class_="sm:w-auto" / %}
-      </div>
-    </form>
     {% endif %}
   </section>
 
-  <!-- Loading placeholder for the ticket card + conversation (cloned by ticket_detail.js, also on retry) -->
-  <template id="tpl-detail-skeleton">
-    <div class="flex flex-col gap-8" aria-hidden="true">
-      <div class="flex flex-col gap-6 rounded-3xl border border-neutral-400 bg-neutral-50 p-5 sm:p-8">
-        <div class="flex gap-2">
-          {% component "skeleton" variant="rect" width="w-24" height="h-8" rounded="rounded-lg" / %}
-          {% component "skeleton" variant="rect" width="w-28" height="h-7" rounded="rounded-full" / %}
-          {% component "skeleton" variant="rect" width="w-20" height="h-7" rounded="rounded-full" / %}
-        </div>
-        {% component "skeleton" variant="rect" width="w-3/4" height="h-9" rounded="rounded-xl" / %}
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {% for i in "123" %}
-          <div class="flex items-center gap-3">
-            {% component "skeleton" variant="avatar" width="w-10" height="h-10" / %}
-            {% component "skeleton" variant="text" lines=2 height="h-3" class_="flex-1" / %}
-          </div>
-          {% endfor %}
-        </div>
-        {% component "skeleton" variant="rect" height="h-28" rounded="rounded-2xl" / %}
-      </div>
-      <div class="flex flex-col gap-3">
-        {% component "skeleton" variant="rect" width="w-56" height="h-7" rounded="rounded-xl" / %}
-        {% for i in "12" %}
-        {% component "skeleton" variant="rect" height="h-24" rounded="rounded-2xl" / %}
-        {% endfor %}
-      </div>
-    </div>
-  </template>
+  {% include "helpdesk/_detail_skeleton.html" %}
 
   {% include "helpdesk/_component_templates.html" %}
 </main>

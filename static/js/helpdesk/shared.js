@@ -174,6 +174,8 @@ export function setButtonLoading(button, isLoading, loadingText) {
     if (loadingText) textNode.textContent = loadingText;
   } else if (button.dataset.idleText) {
     textNode.textContent = button.dataset.idleText;
+    // Forget it, so the next loading state captures the text as it is then
+    delete button.dataset.idleText;
   }
 
   button.setAttribute("aria-busy", String(isLoading));

@@ -80,6 +80,7 @@
           <a
             href="{{ item.href }}"
             data-sidebar-link
+            data-sidebar-key="{{ item.key }}"
             {% if item.active %}aria-current="page"{% endif %}
             class="group/link relative flex min-h-11 items-center gap-3 rounded-xl px-3 font-sans text-sm font-semibold text-secondary-700 outline-none transition-colors duration-200 hover:bg-neutral-300 hover:text-secondary-900 focus-visible:ring-2 focus-visible:ring-primary-500 aria-[current=page]:bg-primary-100 aria-[current=page]:text-secondary-900 lg:sidebar-collapsed:justify-center lg:sidebar-collapsed:px-0"
           >
@@ -88,22 +89,23 @@
 
             <span class="relative shrink-0 text-secondary-500 transition-colors group-hover/link:text-secondary-700 group-aria-[current=page]/link:text-primary-700">
               {% lucide item.icon class="w-5 h-5" %}
-              {% if item.badge %}
+              {% if item.badge is not None %}
               {# Collapsed: the count becomes a dot on the icon #}
-              <span aria-hidden="true" class="absolute -top-1 -right-1 hidden h-2.5 w-2.5 rounded-full border-2 border-neutral-50 bg-orange-100 lg:sidebar-collapsed:block"></span>
+              <span aria-hidden="true" data-sidebar-badge-dot {% if not item.badge %}hidden{% endif %} class="absolute -top-1 -right-1 hidden h-2.5 w-2.5 rounded-full border-2 border-neutral-50 bg-orange-100 lg:sidebar-collapsed:block"></span>
               {% endif %}
             </span>
 
             <span class="min-w-0 flex-1 truncate lg:sidebar-collapsed:sr-only">{{ item.label }}</span>
 
-            {% if item.badge %}
-            <span aria-hidden="true" class="ml-auto rounded-full bg-orange-100/20 px-2 py-0.5 font-sans text-[0.6875rem] font-bold tabular-nums text-secondary-900 lg:sidebar-collapsed:hidden" title="{{ item.badge_label }}">{{ item.badge }}</span>
-            <span class="sr-only">({{ item.badge_label }})</span>
+            {# A badge of 0 is rendered hidden, so window.setSidebarBadge() can show it later without a reload #}
+            {% if item.badge is not None %}
+            <span aria-hidden="true" data-sidebar-badge-count {% if not item.badge %}hidden{% endif %} class="ml-auto rounded-full bg-orange-100/20 px-2 py-0.5 font-sans text-[0.6875rem] font-bold tabular-nums text-secondary-900 lg:sidebar-collapsed:hidden" title="{{ item.badge_label }}">{{ item.badge }}</span>
+            <span class="sr-only" data-sidebar-badge-label>{% if item.badge %}({{ item.badge_label }}){% endif %}</span>
             {% endif %}
 
             {# Label flyout while collapsed (desktop); decorative, the sr-only label above is what's announced #}
             <span aria-hidden="true" class="pointer-events-none absolute left-full z-50 ml-4 hidden -translate-x-1 whitespace-nowrap rounded-xl bg-neutral-900 px-3 py-1.5 font-sans text-xs font-semibold text-neutral-50 opacity-0 shadow-xl transition-all duration-200 group-hover/link:translate-x-0 group-hover/link:opacity-100 group-focus-visible/link:translate-x-0 group-focus-visible/link:opacity-100 lg:sidebar-collapsed:block">
-              {{ item.label }}{% if item.badge %} · {{ item.badge }}{% endif %}
+              {{ item.label }}<span data-sidebar-badge-flyout>{% if item.badge %} · {{ item.badge }}{% endif %}</span>
             </span>
           </a>
           {% else %}

@@ -39,6 +39,8 @@ class TicketMessage(TimeStamp):
 	author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="ticket_messages")
 	message = models.TextField()
 	is_admin_response = models.BooleanField(default=False)
+	# The message this one replies to (quoted above it). Kept as a plain message if the original is deleted.
+	reply_to = models.ForeignKey("self", on_delete=models.SET_NULL, null=True, blank=True, related_name="replies")
 
 	class Meta:
 		ordering = ["created_at"]

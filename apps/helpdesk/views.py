@@ -4,7 +4,7 @@ from django.urls import reverse
 from django.views.decorators.http import require_POST
 from apps.core.decorators import admin_required, login_required
 from django.db.models import Case, Count, IntegerField, Q, When
-from .models import Ticket
+from .models import Ticket, TicketMessage
 from .forms import TicketForm, AgentUpdateTicketForm, TicketMessageForm
 
 
@@ -142,7 +142,13 @@ def ticket_detail(request, ticket_id):
 
 	messages = ticket.messages.all()
 
-	return render(request, "helpdesk/ticket_detail.html", {"ticket": ticket, "messages": messages})
+	return render(request, "helpdesk/ticket_detail.html", {
+		"ticket": ticket,
+		"messages": messages,
+		"can_post": can_post_message(request.user, ticket),
+		"ticket_id_str": str(ticket.id),
+		"ticket_is_closed": ticket.status == Ticket.Status.CLOSED,
+	})
 
 
 @login_required
@@ -164,7 +170,7 @@ def ticket_message_create(request, ticket_id):
 	ticket = get_object_or_404(Ticket, id=ticket_id)
 
 	# Ensure that the user has permission to add a message to this ticket
-	if not request.user.is_admin and ticket.requester != request.user:
+	if not can_post_message(request.user, ticket):
 		return HttpResponse("You do not have permission to add a message to this ticket.", status=403)
 
 	form = TicketMessageForm(request.POST)
@@ -308,6 +314,61 @@ def can_reply_to_ticket(ticket):
 	return ticket.status != Ticket.Status.CLOSED
 
 
+# Only the requester and the admin assigned to the ticket take part in the conversation.
+# Other admins can read it (dashboard) but not post, so every ticket has one clear owner.
+def can_post_message(user, ticket):
+	return ticket.requester_id == user.id or (user.is_admin and ticket.assigned_to_id == user.id)
+
+
+def serialize_reply_preview(message):
+	"""The quoted message shown above a reply."""
+	if message is None:
+		return None
+	return {
+		"id": message.id,
+		"author_name": (message.author.get_full_name() or message.author.username) if message.author else "Deleted user",
+		"is_admin_response": message.is_admin_response,
+		"excerpt": message.message[:160],
+	}
+
+
+def create_ticket_message(request, ticket):
+	"""Validate and save a reply (optionally to another message). Shared by the user and admin APIs."""
+
+	if not can_post_message(request.user, ticket):
+		return JsonResponse({"error": "Only the requester and the assigned coordinator can reply to this ticket."}, status=403)
+
+	if not can_reply_to_ticket(ticket):
+		return JsonResponse({"error": "This ticket is closed and no longer accepts replies."}, status=409)
+
+	form = TicketMessageForm(request.POST)
+	text = request.POST.get("message", "").strip()
+
+	if not form.is_valid() or not text:
+		return JsonResponse({"error": "Your reply can't be empty."}, status=400)
+
+	if len(text) > MESSAGE_MAX_LENGTH:
+		return JsonResponse({"error": f"Replies are limited to {MESSAGE_MAX_LENGTH} characters."}, status=400)
+
+	# The quoted message must be part of this same ticket
+	reply_to = None
+	reply_to_id = request.POST.get("reply_to", "").strip()
+	if reply_to_id:
+		reply_to = TicketMessage.objects.select_related("author").filter(ticket=ticket, id=reply_to_id).first() if reply_to_id.isdigit() else None
+		if reply_to is None:
+			return JsonResponse({"error": "The message you're replying to no longer exists."}, status=400)
+
+	message = form.save(commit=False)
+	message.message = text
+	message.ticket = ticket
+	message.author = request.user
+	message.is_admin_response = request.user.is_admin
+	message.reply_to = reply_to
+	message.save()
+
+	return JsonResponse({"message": serialize_ticket_message(message, request.user)}, status=201)
+
+
 def serialize_ticket_message(message, viewer):
 	return {
 		"id": message.id,
@@ -315,6 +376,7 @@ def serialize_ticket_message(message, viewer):
 		"is_admin_response": message.is_admin_response,
 		"is_own": message.author_id == viewer.id,
 		"message": message.message,
+		"reply_to": serialize_reply_preview(message.reply_to),
 		"created_at": message.created_at.isoformat() if message.created_at else None,
 	}
 
@@ -327,7 +389,7 @@ def ticket_detail_api(request: HttpRequest, ticket_id):
 	if not can_view_ticket(request.user, ticket):
 		return JsonResponse({"error": "You do not have permission to view this ticket."}, status=403)
 
-	messages = ticket.messages.select_related("author")
+	messages = ticket.messages.select_related("author", "reply_to__author")
 
 	return JsonResponse({
 		"ticket": {
@@ -340,7 +402,7 @@ def ticket_detail_api(request: HttpRequest, ticket_id):
 			"priority_label": ticket.get_priority_display(),
 			"requester": serialize_ticket_user(ticket.requester),
 			"assignee": serialize_ticket_user(ticket.assigned_to),
-			"can_reply": can_reply_to_ticket(ticket),
+			"can_reply": can_reply_to_ticket(ticket) and can_post_message(request.user, ticket),
 			"created_at": ticket.created_at.isoformat() if ticket.created_at else None,
 			"updated_at": ticket.updated_at.isoformat() if ticket.updated_at else None,
 			"closed_at": ticket.closed_at.isoformat() if ticket.closed_at else None,
@@ -358,26 +420,7 @@ def ticket_message_api(request: HttpRequest, ticket_id):
 	if not can_view_ticket(request.user, ticket):
 		return JsonResponse({"error": "You do not have permission to reply to this ticket."}, status=403)
 
-	if not can_reply_to_ticket(ticket):
-		return JsonResponse({"error": "This ticket is closed and no longer accepts replies."}, status=409)
-
-	form = TicketMessageForm(request.POST)
-	text = request.POST.get("message", "").strip()
-
-	if not form.is_valid() or not text:
-		return JsonResponse({"error": "Your reply can't be empty."}, status=400)
-
-	if len(text) > MESSAGE_MAX_LENGTH:
-		return JsonResponse({"error": f"Replies are limited to {MESSAGE_MAX_LENGTH} characters."}, status=400)
-
-	message = form.save(commit=False)
-	message.message = text
-	message.ticket = ticket
-	message.author = request.user
-	message.is_admin_response = request.user.is_admin
-	message.save()
-
-	return JsonResponse({"message": serialize_ticket_message(message, request.user)}, status=201)
+	return create_ticket_message(request, ticket)
 
 
 # ========================= TICKET CREATE API =========================

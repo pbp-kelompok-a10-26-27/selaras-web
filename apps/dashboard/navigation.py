@@ -28,6 +28,10 @@ MANAGEMENT_SECTIONS = [
 ]
 
 
+def get_helpdesk_badge_label(count):
+    return f"{count} active ticket{'s' if count != 1 else ''} assigned to you"
+
+
 def get_sidebar_sections(user):
     """Sections for the sidebar component: [{"label": ..., "items": [...]}]."""
 
@@ -46,9 +50,10 @@ def get_sidebar_sections(user):
             "href": _url_or_none(url_name),
             "description": description,
         }
-        if key == "helpdesk" and assigned_active:
+        if key == "helpdesk":
+            # Always set (even 0) so the badge can be updated live; it's hidden while 0
             item["badge"] = assigned_active
-            item["badge_label"] = f"{assigned_active} active ticket{'s' if assigned_active != 1 else ''} assigned to you"
+            item["badge_label"] = get_helpdesk_badge_label(assigned_active)
         items.append(item)
 
     return [

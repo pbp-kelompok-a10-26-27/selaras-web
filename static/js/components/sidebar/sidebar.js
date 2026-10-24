@@ -117,6 +117,26 @@
     syncInert();
   }
 
+  // Lets a page update a sidebar count after an action (e.g. taking a ticket)
+  // without reloading. Only items rendered with a badge (even 0) can be updated.
+  window.setSidebarBadge = function (key, count, label = "") {
+    const link = document.querySelector(`[data-sidebar-key="${CSS.escape(key)}"]`);
+    if (!link) return;
+
+    const countEl = link.querySelector("[data-sidebar-badge-count]");
+    if (!countEl) return;
+    countEl.textContent = count;
+    countEl.title = label;
+    countEl.hidden = count === 0;
+
+    const dot = link.querySelector("[data-sidebar-badge-dot]");
+    if (dot) dot.hidden = count === 0;
+    const srLabel = link.querySelector("[data-sidebar-badge-label]");
+    if (srLabel) srLabel.textContent = count ? `(${label})` : "";
+    const flyout = link.querySelector("[data-sidebar-badge-flyout]");
+    if (flyout) flyout.textContent = count ? ` · ${count}` : "";
+  };
+
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", initSidebar);
   } else {
