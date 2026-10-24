@@ -92,24 +92,26 @@
   <span
     class="relative inline-flex shrink-0 transition-transform duration-200 group-hover:-translate-x-0.5"
     aria-hidden="true"
+    data-button-icon-left
   >
     {% lucide icon_left class="w-5 h-5" %}
   </span>
   {% endif %} {% if text %}
-  <span class="relative">{{ text }}</span>
+  <span class="relative" data-button-text>{{ text }}</span>
   {% endif %} {% if icon_right %}
   <span
     class="relative inline-flex shrink-0 transition-transform duration-200 group-hover:translate-x-0.5"
     aria-hidden="true"
+    data-button-icon-right
   >
     {% lucide icon_right class="w-5 h-5" %}
   </span>
-  {% endif %} {% if loading %}
-  <span
-    class="relative ml-1 inline-flex h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"
-    aria-hidden="true"
-  ></span>
   {% endif %}
+  <span
+    class="relative ml-1 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent {% if loading %}inline-flex{% else %}hidden{% endif %}"
+    aria-hidden="true"
+    data-button-spinner
+  ></span>
 </a>
 
 {% else %}
@@ -167,6 +169,7 @@
     {% endif %}
 
     focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2
+    disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:translate-y-0 disabled:hover:shadow-none disabled:active:scale-100
 
     {{ class_ }}
   "
@@ -184,10 +187,6 @@
   selected
   %}
   aria-pressed="true"
-  {%
-  else
-  %}
-  aria-pressed="false"
   {%
   endif
   %}
@@ -212,24 +211,26 @@
   <span
     class="relative inline-flex shrink-0 transition-transform duration-200 group-hover:-translate-x-0.5"
     aria-hidden="true"
+    data-button-icon-left
   >
     {% lucide icon_left class="w-5 h-5" %}
   </span>
   {% endif %} {% if text %}
-  <span class="relative">{{ text }}</span>
+  <span class="relative" data-button-text>{{ text }}</span>
   {% endif %} {% if icon_right %}
   <span
     class="relative inline-flex shrink-0 transition-transform duration-200 group-hover:translate-x-0.5"
     aria-hidden="true"
+    data-button-icon-right
   >
     {% lucide icon_right class="w-5 h-5" %}
   </span>
-  {% endif %} {% if loading %}
-  <span
-    class="relative ml-1 inline-flex h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"
-    aria-hidden="true"
-  ></span>
   {% endif %}
+  <span
+    class="relative ml-1 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent {% if loading %}inline-flex{% else %}hidden{% endif %}"
+    aria-hidden="true"
+    data-button-spinner
+  ></span>
 </button>
 
 {% endif %}

@@ -4,6 +4,7 @@ from django.db.models.functions import Lower
 from django.utils.translation import gettext_lazy as _
 
 from apps.core.models import TimeStamp
+import uuid
 
 
 class UserManager(DjangoUserManager):
@@ -17,6 +18,7 @@ class User(AbstractUser, TimeStamp):
         ADMIN = "admin", _("Admin")
         USER = "user", _("User")
 
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     role = models.CharField(
         max_length=10, choices=Role.choices, default=Role.USER, db_index=True
     )

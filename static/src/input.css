@@ -3,6 +3,7 @@
 @source "../../templates/**/*.html";
 @source "../../apps/**/templates/**/*.html";
 @source "../../../apps/**/components/**/*.html";
+@source "../js/**/*.js";
 
 @theme {
   /* Primary (hijau muda / lime) */
@@ -43,6 +44,9 @@
 
   /* Red */
   --color-red-100: #df2525;
+  
+  /* Orange */
+  --color-orange-100: #FFA756;
   
   /* Yellow */
   --color-yellow-100: #fff49b;

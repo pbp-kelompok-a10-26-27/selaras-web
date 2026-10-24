@@ -1,34 +1,47 @@
 from django.conf import settings
 from django.db import models
-
+from django.utils.translation import gettext_lazy as _	
 from apps.core.models import TimeStamp
-
+import uuid
 
 class Ticket(TimeStamp):
 	class Status(models.TextChoices):
-		OPEN = "OPEN", "Open"
-		IN_PROGRESS = "IN_PROGRESS", "In progress"
-		RESOLVED = "RESOLVED", "Resolved"
-		CLOSED = "CLOSED", "Closed"
+		OPEN = "open", _("Open")
+		IN_PROGRESS = "in_progress", _("In Progress")
+		RESOLVED = "resolved", _("Resolved")
+		CLOSED = "closed", _("Closed")
 
 	class Priority(models.TextChoices):
-		LOW = "LOW", "Low"
-		NORMAL = "NORMAL", "Normal"
-		HIGH = "HIGH", "High"
+		LOW = "low", _("Low")
+		NORMAL = "normal", _("Normal")
+		HIGH = "high", _("High")
 
 	requester = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="support_tickets")
+	assigned_to = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, limit_choices_to={"role": "admin"}, null=True, blank=True, related_name="assigned_tickets")
+
+	id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 	subject = models.CharField(max_length=200)
 	description = models.TextField()
 	status = models.CharField(max_length=20, choices=Status.choices, default=Status.OPEN)
 	priority = models.CharField(max_length=20, choices=Priority.choices, default=Priority.NORMAL)
 	closed_at = models.DateTimeField(null=True, blank=True)
 
+	class Meta:
+		ordering = ["-created_at"]
+
 	def __str__(self):
-		return self.subject
+		return f"Ticket #{self.id} - {self.subject} - ({self.status})"
 
 
 class TicketMessage(TimeStamp):
+
 	ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE, related_name="messages")
 	author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="ticket_messages")
-	body = models.TextField()
-	is_staff_response = models.BooleanField(default=False)
+	message = models.TextField()
+	is_admin_response = models.BooleanField(default=False)
+
+	class Meta:
+		ordering = ["created_at"]
+
+	def __str__(self):
+		return f"Message #{self.id} - Ticket #{self.ticket.id} - Author: {self.author.username}"

@@ -1,0 +1,43 @@
+{% load component_tags %}
+{% comment %}
+  Design system components for the parts of the helpdesk pages that JavaScript
+  builds. Django renders each component once into an inert <template>; the JS
+  clones it (cloneTemplate in static/js/helpdesk/shared.js) and fills in the
+  dynamic text. Changing a component in apps/core/components updates these too.
+  Hooks the JS relies on: [data-button-text], [data-button-icon-right],
+  [data-button-spinner] (button) and [role="tooltip"] (tooltip).
+{% endcomment %}
+
+{# Copy-to-clipboard ticket ID: tooltip wrapping a button #}
+<template id="tpl-ticket-id">
+  {% component "tooltip" text="Copy ticket ID" position="bottom" %}
+    {% fill "trigger" %}
+      {% component "button" text="#00000000" variant="neutral" size="xs" icon_right="copy" class_="font-mono" / %}
+    {% endfill %}
+  {% endcomponent %}
+</template>
+
+{# Ticket card call to action (href is set by JS) #}
+<template id="tpl-button-view-ticket">
+  {% component "button" text="View details" variant="secondary" href="#" icon_right="arrow-up-right" full_width=True class_="@sm:ml-auto @sm:w-auto" / %}
+</template>
+
+{# Empty state action when filters hide every ticket #}
+<template id="tpl-button-clear-filters">
+  {% component "button" text="Clear filters" variant="secondary" icon_left="x" class_="mt-2" / %}
+</template>
+
+{# "Clear all" next to the active filter chips #}
+<template id="tpl-button-clear-all">
+  {% component "button" text="Clear all" variant="secondary-ghost" size="xs" / %}
+</template>
+
+{# Retry action in error states #}
+<template id="tpl-button-retry">
+  {% component "button" text="Try again" variant="neutral" size="sm" icon_left="rotate-cw" / %}
+</template>
+
+{# "Show more / Show less" toggle for long descriptions #}
+<template id="tpl-button-show-more">
+  {% component "button" text="Show more" variant="secondary-ghost" size="xs" icon_right="chevron-down" class_="mt-3" / %}
+</template>

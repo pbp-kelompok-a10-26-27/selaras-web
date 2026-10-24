@@ -1,7 +1,22 @@
 (function () {
+  const FOCUSABLE =
+    'button:not([disabled]), [href], input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+  function getFocusable(modal) {
+    return [...modal.querySelectorAll(FOCUSABLE)].filter(
+      (el) => el.getClientRects().length > 0,
+    );
+  }
+
   function initModalSystem() {
     if (window.__modalInitialized) return;
     window.__modalInitialized = true;
+
+    // A closed modal is only invisible, so make it inert: otherwise keyboard
+    // users can Tab into its hidden fields and screen readers read it out
+    document.querySelectorAll(".modal-backdrop").forEach((modal) => {
+      modal.inert = true;
+    });
 
     window.openModal = function (modalId) {
       const modal = document.getElementById(modalId);
@@ -11,6 +26,10 @@
       }
 
       const dialog = modal.querySelector(".modal-dialog");
+
+      // Remember what opened the modal, to return focus there on close
+      modal._returnFocusTo = document.activeElement;
+      modal.inert = false;
 
       // Show backdrop
       modal.classList.remove("opacity-0", "pointer-events-none");
@@ -27,18 +46,19 @@
         }
       });
 
-      // Focus first focusable element for accessibility
+      // Focus the element marked [data-modal-autofocus], else the first focusable one
       setTimeout(() => {
-        const focusable = modal.querySelectorAll(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-        );
-        if (focusable.length) focusable[0].focus();
+        const target =
+          modal.querySelector("[data-modal-autofocus]") ?? getFocusable(modal)[0];
+        target?.focus();
       }, 100);
+
+      modal.dispatchEvent(new CustomEvent("modal:open", { bubbles: true }));
     };
 
     window.closeModal = function (modalId) {
       const modal = document.getElementById(modalId);
-      if (!modal) return;
+      if (!modal || modal.inert) return;
 
       const dialog = modal.querySelector(".modal-dialog");
 
@@ -51,9 +71,16 @@
       // Fade out backdrop
       modal.classList.remove("opacity-100", "pointer-events-auto");
       modal.classList.add("opacity-0", "pointer-events-none");
+      modal.inert = true;
 
       // Restore body scroll
       document.body.style.overflow = "";
+
+      // Put keyboard focus back where the user was
+      modal._returnFocusTo?.focus?.();
+      modal._returnFocusTo = null;
+
+      modal.dispatchEvent(new CustomEvent("modal:close", { bubbles: true }));
     };
 
     // Event Delegation for triggers and close buttons
@@ -80,13 +107,32 @@
       }
     });
 
-    // Close on Escape key
     document.addEventListener("keydown", (e) => {
+      const openModal = document.querySelector(
+        ".modal-backdrop:not(.pointer-events-none)",
+      );
+      if (!openModal) return;
+
+      // Close on Escape key
       if (e.key === "Escape") {
-        const openModals = document.querySelectorAll(
-          ".modal-backdrop:not(.pointer-events-none)",
-        );
-        openModals.forEach((modal) => window.closeModal(modal.id));
+        window.closeModal(openModal.id);
+        return;
+      }
+
+      // Keep Tab inside the open modal (focus trap)
+      if (e.key === "Tab") {
+        const focusable = getFocusable(openModal);
+        if (!focusable.length) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
       }
     });
   }
