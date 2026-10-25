@@ -1,13 +1,14 @@
 import re
 from datetime import timedelta
 
-from django.http import HttpRequest, JsonResponse
 from django.db import transaction
-from django.shortcuts import render, get_object_or_404, redirect
-from django.urls import NoReverseMatch, reverse
-from django.views.decorators.http import require_POST
 from django.db.models import Count, Q
+from django.http import HttpRequest, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
+from django.views.decorators.http import require_POST
+
 from apps.core.decorators import admin_required
 from apps.helpdesk.models import Ticket
 from apps.helpdesk.views import (
@@ -22,19 +23,26 @@ from apps.helpdesk.views import (
     serialize_ticket_message,
     serialize_ticket_summary,
 )
+
 from .navigation import get_sidebar_sections
 
+# ================================= Dashboard Layout ================================= #
 
-# ================================== Dashboard Layout ================================== #
 
 # Every dashboard page renders through this, so the sidebar always gets its data
-def render_dashboard(request: HttpRequest, template_name, context=None, sidebar_sections=None):
-    return render(request, template_name, {
-        "sidebar_sections": sidebar_sections or get_sidebar_sections(request.user),
-        "dashboard_home_url": reverse("dashboard:home"),
-        "logout_url": reverse("accounts:logout"),
-        **(context or {}),
-    })
+def render_dashboard(
+    request: HttpRequest, template_name, context=None, sidebar_sections=None
+):
+    return render(
+        request,
+        template_name,
+        {
+            "sidebar_sections": sidebar_sections or get_sidebar_sections(request.user),
+            "dashboard_home_url": reverse("dashboard:home"),
+            "logout_url": reverse("accounts:logout"),
+            **(context or {}),
+        },
+    )
 
 
 def get_greeting():
@@ -56,28 +64,46 @@ def admin_dashboard(request: HttpRequest):
 
     # Helpdesk snapshot: what needs attention, in one query
     helpdesk = Ticket.objects.aggregate(
-        assigned_to_me=Count("id", filter=Q(assigned_to=request.user, status__in=active_statuses)),
-        unassigned=Count("id", filter=Q(assigned_to__isnull=True, status__in=active_statuses)),
+        assigned_to_me=Count(
+            "id", filter=Q(assigned_to=request.user, status__in=active_statuses)
+        ),
+        unassigned=Count(
+            "id", filter=Q(assigned_to__isnull=True, status__in=active_statuses)
+        ),
         active_total=Count("id", filter=Q(status__in=active_statuses)),
     )
 
     # The section cards reuse the sidebar's "Management" items
     management_items = next(
-        (section["items"] for section in sidebar_sections if section["label"] == "Management"), []
+        (
+            section["items"]
+            for section in sidebar_sections
+            if section["label"] == "Management"
+        ),
+        [],
     )
-    helpdesk_url = next((item["href"] for item in management_items if item["key"] == "helpdesk"), None)
+    helpdesk_url = next(
+        (item["href"] for item in management_items if item["key"] == "helpdesk"), None
+    )
 
-    return render_dashboard(request, "dashboard/overview.html", {
-        "greeting": get_greeting(),
-        "admin_name": request.user.first_name or request.user.get_full_name() or request.user.username,
-        "today": timezone.localdate(),
-        "helpdesk": helpdesk,
-        "helpdesk_url": helpdesk_url,
-        "management_items": management_items,
-    }, sidebar_sections=sidebar_sections)
+    return render_dashboard(
+        request,
+        "dashboard/overview.html",
+        {
+            "greeting": get_greeting(),
+            "admin_name": request.user.first_name
+            or request.user.get_full_name()
+            or request.user.username,
+            "today": timezone.localdate(),
+            "helpdesk": helpdesk,
+            "helpdesk_url": helpdesk_url,
+            "management_items": management_items,
+        },
+        sidebar_sections=sidebar_sections,
+    )
 
 
-# ============================= Helpdesk Admin Dashboard Views ============================= #
+# ========================== Helpdesk Admin Dashboard Views ========================== #
 
 ACTIVE_STATUSES = [Ticket.Status.OPEN, Ticket.Status.IN_PROGRESS]
 
@@ -98,7 +124,8 @@ def _url_or_none(name, *args):
 
 
 def parse_admin_ticket_query(request: HttpRequest):
-    """The user helpdesk's status/priority/sort/search (already validated), plus assignment."""
+    """The user helpdesk's status/priority/sort/search (already validated), plus
+    assignment."""
 
     query = parse_ticket_query(request)
     assignment = request.GET.get("assignment", "")
@@ -157,17 +184,43 @@ def build_admin_ticket_stats(admin):
     counts = Ticket.objects.aggregate(
         total=Count("id"),
         active=Count("id", filter=Q(status__in=ACTIVE_STATUSES)),
-        assigned_to_me=Count("id", filter=Q(assigned_to=admin, status__in=ACTIVE_STATUSES)),
-        unassigned=Count("id", filter=Q(assigned_to__isnull=True, status__in=ACTIVE_STATUSES)),
-        high_active=Count("id", filter=Q(priority=Ticket.Priority.HIGH, status__in=ACTIVE_STATUSES)),
+        assigned_to_me=Count(
+            "id", filter=Q(assigned_to=admin, status__in=ACTIVE_STATUSES)
+        ),
+        unassigned=Count(
+            "id", filter=Q(assigned_to__isnull=True, status__in=ACTIVE_STATUSES)
+        ),
+        high_active=Count(
+            "id", filter=Q(priority=Ticket.Priority.HIGH, status__in=ACTIVE_STATUSES)
+        ),
         # updated_at is the closest signal to "resolved at" the model has
-        resolved_week=Count("id", filter=Q(status=Ticket.Status.RESOLVED, updated_at__gte=week_ago)),
-        **{f"status_{value}": Count("id", filter=Q(status=value)) for value in Ticket.Status.values},
-        **{f"active_{value}": Count("id", filter=Q(priority=value, status__in=ACTIVE_STATUSES)) for value in Ticket.Priority.values},
+        resolved_week=Count(
+            "id", filter=Q(status=Ticket.Status.RESOLVED, updated_at__gte=week_ago)
+        ),
+        **{
+            f"status_{value}": Count("id", filter=Q(status=value))
+            for value in Ticket.Status.values
+        },
+        **{
+            f"active_{value}": Count(
+                "id", filter=Q(priority=value, status__in=ACTIVE_STATUSES)
+            )
+            for value in Ticket.Priority.values
+        },
     )
 
     return {
-        "kpis": {key: counts[key] for key in ["total", "active", "assigned_to_me", "unassigned", "high_active", "resolved_week"]},
+        "kpis": {
+            key: counts[key]
+            for key in [
+                "total",
+                "active",
+                "assigned_to_me",
+                "unassigned",
+                "high_active",
+                "resolved_week",
+            ]
+        },
         "status": [
             {"key": value, "label": str(label), "value": counts[f"status_{value}"]}
             for value, label in Ticket.Status.choices
@@ -184,19 +237,32 @@ def build_admin_ticket_stats(admin):
 def admin_ticket_list(request: HttpRequest):
 
     query = parse_admin_ticket_query(request)
-    sorting_options = {label: [value, icon] for value, (label, icon, _fields) in SORT_OPTIONS.items()}
+    sorting_options = {
+        label: [value, icon] for value, (label, icon, _fields) in SORT_OPTIONS.items()
+    }
 
-    return render_dashboard(request, "dashboard/helpdesk/ticket_list.html", {
-        "status_options": STATUS_FILTER_OPTIONS,
-        "priority_options": PRIORITY_FILTER_OPTIONS,
-        "assignment_options": {label: [value, icon] for value, (label, icon) in ASSIGNMENT_OPTIONS.items()},
-        "sorting_options": sorting_options,
-        "query": query,
-        "status_label": str(dict(Ticket.Status.choices).get(query["status"], "")),
-        "priority_label": str(dict(Ticket.Priority.choices).get(query["priority"], "")),
-        "assignment_label": ASSIGNMENT_OPTIONS[query["assignment"]][0] if query["assignment"] else "",
-        "sort_label": SORT_OPTIONS[query["sort"]][0],
-    })
+    return render_dashboard(
+        request,
+        "dashboard/helpdesk/ticket_list.html",
+        {
+            "status_options": STATUS_FILTER_OPTIONS,
+            "priority_options": PRIORITY_FILTER_OPTIONS,
+            "assignment_options": {
+                label: [value, icon]
+                for value, (label, icon) in ASSIGNMENT_OPTIONS.items()
+            },
+            "sorting_options": sorting_options,
+            "query": query,
+            "status_label": str(dict(Ticket.Status.choices).get(query["status"], "")),
+            "priority_label": str(
+                dict(Ticket.Priority.choices).get(query["priority"], "")
+            ),
+            "assignment_label": ASSIGNMENT_OPTIONS[query["assignment"]][0]
+            if query["assignment"]
+            else "",
+            "sort_label": SORT_OPTIONS[query["sort"]][0],
+        },
+    )
 
 
 @admin_required
@@ -211,16 +277,22 @@ def admin_ticket_list_api(request: HttpRequest):
         .annotate(messages_count=Count("messages"))
     )
 
-    assigned, assigned_pagination = paginate(tickets.filter(assigned_to=request.user), parse_page(request, "mine_page"))
-    others, others_pagination = paginate(tickets.exclude(assigned_to=request.user), parse_page(request, "page"))
+    assigned, assigned_pagination = paginate(
+        tickets.filter(assigned_to=request.user), parse_page(request, "mine_page")
+    )
+    others, others_pagination = paginate(
+        tickets.exclude(assigned_to=request.user), parse_page(request, "page")
+    )
 
-    return JsonResponse({
-        "assigned": [serialize_admin_ticket(t, request.user) for t in assigned],
-        "assigned_pagination": assigned_pagination,
-        "others": [serialize_admin_ticket(t, request.user) for t in others],
-        "others_pagination": others_pagination,
-        "total_count": Ticket.objects.count(),
-    })
+    return JsonResponse(
+        {
+            "assigned": [serialize_admin_ticket(t, request.user) for t in assigned],
+            "assigned_pagination": assigned_pagination,
+            "others": [serialize_admin_ticket(t, request.user) for t in others],
+            "others_pagination": others_pagination,
+            "total_count": Ticket.objects.count(),
+        }
+    )
 
 
 @admin_required
@@ -231,14 +303,17 @@ def admin_ticket_stats_api(request: HttpRequest):
 @admin_required
 @require_POST
 def admin_ticket_assign(request: HttpRequest, ticket_id):
-    """Take an unassigned ticket. Admins only reply to their own tickets, so this is how work gets picked up."""
+    """Take an unassigned ticket. Admins only reply to their own tickets, so this is
+    how work gets picked up."""
 
     # Row lock + the owner check: two admins clicking at once can't both take it
     with transaction.atomic():
         ticket = get_object_or_404(Ticket.objects.select_for_update(), id=ticket_id)
         if ticket.assigned_to_id and ticket.assigned_to_id != request.user.id:
             owner = ticket.assigned_to.get_full_name() or ticket.assigned_to.username
-            return JsonResponse({"error": f"{owner} already took this ticket."}, status=409)
+            return JsonResponse(
+                {"error": f"{owner} already took this ticket."}, status=409
+            )
 
         ticket.assigned_to = request.user
         ticket.save(update_fields=["assigned_to", "updated_at"])
@@ -259,7 +334,9 @@ def admin_ticket_delete(request: HttpRequest, ticket_id):
     ticket = get_object_or_404(Ticket, id=ticket_id)
     ticket.delete()
     return JsonResponse({"deleted": str(ticket_id)})
-# =============================== Admin Ticket Detail (TODO 3) =============================== #
+
+
+# =========================== Admin Ticket Detail (TODO 3) =========================== #
 
 # The statuses an admin can set from the ticket page: (value, label, icon, icon color)
 ADMIN_STATUS_ACTIONS = [
@@ -267,7 +344,9 @@ ADMIN_STATUS_ACTIONS = [
     (Ticket.Status.RESOLVED, "Resolved", "circle-check", "text-primary-700"),
     (Ticket.Status.CLOSED, "Closed", "lock", "text-secondary-500"),
 ]
-ADMIN_SETTABLE_STATUSES = {value for value, _label, _icon, _color in ADMIN_STATUS_ACTIONS}
+ADMIN_SETTABLE_STATUSES = {
+    value for value, _label, _icon, _color in ADMIN_STATUS_ACTIONS
+}
 
 
 # The assigned coordinator owns the ticket: only they reply and change its status.
@@ -278,7 +357,9 @@ def can_manage_ticket(admin, ticket):
 
 def get_admin_ticket(ticket_id):
     return get_object_or_404(
-        Ticket.objects.select_related("requester", "assigned_to").annotate(messages_count=Count("messages")),
+        Ticket.objects.select_related("requester", "assigned_to").annotate(
+            messages_count=Count("messages")
+        ),
         id=ticket_id,
     )
 
@@ -297,15 +378,23 @@ def admin_ticket_detail(request: HttpRequest, ticket_id):
     ticket = get_admin_ticket(ticket_id)
     is_assignee = can_manage_ticket(request.user, ticket)
 
-    return render_dashboard(request, "dashboard/helpdesk/ticket_detail.html", {
-        "ticket": ticket,
-        "ticket_id_str": str(ticket.id),
-        "short_id": str(ticket.id)[:8].upper(),
-        "is_assignee": is_assignee,
-        "ticket_is_closed": ticket.status == Ticket.Status.CLOSED,
-        "status_actions": ADMIN_STATUS_ACTIONS,
-        "assignee_name": (ticket.assigned_to.get_full_name() or ticket.assigned_to.username) if ticket.assigned_to else "",
-    })
+    return render_dashboard(
+        request,
+        "dashboard/helpdesk/ticket_detail.html",
+        {
+            "ticket": ticket,
+            "ticket_id_str": str(ticket.id),
+            "short_id": str(ticket.id)[:8].upper(),
+            "is_assignee": is_assignee,
+            "ticket_is_closed": ticket.status == Ticket.Status.CLOSED,
+            "status_actions": ADMIN_STATUS_ACTIONS,
+            "assignee_name": (
+                ticket.assigned_to.get_full_name() or ticket.assigned_to.username
+            )
+            if ticket.assigned_to
+            else "",
+        },
+    )
 
 
 @admin_required
@@ -314,22 +403,30 @@ def admin_ticket_detail_api(request: HttpRequest, ticket_id):
     ticket = get_admin_ticket(ticket_id)
     messages = ticket.messages.select_related("author", "reply_to__author")
 
-    return JsonResponse({
-        "ticket": serialize_admin_ticket_detail(ticket, request.user),
-        "messages": [serialize_ticket_message(message, request.user) for message in messages],
-    })
+    return JsonResponse(
+        {
+            "ticket": serialize_admin_ticket_detail(ticket, request.user),
+            "messages": [
+                serialize_ticket_message(message, request.user) for message in messages
+            ],
+        }
+    )
 
 
 @admin_required
 @require_POST
 def admin_ticket_message_create(request: HttpRequest, ticket_id):
-    """Reply as the assigned coordinator (same rules as the user side: create_ticket_message)."""
+    """Reply as the assigned coordinator (same rules as the user side:
+    create_ticket_message)."""
 
     ticket = get_object_or_404(Ticket, id=ticket_id)
     response = create_ticket_message(request, ticket)
 
     # Without JS the form posts here directly: go back to the ticket page
-    if "application/json" not in request.headers.get("Accept", "") and response.status_code == 201:
+    if (
+        "application/json" not in request.headers.get("Accept", "")
+        and response.status_code == 201
+    ):
         return redirect("dashboard:admin_ticket_detail", ticket_id=ticket.id)
     return response
 
@@ -337,23 +434,42 @@ def admin_ticket_message_create(request: HttpRequest, ticket_id):
 @admin_required
 @require_POST
 def admin_ticket_update(request: HttpRequest, ticket_id):
-    """Change a ticket's status (In progress / Resolved / Closed). Assigned coordinator only."""
+    """Change a ticket's status (In progress / Resolved / Closed). Assigned
+    coordinator only."""
 
     status = request.POST.get("status", "")
     if status not in ADMIN_SETTABLE_STATUSES:
-        return JsonResponse({"error": "Choose In progress, Resolved or Closed."}, status=400)
+        return JsonResponse(
+            {"error": "Choose In progress, Resolved or Closed."}, status=400
+        )
 
     with transaction.atomic():
         ticket = get_object_or_404(Ticket.objects.select_for_update(), id=ticket_id)
         if not can_manage_ticket(request.user, ticket):
-            return JsonResponse({"error": "Only the assigned coordinator can change this ticket's status."}, status=403)
+            return JsonResponse(
+                {
+                    "error": (
+                        "Only the assigned coordinator can change this ticket's status."
+                    )
+                },
+                status=403,
+            )
 
         if ticket.status != status:
             ticket.status = status
             # closed_at records when it was closed; reopening clears it
-            ticket.closed_at = timezone.now() if status == Ticket.Status.CLOSED else None
+            ticket.closed_at = (
+                timezone.now() if status == Ticket.Status.CLOSED else None
+            )
             ticket.save(update_fields=["status", "closed_at", "updated_at"])
 
-    return JsonResponse({"ticket": serialize_admin_ticket_detail(get_admin_ticket(ticket_id), request.user)})
+    return JsonResponse(
+        {
+            "ticket": serialize_admin_ticket_detail(
+                get_admin_ticket(ticket_id), request.user
+            )
+        }
+    )
 
-# =========================================================================================== #
+
+# ==================================================================================== #

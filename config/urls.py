@@ -14,21 +14,24 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
 from django.contrib import admin
 from django.urls import include, path
+
 from apps.core.views import design_system, home
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('accounts/', include('apps.accounts.urls')),
-    path('articles/', include('apps.articles.urls')),
-    path('challenges/', include('apps.challenges.urls')),
-    path('feed/', include('apps.feeds.urls')),
-    path('donations/', include('apps.donations.urls')),
-    path('helpdesk/', include('apps.helpdesk.urls')),
-    path('design-system/', design_system, name='design_system'),
-    # Not "admin/": Django's admin above already owns that prefix and 404s any path it doesn't know
-    path('dashboard/', include('apps.dashboard.urls')),
+    path("admin/", admin.site.urls),
+    path("accounts/", include("apps.accounts.urls")),
+    path("articles/", include("apps.articles.urls")),
+    path("challenges/", include("apps.challenges.urls")),
+    path("feed/", include("apps.feeds.urls")),
+    path("donations/", include("apps.donations.urls")),
+    path("helpdesk/", include("apps.helpdesk.urls")),
+    path("design-system/", design_system, name="design_system"),
+    # Not "admin/": Django's admin above already owns that prefix and 404s any path
+    # it doesn't know
+    path("dashboard/", include("apps.dashboard.urls")),
     # Landing page (templates/landing/home.html) with live numbers from each app
     path("", home, name="home"),
 ]

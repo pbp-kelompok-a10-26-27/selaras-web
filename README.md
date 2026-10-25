@@ -25,6 +25,9 @@ SELARAS provides structured challenges with daily progress tracking and badges/s
 - [x] Finalized design system components 
 - [x] Modified authentication system
 
+- [x] Added pre-commit hooks (Husky + lint-staged) for ruff lint/format and migration checks
+- [x] Added `ruff format --check` to CI
+
 
 ### Design System Notes
 All components will be using `django-components` configuration (still not applied for the others), in progress. For more details, read the existing navbar and button configuration components. Furthermore, you can read [Django Components](https://django-components.github.io/django-components/docs/). Components will be placed in `apps/core/components/` with this given structure.
@@ -127,15 +130,72 @@ fix(challenges): fix daily progress validation
 docs(helpdesk): document ticket workflow
 ```
 
+### Git Hooks
+
+Pre-commit hooks are managed by [Husky](https://typicode.github.io/husky/) and [lint-staged](https://github.com/lint-staged/lint-staged). Config lives in `.husky/pre-commit` and `lint-staged.config.js`.
+
+#### One-time setup (after cloning or pulling this change)
+
+```bash
+python -m venv venv
+venv\Scripts\activate            # Windows
+source venv/bin/activate         # macOS/Linux
+
+pip install -r requirements.txt  # installs ruff
+npm install                      # installs Husky and activates the hooks
+```
+
+The hook finds `venv/` or `.venv/` automatically, so you don't need to activate the venv before committing. Use one of those two folder names.
+
+#### Before every commit
+
+Run these from the project root:
+
+```bash
+ruff check --fix .                              # lint and auto-fix
+ruff format .                                   # format code
+python manage.py makemigrations                 # if you changed any models
+python manage.py test                           # make sure nothing broke
+git add <files>
+git commit -m "feat(module): short description"
+```
+
+#### What runs automatically on `git commit`
+
+Only staged files are checked:
+
+| Staged files        | Command                                              | Result                                          |
+| ------------------- | ---------------------------------------------------- | ----------------------------------------------- |
+| `*.py`              | `ruff check --fix`, then `ruff format`               | Fixes are re-staged; unfixable errors block the commit |
+| `apps/**/models.py` | `python manage.py makemigrations --check --dry-run`  | Blocks the commit if a migration is missing     |
+
+If the commit is blocked, read the error, fix it, `git add` again, and re-commit.
+
+#### Rules
+
+* Do not bypass the hook with `git commit --no-verify`. CI runs the same checks, so the PR will fail anyway.
+* Commit migration files together with the model changes that need them.
+* Do not edit files inside `*/migrations/` by hand to silence ruff. Migrations are excluded from linting.
+
+#### Troubleshooting
+
+* `ruff: command not found`: run `pip install -r requirements.txt` inside `venv/` or `.venv/`.
+* The hook doesn't run at all: run `npm install` (or `npm run prepare`) again. Then `git config core.hooksPath` should print `.husky/_`.
+
 ### Pull Requests
 
 Before opening a PR:
 
 ```bash
+ruff check .
+ruff format --check .
 python manage.py check
+python manage.py makemigrations --check --dry-run
 python manage.py test
 npm run build
 ```
+
+These match the CI pipeline. If they all pass locally, CI should pass too.
 
 A PR should contain:
 

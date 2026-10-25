@@ -11,7 +11,9 @@ class Sidebar(component.Component):
         path = request.path if request else ""
         user = getattr(request, "user", None)
 
-        # sections: [{"label": "Management", "items": [{key, label, icon, href, badge, badge_label, exact}]}]
+        # sections: [{"label": "Management", "items": [
+        #     {key, label, icon, href, badge, badge_label, exact}
+        # ]}]
         # An item without an href renders as disabled "Soon".
         sections = []
         for section in kwargs.get("sections", []):
@@ -42,11 +44,11 @@ class Sidebar(component.Component):
             "site_url": kwargs.get("site_url", "/"),
             "logout_url": kwargs.get("logout_url", "/accounts/logout/"),
             "sections": sections,
-
             "user_name": name,
             "user_initials": initials,
-            "user_role": user.get_role_display() if user and hasattr(user, "get_role_display") else "",
-
+            "user_role": user.get_role_display()
+            if user and hasattr(user, "get_role_display")
+            else "",
             # Logout is a POST form (Django 5's LogoutView rejects GET)
             "logout_csrf_token": get_token(request) if request else "",
             "class_": kwargs.get("class_", ""),

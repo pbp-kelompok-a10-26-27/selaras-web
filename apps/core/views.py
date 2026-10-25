@@ -1,5 +1,6 @@
 from django.shortcuts import render
 
+
 def design_system(request):
     primary_colors = [
         {"name": "50", "value": "#f7f9f0"},
@@ -54,9 +55,9 @@ def design_system(request):
     ]
 
     dropdown_options = {
-            "PBP": ["PeBePeh", "arrow-right"],
-            "DSA": ["Data Structures and Algorithms", "arrow-right"],
-            "CS": ["Computer Science", "arrow-right"]
+        "PBP": ["PeBePeh", "arrow-right"],
+        "DSA": ["Data Structures and Algorithms", "arrow-right"],
+        "CS": ["Computer Science", "arrow-right"],
     }
 
     return render(

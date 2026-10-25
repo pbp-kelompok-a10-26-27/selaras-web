@@ -19,12 +19,48 @@ def _url_or_none(name):
 
 # (key, label, lucide icon, URL name, short description for the overview cards)
 MANAGEMENT_SECTIONS = [
-    ("users", "Users", "users", "dashboard:admin_user_list", "Manage accounts, roles and access."),
-    ("articles", "Articles", "newspaper", "dashboard:admin_article_list", "Write, review and publish articles."),
-    ("challenges", "Challenges", "trophy", "dashboard:admin_challenge_list", "Run challenges, badges and progress."),
-    ("donations", "Donations", "hand-heart", "dashboard:admin_donation_list", "Track campaigns and donations."),
-    ("feeds", "Feeds", "rss", "dashboard:admin_feed_list", "Moderate posts, likes and comments."),
-    ("helpdesk", "Helpdesk", "life-buoy", "dashboard:admin_ticket_list", "Answer and resolve support tickets."),
+    (
+        "users",
+        "Users",
+        "users",
+        "dashboard:admin_user_list",
+        "Manage accounts, roles and access.",
+    ),
+    (
+        "articles",
+        "Articles",
+        "newspaper",
+        "dashboard:admin_article_list",
+        "Write, review and publish articles.",
+    ),
+    (
+        "challenges",
+        "Challenges",
+        "trophy",
+        "dashboard:admin_challenge_list",
+        "Run challenges, badges and progress.",
+    ),
+    (
+        "donations",
+        "Donations",
+        "hand-heart",
+        "dashboard:admin_donation_list",
+        "Track campaigns and donations.",
+    ),
+    (
+        "feeds",
+        "Feeds",
+        "rss",
+        "dashboard:admin_feed_list",
+        "Moderate posts, likes and comments.",
+    ),
+    (
+        "helpdesk",
+        "Helpdesk",
+        "life-buoy",
+        "dashboard:admin_ticket_list",
+        "Answer and resolve support tickets.",
+    ),
 ]
 
 
@@ -59,14 +95,17 @@ def get_sidebar_sections(user):
     return [
         {
             "label": "",
-            "items": [{
-                "key": "overview",
-                "label": "Overview",
-                "icon": "layout-dashboard",
-                "href": _url_or_none("dashboard:home"),
-                # The overview URL is a prefix of every dashboard URL, so only an exact match counts as active
-                "exact": True,
-            }],
+            "items": [
+                {
+                    "key": "overview",
+                    "label": "Overview",
+                    "icon": "layout-dashboard",
+                    "href": _url_or_none("dashboard:home"),
+                    # The overview URL is a prefix of every dashboard URL, so
+                    # only an exact match counts as active
+                    "exact": True,
+                }
+            ],
         },
         {"label": "Management", "items": items},
     ]

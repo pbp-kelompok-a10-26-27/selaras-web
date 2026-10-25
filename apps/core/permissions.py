@@ -3,11 +3,11 @@ def is_authenticated_user(user) -> bool:
 
 
 def is_admin(user) -> bool:
-    return bool(user.is_authenticated and getattr(user, "is_admin", False))
+    return bool(is_authenticated_user(user) and getattr(user, "is_admin", False))
 
 
 def is_user(user) -> bool:
     """Return True if user is standard platform user."""
     if not is_authenticated_user(user):
         return False
-    return getattr(user, "role", None) == "USER"
+    return getattr(user, "role", None) == "user"

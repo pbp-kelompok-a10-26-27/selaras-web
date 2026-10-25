@@ -10,14 +10,12 @@ class Navbar(component.Component):
         request = context.get("request")
 
         return {
-            # Logout is a POST form: Django's LogoutView rejects GET, so a link to it fails.
-            # (Not named "csrf_token": that name is reserved by Django's context processor.)
+            # Logout is a POST form: Django's LogoutView rejects GET, so a link to
+            # it fails. (Not named "csrf_token": that name is reserved by Django's
+            # context processor.)
             "logout_csrf_token": get_token(request) if request else "",
-
-
             "logo_url": kwargs.get("logo_url", "/"),
             "logo_text": kwargs.get("logo_text", "SELARAS"),
-
             "links": kwargs.get(
                 "links",
                 [
@@ -28,14 +26,11 @@ class Navbar(component.Component):
                     {"label": "Help Desk", "href": "/helpdesk/tickets/"},
                 ],
             ),
-
             "authenticated": kwargs.get("authenticated", False),
-
             "login_url": kwargs.get("login_url", "/accounts/login/"),
             "register_url": kwargs.get("register_url", "/accounts/register/"),
             "logout_url": kwargs.get("logout_url", "/accounts/logout/"),
             "profile_url": kwargs.get("profile_url", "/accounts/profile/"),
-
             "preview": kwargs.get("preview", False),
             "class_": kwargs.get("class_", ""),
         }

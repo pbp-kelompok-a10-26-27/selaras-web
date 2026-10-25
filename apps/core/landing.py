@@ -1,4 +1,6 @@
-"""Live numbers for the landing page's growth rings (Belajar · Bertindak · Berbagi · Berdonasi).
+"""Live numbers for the landing page's growth rings.
+
+Rings: Belajar · Bertindak · Berbagi · Berdonasi.
 
 Each ring reads from the app that owns the data. Every block is guarded, so a
 failing query (missing migration, app still in development) shows zeros for
@@ -50,7 +52,9 @@ def _safe(section, default, build):
 def _learn():
     Article = apps.get_model("articles", "Article")
     published = Article.objects.filter(status=Article.Status.PUBLISHED)
-    latest = published.select_related("category").order_by("-published_at", "-created_at")[:3]
+    latest = published.select_related("category").order_by(
+        "-published_at", "-created_at"
+    )[:3]
     return {
         "count": published.count(),
         "latest": [
@@ -72,7 +76,9 @@ def _act():
     today = timezone.localdate()
 
     active = Challenge.objects.filter(is_published=True, end_date__gte=today)
-    latest = active.annotate(participants=Count("participations")).order_by("start_date")[:3]
+    latest = active.annotate(participants=Count("participations")).order_by(
+        "start_date"
+    )[:3]
     return {
         "count": active.count(),
         "participants": Participation.objects.count(),
@@ -109,16 +115,24 @@ def _give():
 
     campaigns = (
         Campaign.objects.filter(status=Campaign.Status.PUBLISHED)
-        .annotate(raised=Sum("donations__amount", filter=approved), donors=Count("donations__donor", filter=approved, distinct=True))
+        .annotate(
+            raised=Sum("donations__amount", filter=approved),
+            donors=Count("donations__donor", filter=approved, distinct=True),
+        )
         .order_by("-created_at")[:3]
     )
-    total = Donation.objects.filter(status=Donation.Status.APPROVED).aggregate(total=Sum("amount"))["total"] or Decimal(0)
+    total = Donation.objects.filter(status=Donation.Status.APPROVED).aggregate(
+        total=Sum("amount")
+    )["total"] or Decimal(0)
     return {
         "count": Campaign.objects.filter(status=Campaign.Status.PUBLISHED).count(),
         "raised": int(total),
         "raised_full": format_rupiah(total),
         "raised_compact": format_rupiah_compact(total),
-        "donors": Donation.objects.filter(status=Donation.Status.APPROVED).values("donor").distinct().count(),
+        "donors": Donation.objects.filter(status=Donation.Status.APPROVED)
+        .values("donor")
+        .distinct()
+        .count(),
         "latest": [
             {
                 "title": c.title,
@@ -126,7 +140,9 @@ def _give():
                 "target": format_rupiah(c.target_amount),
                 "donors": c.donors,
                 # Capped at 100 for the bar; the label still shows the real amount
-                "percent": min(100, round((c.raised or 0) / c.target_amount * 100)) if c.target_amount else 0,
+                "percent": min(100, round((c.raised or 0) / c.target_amount * 100))
+                if c.target_amount
+                else 0,
                 "url": _url("donations:campaign_detail", c.slug),
             }
             for c in campaigns
@@ -135,12 +151,18 @@ def _give():
 
 
 def _ring_info(learn, act, share, give):
-    """What the hero's ring info card says for each layer (read by static/js/landing/home.js)."""
+    """What the hero's ring info card says for each layer.
+
+    Read by static/js/landing/home.js.
+    """
     return {
         "learn": {
             "kicker": f"Lapisan inti · {learn['count']} artikel",
             "title": "Belajar",
-            "text": "Inti dari setiap kebiasaan: memahami mengapa sebuah langkah kecil berarti.",
+            "text": (
+                "Inti dari setiap kebiasaan: memahami mengapa sebuah langkah kecil "
+                "berarti."
+            ),
             "swatch": "bg-primary-300",
         },
         "act": {
@@ -152,7 +174,9 @@ def _ring_info(learn, act, share, give):
         "share": {
             "kicker": f"Lapisan ketiga · {share['count']} cerita",
             "title": "Berbagi",
-            "text": "Bagikan perjalanan Anda dan saling menyemangati di feed komunitas.",
+            "text": (
+                "Bagikan perjalanan Anda dan saling menyemangati di feed komunitas."
+            ),
             "swatch": "bg-tertiary-300",
         },
         "give": {
@@ -167,33 +191,100 @@ def _ring_info(learn, act, share, give):
 def get_landing_context():
     User = apps.get_model("accounts", "User")
     learn = _safe("articles", {"count": 0, "latest": []}, _learn)
-    act = _safe("challenges", {"count": 0, "participants": 0, "completed": 0, "badges": 0, "latest": []}, _act)
+    act = _safe(
+        "challenges",
+        {"count": 0, "participants": 0, "completed": 0, "badges": 0, "latest": []},
+        _act,
+    )
     share = _safe("feeds", {"count": 0, "likes": 0, "comments": 0}, _share)
-    give = _safe("donations", {"count": 0, "raised": 0, "raised_full": "Rp 0", "raised_compact": "0", "donors": 0, "latest": []}, _give)
+    give = _safe(
+        "donations",
+        {
+            "count": 0,
+            "raised": 0,
+            "raised_full": "Rp 0",
+            "raised_compact": "0",
+            "donors": 0,
+            "latest": [],
+        },
+        _give,
+    )
 
     return {
-        "members": _safe("members", 0, lambda: User.objects.filter(is_active=True).count()),
+        "members": _safe(
+            "members", 0, lambda: User.objects.filter(is_active=True).count()
+        ),
         "learn": learn,
         "act": act,
         "share": share,
         "give": give,
         "ring_info": _ring_info(learn, act, share, give),
-        # Ring legend and sticky index next to the layers: (key, lucide icon, name = section id)
-        "layer_index": [("learn", "book-open", "Belajar"), ("act", "footprints", "Bertindak"), ("share", "messages-square", "Berbagi"), ("give", "hand-heart", "Berdonasi")],
+        # Ring legend and sticky index next to the layers:
+        # (key, lucide icon, name = section id)
+        "layer_index": [
+            ("learn", "book-open", "Belajar"),
+            ("act", "footprints", "Bertindak"),
+            ("share", "messages-square", "Berbagi"),
+            ("give", "hand-heart", "Berdonasi"),
+        ],
         "act_steps": [
-            ("flag", "Gabung tantangan", "Pilih satu kebiasaan, dari 7 sampai 30 hari."),
-            ("calendar-check", "Catat setiap hari", "Satu catatan singkat per hari menjaga ritmenya."),
-            ("award", "Raih lencana", "Selesaikan tantangan dan lencananya menjadi milik Anda."),
+            (
+                "flag",
+                "Gabung tantangan",
+                "Pilih satu kebiasaan, dari 7 sampai 30 hari.",
+            ),
+            (
+                "calendar-check",
+                "Catat setiap hari",
+                "Satu catatan singkat per hari menjaga ritmenya.",
+            ),
+            (
+                "award",
+                "Raih lencana",
+                "Selesaikan tantangan dan lencananya menjadi milik Anda.",
+            ),
         ],
         # Impact estimator: rough per-person, per-day figures, for illustration only
         "habits": [
-            {"key": "tumbler", "icon": "cup-soda", "label": "Membawa tumbler", "per_day": 1, "unit": "botol plastik", "note": "tidak berakhir di tempat sampah, sungai, atau laut."},
-            {"key": "bag", "icon": "shopping-bag", "label": "Membawa tas belanja", "per_day": 1, "unit": "kantong plastik", "note": "tidak dipakai sekali lalu dibuang."},
-            {"key": "bike", "icon": "bike", "label": "Bersepeda 2 km", "per_day": 0.2, "unit": "kg CO₂e", "note": "emisi yang dihindari dibandingkan naik sepeda motor."},
-            {"key": "ac", "icon": "air-vent", "label": "Mematikan AC 1 jam lebih awal", "per_day": 1, "unit": "kWh listrik", "note": "energi yang dihemat dari jaringan listrik."},
+            {
+                "key": "tumbler",
+                "icon": "cup-soda",
+                "label": "Membawa tumbler",
+                "per_day": 1,
+                "unit": "botol plastik",
+                "note": "tidak berakhir di tempat sampah, sungai, atau laut.",
+            },
+            {
+                "key": "bag",
+                "icon": "shopping-bag",
+                "label": "Membawa tas belanja",
+                "per_day": 1,
+                "unit": "kantong plastik",
+                "note": "tidak dipakai sekali lalu dibuang.",
+            },
+            {
+                "key": "bike",
+                "icon": "bike",
+                "label": "Bersepeda 2 km",
+                "per_day": 0.2,
+                "unit": "kg CO₂e",
+                "note": "emisi yang dihindari dibandingkan naik sepeda motor.",
+            },
+            {
+                "key": "ac",
+                "icon": "air-vent",
+                "label": "Mematikan AC 1 jam lebih awal",
+                "per_day": 1,
+                "unit": "kWh listrik",
+                "note": "energi yang dihemat dari jaringan listrik.",
+            },
         ],
         "impact_days": [(7, "1 minggu"), (30, "1 bulan"), (365, "1 tahun")],
-        "impact_people": [(1, "Anda sendiri"), (100, "100 orang"), (1000, "1.000 orang")],
+        "impact_people": [
+            (1, "Anda sendiri"),
+            (100, "100 orang"),
+            (1000, "1.000 orang"),
+        ],
         # The closing section's faint log-end rings
         "cta_rings": list(range(40, 400, 26)),
         "urls": {
