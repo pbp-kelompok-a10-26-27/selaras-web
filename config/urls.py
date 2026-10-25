@@ -35,3 +35,7 @@ urlpatterns = [
     # Landing page (templates/landing/home.html) with live numbers from each app
     path("", home, name="home"),
 ]
+
+# Custom error pages (templates/errors/), used when DEBUG is False
+handler404 = "apps.core.views.page_not_found"
+handler403 = "apps.core.views.permission_denied"

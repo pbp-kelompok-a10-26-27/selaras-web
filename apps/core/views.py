@@ -1,4 +1,7 @@
+from urllib.parse import urlencode
+
 from django.shortcuts import render
+from django.urls import reverse
 
 
 def design_system(request):
@@ -78,3 +81,23 @@ def home(request):
     from .landing import get_landing_context
 
     return render(request, "landing/home.html", get_landing_context())
+
+
+# Wired up as handler404 / handler403 in config/urls.py. Django only calls these when
+# DEBUG is False; while developing, open /dashboard/... as a non-admin or a missing URL
+# with DEBUG off to see them.
+def page_not_found(request, exception):
+    return render(
+        request, "errors/404.html", {"request_path": request.path}, status=404
+    )
+
+
+def permission_denied(request, exception):
+    # Signed-out visitors get a login link that brings them back here afterwards
+    login_url = f"{reverse('accounts:login')}?{urlencode({'next': request.path})}"
+    return render(
+        request,
+        "errors/403.html",
+        {"request_path": request.path, "login_url": login_url},
+        status=403,
+    )

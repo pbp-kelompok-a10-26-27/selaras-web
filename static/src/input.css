@@ -600,3 +600,259 @@ html:has(#landing) {
     transition: none;
   }
 }
+
+/* ========================== ERROR PAGES =========================== */
+/* templates/errors/ (404, 403) with static/js/errors/errors.js */
+
+/* Soft light following the pointer (errors.js sets --glow-x / --glow-y) */
+.error-glow {
+  background: radial-gradient(
+    28rem circle at var(--glow-x, 70%) var(--glow-y, 40%),
+    color-mix(in srgb, var(--color-primary-200) 70%, transparent),
+    transparent 70%
+  );
+}
+
+/* The big 4 _ 4 / 4 _ 3; the middle digit is a growth ring. Transcity has no
+   numerals, so the digits use the body font */
+.error-digit {
+  font-family: var(--font-sans);
+  font-size: clamp(6rem, 19vw, 12.5rem);
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: var(--color-secondary-900);
+  user-select: none;
+}
+
+.error-ring {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: clamp(5.25rem, 16vw, 10.5rem);
+  aspect-ratio: 1;
+  flex-shrink: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.error-ring:active {
+  transform: scale(0.94);
+}
+
+.error-ring:focus-visible {
+  box-shadow:
+    0 0 0 3px var(--color-primary-50),
+    0 0 0 5px var(--color-secondary-600);
+}
+
+.error-ring > svg {
+  animation: error-ring-spin 90s linear infinite;
+}
+
+/* Each ring moves on its own when hovered: the 404 rings spread out, the 403 rings
+   pull tight around the lock */
+.error-ring-line {
+  transform-box: view-box;
+  transform-origin: 50% 50%;
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: calc(var(--ring-i, 0) * 40ms);
+}
+
+.error-ring:hover .error-ring-line,
+.error-ring:focus-visible .error-ring-line {
+  transform: scale(calc(1.08 - var(--ring-i, 0) * 0.012));
+}
+
+.error-garden--locked .error-ring:hover .error-ring-line,
+.error-garden--locked .error-ring:focus-visible .error-ring-line {
+  transform: scale(calc(0.9 + var(--ring-i, 0) * 0.012));
+}
+
+.error-ring-core {
+  position: absolute;
+  inset: 33%;
+  color: var(--color-secondary-500);
+  pointer-events: none;
+}
+
+.error-ring-core--lock {
+  color: var(--color-tertiary-700);
+}
+
+.error-ring-core--lock.is-shaking {
+  animation: error-lock-shake 0.55s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+
+.error-ripple {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  border: 2px solid var(--color-primary-300);
+  pointer-events: none;
+  animation: error-ripple 0.9s ease-out forwards;
+}
+
+.error-garden--locked .error-ripple {
+  border-color: var(--color-tertiary-400);
+}
+
+/* The ranger's speech bubble points up at the lock */
+.error-bubble {
+  position: relative;
+}
+
+.error-bubble::before {
+  content: "";
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  translate: -50% 0;
+  rotate: 45deg;
+  border-top: 1px solid var(--color-secondary-200);
+  border-left: 1px solid var(--color-secondary-200);
+  background: var(--color-neutral-50);
+}
+
+/* ---------- 404 garden ---------- */
+[data-garden] {
+  cursor: pointer;
+}
+
+/* Grass edge and earth along the bottom; sprouts stand just behind it */
+.error-soil::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 1;
+  height: 42%;
+  border-radius: 50% 50% 0 0 / 1.25rem 1.25rem 0 0;
+  background: linear-gradient(
+    180deg,
+    var(--color-primary-300) 0 6px,
+    var(--color-secondary-200) 6px,
+    var(--color-secondary-100)
+  );
+}
+
+.sprout {
+  position: absolute;
+  bottom: 34%;
+  width: 3.25rem;
+  height: 5.5rem;
+  translate: -50% 0;
+  transform-origin: 50% 100%;
+  scale: var(--sprout-scale, 1);
+  animation: error-sprout-grow 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  transition:
+    opacity 0.6s,
+    scale 0.6s;
+}
+
+.sprout > svg {
+  transform-origin: 50% 100%;
+  animation: error-sprout-sway 3.5s ease-in-out infinite alternate;
+}
+
+.sprout-leaf,
+.sprout-bloom {
+  transform-box: fill-box;
+  animation: error-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) 0.35s both;
+}
+
+.sprout-leaf--left {
+  transform-origin: 100% 100%;
+}
+
+.sprout-leaf--right {
+  transform-origin: 0 100%;
+}
+
+.sprout-bloom {
+  transform-origin: 50% 50%;
+  animation-delay: 0.55s;
+}
+
+.sprout.is-wilting {
+  opacity: 0;
+  scale: 1 0;
+}
+
+@keyframes error-ring-spin {
+  to {
+    rotate: 360deg;
+  }
+}
+
+@keyframes error-ripple {
+  from {
+    opacity: 0.9;
+    transform: scale(0.7);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.7);
+  }
+}
+
+@keyframes error-lock-shake {
+  0%,
+  100% {
+    rotate: 0deg;
+  }
+  20% {
+    rotate: -14deg;
+  }
+  40% {
+    rotate: 11deg;
+  }
+  60% {
+    rotate: -7deg;
+  }
+  80% {
+    rotate: 4deg;
+  }
+}
+
+@keyframes error-sprout-grow {
+  from {
+    scale: 0.4 0;
+  }
+}
+
+@keyframes error-sprout-sway {
+  from {
+    rotate: -3deg;
+  }
+  to {
+    rotate: 3deg;
+  }
+}
+
+@keyframes error-pop {
+  from {
+    transform: scale(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .error-ring > svg,
+  .sprout,
+  .sprout > svg,
+  .sprout-leaf,
+  .sprout-bloom,
+  .error-ring-core--lock.is-shaking {
+    animation: none;
+  }
+
+  .error-ring-line,
+  .error-ring {
+    transition: none;
+  }
+}
+/* ================================================================== */
