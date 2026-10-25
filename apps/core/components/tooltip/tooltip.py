@@ -5,7 +5,6 @@ from django_components import component
 
 @component.register("tooltip")
 class Tooltip(component.Component):
-    
     template_name = "tooltip.html"
 
     def get_template_data(self, args, kwargs: dict, slots, context):

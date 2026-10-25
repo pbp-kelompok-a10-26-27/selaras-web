@@ -35,4 +35,3 @@ def get_query_params(request, allowed_filters):
             "page_size": page_size,
         },
     }
-

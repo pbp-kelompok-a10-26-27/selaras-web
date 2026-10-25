@@ -396,8 +396,7 @@ The project MUST define its custom user model at the beginning of development if
 Example:
 
 ```python
-class User(AbstractUser):
-    ...
+class User(AbstractUser): ...
 ```
 
 Set:
@@ -527,10 +526,7 @@ Example:
 
 ```python
 def can_edit_post(user, post):
-    return (
-        post.author == user
-        or user.is_staff
-    )
+    return post.author == user or user.is_staff
 ```
 
 The exact implementation should use the project's authorization conventions.

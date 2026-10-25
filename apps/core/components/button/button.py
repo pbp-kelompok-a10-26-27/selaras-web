@@ -12,20 +12,15 @@ class Button(component.Component):
             "text": kwargs.get("text", "Button"),
             "variant": kwargs.get("variant", "primary"),
             "size": kwargs.get("size", "md"),
-
             "href": kwargs.get("href", ""),
             "type": kwargs.get("type", "button"),
-
             "disabled": kwargs.get("disabled", False),
             "selected": kwargs.get("selected", False),
             "loading": kwargs.get("loading", False),
             "full_width": kwargs.get("full_width", False),
-
             "icon_left": kwargs.get("icon_left", ""),
             "icon_right": kwargs.get("icon_right", ""),
-
             "aria_label": kwargs.get("aria_label", ""),
             "class_": kwargs.get("class_", ""),
-
             "attrs": kwargs.get("attrs", ""),
         }
