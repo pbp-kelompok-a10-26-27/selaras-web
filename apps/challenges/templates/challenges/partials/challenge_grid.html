@@ -1,0 +1,91 @@
+{% load component_tags lucide %}
+
+{% if challenges %}
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+    {% for challenge in challenges %}
+      {% url 'challenges:detail' challenge.slug as detail_url %}
+      <article
+        data-card-url="{{ detail_url }}"
+        class="challenge-card group relative flex flex-col justify-between rounded-3xl border border-neutral-400 bg-neutral-50 p-5 sm:p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-secondary-500 hover:shadow-lg cursor-pointer"
+      >
+        <div>
+          <!-- Badges / Header Info -->
+          <div class="flex items-center justify-between gap-2 mb-4">
+            {% if challenge.end_date < today %}
+              <span class="inline-flex items-center gap-1.5 rounded-full bg-neutral-200 border border-neutral-400 px-3 py-1 text-xs font-semibold text-neutral-800">
+                {% lucide "clock" class="w-3.5 h-3.5" %}
+                Berakhir
+              </span>
+            {% elif challenge.start_date > today %}
+              <span class="inline-flex items-center gap-1.5 rounded-full bg-neutral-200/80 border border-neutral-400 px-3 py-1 text-xs font-semibold text-neutral-800">
+                {% lucide "calendar" class="w-3.5 h-3.5" %}
+                Akan Datang
+              </span>
+            {% else %}
+              <span class="inline-flex items-center gap-1.5 rounded-full bg-primary-100 border border-primary-300 px-3 py-1 text-xs font-semibold text-secondary-800">
+                {% lucide "flame" class="w-3.5 h-3.5 text-primary-600" %}
+                Aktif
+              </span>
+            {% endif %}
+
+            <span class="text-xs font-medium text-neutral-700">
+              {{ challenge.start_date|date:"d M" }} - {{ challenge.end_date|date:"d M Y" }}
+            </span>
+          </div>
+
+          <!-- Judul & Deskripsi -->
+          <h2 class="font-display text-xl sm:text-2xl text-secondary-900 leading-snug">
+            <a href="{{ detail_url }}" class="hover:text-secondary-600 transition-colors">
+              {{ challenge.title }}
+            </a>
+          </h2>
+
+          <p class="mt-2.5 text-sm text-neutral-800 line-clamp-3 leading-relaxed">
+            {{ challenge.description }}
+          </p>
+        </div>
+
+        <!-- Footer Card dengan Design System Button -->
+        <div class="mt-6 pt-4 border-t border-neutral-400/60 flex items-center justify-between gap-3">
+          <div class="flex items-center gap-1.5 text-xs text-neutral-700">
+            {% lucide "users" class="w-4 h-4 text-secondary-500" %}
+            <span>{{ challenge.participations.count }} peserta</span>
+          </div>
+
+          <div>
+            {% if challenge.id in joined_challenge_ids %}
+              <div>
+                {% component "button" text="Batal Mengikuti" variant="neutral" size="xs" icon_left="circle-x" class_="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200" attrs="data-trigger-leave data-slug='"|add:challenge.slug|add:"' data-title='"|add:challenge.title|add:"'" / %}
+              </div>
+            {% else %}
+              <div>
+                {% component "button" text="Lihat Detail" variant="primary" size="sm" icon_right="arrow-right" href=detail_url / %}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </article>
+    {% endfor %}
+  </div>
+
+{% else %}
+  <!-- Empty State -->
+  <div class="rounded-3xl border border-neutral-400 bg-neutral-50 p-12 text-center max-w-xl mx-auto shadow-sm my-8">
+    <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-primary-100 text-secondary-700 mb-4">
+      {% lucide "search-x" class="w-8 h-8" %}
+    </div>
+    <h3 class="font-display text-2xl text-secondary-900">
+      Tidak Ada Tantangan Ditemukan
+    </h3>
+    <p class="mt-2 text-sm text-neutral-700 leading-relaxed">
+      {% if search_query %}
+        Tidak ada tantangan yang cocok dengan kata kunci "<strong>{{ search_query }}</strong>".
+      {% else %}
+        Belum ada tantangan pada kategori yang dipilih saat ini.
+      {% endif %}
+    </p>
+    <div class="mt-6">
+      {% component "button" id="btn-reset-filters" text="Reset Filter" variant="secondary" size="md" icon_left="rotate-ccw" type="button" / %}
+    </div>
+  </div>
+{% endif %}

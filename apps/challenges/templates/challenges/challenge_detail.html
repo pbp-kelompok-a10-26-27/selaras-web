@@ -1,361 +1,407 @@
-{% load static component_tags lucide %}
-<!doctype html>
-<html lang="id">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/svg+xml" href="{% static 'assets/images/logo.svg' %}" />
-    <title>{{ challenge.title }} | Tantangan SELARAS</title>
-
-    <!-- Google Fonts & Fonts CDN -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <link href="https://fonts.cdnfonts.com/css/transcity" rel="stylesheet" />
-
-    <!-- Tailwind Compiled Output CSS -->
-    <link rel="stylesheet" href="{% static 'css/output.css' %}" />
-  </head>
-
-  <body class="min-h-screen flex flex-col bg-neutral-100 font-sans text-foreground antialiased selection:bg-primary-300 selection:text-secondary-900">
-    
-    <!-- Navbar dari Design System -->
-    {% component "navbar" / %}
-
-    <!-- Main Content Container -->
-    <main class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-36 sm:pt-40 pb-20">
-      
-      <!-- Back Link via Design System Button -->
-      <nav class="mb-6 flex items-center justify-between">
-        {% url 'challenges:list' as list_url %}
-        {% component "button" text="Kembali ke Semua Tantangan" variant="neutral-ghost" size="sm" icon_left="arrow-left" href=list_url / %}
-      </nav>
-
-      <!-- Admin Toolbar (Khusus Role Admin) -->
-      {% if user.is_authenticated and user.is_admin %}
-      <div class="mb-6 flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl bg-secondary-900 text-neutral-50 shadow-sm">
-        <div class="flex items-center gap-2 text-xs font-semibold">
-          {% lucide "shield-check" class="w-4 h-4 text-primary-400" %}
-          <span>Menu Manajemen Admin</span>
-        </div>
-        <div class="flex items-center gap-2">
-          {% url 'challenges:update' challenge.slug as edit_url %}
-          {% component "button" text="Edit Tantangan" variant="neutral" size="sm" icon_left="pencil" href=edit_url / %}
-
-          <form method="POST" action="{% url 'challenges:delete' challenge.slug %}" class="inline-block" onsubmit="return confirm('Apakah Anda yakin ingin menghapus tantangan ini? Tantangan yang sudah memiliki peserta tidak dapat dihapus.');">
-            {% csrf_token %}
-            {% component "button" text="Hapus" variant="tertiary" size="sm" type="submit" icon_left="trash-2" / %}
-          </form>
-        </div>
-      </div>
-      {% endif %}
-
-      <!-- Django Messages Notification -->
-      {% if messages %}
-      <div class="mb-6 space-y-2">
-        {% for message in messages %}
-        <div class="flex items-center justify-between gap-3 p-4 rounded-2xl border shadow-sm {% if message.tags == 'error' %}border-tertiary-700 bg-tertiary-50 text-tertiary-900{% elif message.tags == 'warning' %}border-yellow-200 bg-yellow-50 text-yellow-900{% else %}border-primary-400 bg-primary-50 text-secondary-900{% endif %}">
-          <div class="flex items-center gap-3 text-sm font-medium">
-            {% if message.tags == 'error' %}
-              {% lucide "circle-alert" class="w-5 h-5 text-tertiary-700 shrink-0" %}
-            {% elif message.tags == 'warning' %}
-              {% lucide "triangle-alert" class="w-5 h-5 text-yellow-600 shrink-0" %}
-            {% else %}
-              {% lucide "circle-check" class="w-5 h-5 text-primary-600 shrink-0" %}
-            {% endif %}
-            <span>{{ message }}</span>
-          </div>
-        </div>
-        {% endfor %}
-      </div>
-      {% endif %}
-
-      <!-- Grid Layout: Konten Utama & Kartu Aksi -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-        
-        <!-- Kolom Kiri: Informasi Detail & Panduan (2 Kolom di Desktop) -->
-        <div class="lg:col-span-2 space-y-8">
-          
-          <!-- Header Card Info -->
-          <article class="rounded-3xl border border-neutral-400 bg-neutral-50 p-6 sm:p-8 shadow-sm">
-            <!-- Badges -->
-            <div class="flex flex-wrap items-center gap-2 mb-4">
-              {% if is_ended %}
-                <span class="inline-flex items-center gap-1.5 rounded-full bg-neutral-200 border border-neutral-400 px-3 py-1 text-xs font-semibold text-neutral-800">
-                  {% lucide "clock" class="w-3.5 h-3.5" %}
-                  Tantangan Berakhir
-                </span>
-              {% elif is_upcoming %}
-                <span class="inline-flex items-center gap-1.5 rounded-full bg-blue-100 border border-blue-200 px-3 py-1 text-xs font-semibold text-blue-800">
-                  {% lucide "calendar" class="w-3.5 h-3.5" %}
-                  Akan Datang
-                </span>
-              {% else %}
-                <span class="inline-flex items-center gap-1.5 rounded-full bg-primary-100 border border-primary-300 px-3 py-1 text-xs font-semibold text-secondary-800">
-                  {% lucide "flame" class="w-3.5 h-3.5 text-primary-600" %}
-                  Tantangan Aktif
-                </span>
-              {% endif %}
-
-              <span class="inline-flex items-center gap-1.5 rounded-full bg-secondary-50 border border-secondary-200 px-3 py-1 text-xs font-semibold text-secondary-800">
-                {% lucide "calendar-days" class="w-3.5 h-3.5 text-secondary-600" %}
-                Durasi: {{ duration_days }} Hari
-              </span>
-
-              <span class="inline-flex items-center gap-1.5 rounded-full bg-neutral-100 border border-neutral-400 px-3 py-1 text-xs font-medium text-neutral-700">
-                {% lucide "users" class="w-3.5 h-3.5 text-secondary-500" %}
-                {{ challenge.participations.count }} Peserta
-              </span>
-            </div>
-
-            <!-- Judul Tantangan -->
-            <h1 class="font-display text-3xl sm:text-4xl text-secondary-900 leading-tight">
-              {{ challenge.title }}
-            </h1>
-
-            <div class="mt-3 flex items-center gap-2 text-xs sm:text-sm text-neutral-700">
-              {% lucide "calendar" class="w-4 h-4 text-secondary-500" %}
-              <span>Periode: <strong>{{ challenge.start_date|date:"d M Y" }}</strong> s/d <strong>{{ challenge.end_date|date:"d M Y" }}</strong></span>
-            </div>
-
-            <!-- Deskripsi Lengkap -->
-            <div class="mt-6 border-t border-neutral-400/60 pt-6">
-              <h2 class="font-display text-xl text-secondary-900 mb-3">Tentang Tantangan Ini</h2>
-              <p class="font-sans text-sm sm:text-base text-neutral-800 leading-relaxed whitespace-pre-line">
-                {{ challenge.description }}
-              </p>
-            </div>
-          </article>
-
-          <!-- Panduan Aksi Ramah Lingkungan -->
-          <section class="rounded-3xl border border-neutral-400 bg-neutral-50 p-6 sm:p-8 shadow-sm">
-            <h2 class="font-display text-xl text-secondary-900 mb-4 flex items-center gap-2">
-              {% lucide "compass" class="w-5 h-5 text-primary-600" %}
-              Panduan Menjalankan Tantangan
-            </h2>
-            <ul class="space-y-4 font-sans text-sm text-neutral-800">
-              <li class="flex items-start gap-3">
-                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary-100 text-xs font-bold text-secondary-800">1</span>
-                <span>Lakukan aksi ramah lingkungan setiap hari sesuai dengan topik tantangan yang Anda ikuti.</span>
-              </li>
-              <li class="flex items-start gap-3">
-                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary-100 text-xs font-bold text-secondary-800">2</span>
-                <span>Buka halaman ini dan tekan tombol <strong>"Catat Progres Hari Ini"</strong> untuk melakukan check-in dan menulis refleksi singkat.</span>
-              </li>
-              <li class="flex items-start gap-3">
-                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary-100 text-xs font-bold text-secondary-800">3</span>
-                <span>Capai target hari hingga 100% untuk membuka Lencana Keberhasilan (*Badge*) di profil Anda!</span>
-              </li>
-            </ul>
-          </section>
-
-          <!-- Reward / Badge Showcase -->
-          <section class="rounded-3xl border border-secondary-300/60 bg-gradient-to-br from-primary-50 via-neutral-50 to-secondary-50 p-6 sm:p-8 shadow-sm">
-            <div class="flex items-center gap-4">
-              <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-secondary-700 text-primary-300 shadow-md">
-                {% lucide "award" class="w-8 h-8" %}
-              </div>
-              <div>
-                <span class="text-xs font-semibold uppercase tracking-wider text-secondary-700">Lencana Apresiasi</span>
-                <h3 class="font-display text-xl text-secondary-900">
-                  Lencana Eco-Warrior
-                </h3>
-                <p class="text-xs sm:text-sm text-neutral-700 mt-0.5">
-                  Tuntaskan semua hari tantangan ini untuk menambahkan lencana eksklusif ini ke portofolio hijau Anda.
-                </p>
-              </div>
-            </div>
-          </section>
-
-        </div>
-
-        <!-- Kolom Kanan: Panel Partisipasi & Tracking Progres (Sticky di Desktop) -->
-        <aside class="space-y-6 lg:sticky lg:top-28">
-          
-          <div class="rounded-3xl border border-neutral-400 bg-neutral-50 p-6 sm:p-7 shadow-sm">
-            
-            {% if not user.is_authenticated %}
-              <!-- State 1: User Belum Login -->
-              <div class="text-center py-4">
-                <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-100 text-secondary-800 mb-3">
-                  {% lucide "user-plus" class="w-6 h-6 text-primary-600" %}
-                </div>
-                <h3 class="font-display text-xl text-secondary-900">Ikuti Tantangan</h3>
-                <p class="mt-2 text-xs text-neutral-700 leading-relaxed mb-6">
-                  Masuk ke akun SELARAS Anda untuk mulai mengikuti tantangan ini dan mencatat progres harianmu.
-                </p>
-                <div>
-                  {% url 'accounts:login' as login_url %}
-                  {% component "button" text="Masuk untuk Bergabung" variant="primary" size="lg" full_width=True icon_right="arrow-right" href=login_url|add:"?next="|add:request.path / %}
-                </div>
-              </div>
-
-            {% elif not is_joined %}
-              <!-- State 2: User Login, Belum Bergabung -->
-              <div>
-                <h3 class="font-display text-xl text-secondary-900 mb-2">Gabung Sekarang</h3>
-                <p class="text-xs text-neutral-700 leading-relaxed mb-6">
-                  Tantangan ini gratis dan terbuka untuk seluruh komunitas SELARAS. Siap berkomitmen untuk bumi?
-                </p>
-
-                {% if is_ended %}
-                  <div class="p-3.5 rounded-xl bg-neutral-200 border border-neutral-400 text-xs text-neutral-700 text-center font-medium">
-                    Tantangan ini telah berakhir pada {{ challenge.end_date|date:"d M Y" }}.
-                  </div>
-                {% else %}
-                  <form method="POST" action="{% url 'challenges:join' challenge.slug %}">
-                    {% csrf_token %}
-                    {% component "button" text="Ikuti Tantangan Ini" variant="primary" size="lg" full_width=True type="submit" icon_left="circle-check" / %}
-                  </form>
-                {% endif %}
-              </div>
-
-            {% else %}
-              <!-- State 3: User Sudah Bergabung (Tracking & Check-in) -->
-              <div class="space-y-6">
-                <!-- Status Badge -->
-                <div class="flex items-center justify-between">
-                  <span class="text-xs font-semibold text-neutral-600">Status Keikutsertaan</span>
-                  {% if participation.completed_at %}
-                    <span class="inline-flex items-center gap-1 rounded-full bg-secondary-700 px-3 py-1 text-xs font-semibold text-neutral-50">
-                      {% lucide "award" class="w-3.5 h-3.5 text-primary-400" %}
-                      Selesai 🎉
-                    </span>
-                  {% else %}
-                    <span class="inline-flex items-center gap-1 rounded-full bg-primary-200 px-3 py-1 text-xs font-semibold text-secondary-900">
-                      {% lucide "activity" class="w-3.5 h-3.5 text-secondary-700" %}
-                      Sedang Berjalan
-                    </span>
-                  {% endif %}
-                </div>
-
-                <!-- Progress Bar -->
-                <div>
-                  <div class="flex items-center justify-between text-xs mb-2">
-                    <span class="font-semibold text-secondary-900">Progres Tantangan</span>
-                    <span class="font-bold text-secondary-700 text-sm">{{ progress_percentage }}%</span>
-                  </div>
-                  <div class="h-3 w-full rounded-full bg-neutral-200 overflow-hidden border border-neutral-300">
-                    <div
-                      class="h-full rounded-full bg-primary-500 transition-all duration-500 ease-out"
-                      style="width: {{ progress_percentage }}%;"
-                    ></div>
-                  </div>
-                  <p class="mt-2 text-xs text-neutral-600">
-                    <strong>{{ days_completed }}</strong> dari <strong>{{ duration_days }}</strong> hari target terselesaikan
-                  </p>
-                </div>
-
-                <!-- Action Button: Check-in Harian via Design System Button -->
-                <div class="pt-2 border-t border-neutral-400/60">
-                  {% if already_checked_in_today %}
-                    <div class="space-y-3">
-                      <div class="flex items-center gap-2 p-3 rounded-2xl bg-primary-100 border border-primary-300 text-xs font-semibold text-secondary-900 justify-center">
-                        {% lucide "circle-check" class="w-4 h-4 text-primary-600" %}
-                        <span>Sudah Check-in Hari Ini!</span>
-                      </div>
-                      <div class="text-center">
-                        {% component "button" text="Perbarui Catatan Progres" variant="neutral-ghost" size="xs" full_width=True attrs="data-modal-open='checkin-modal'" icon_left="pencil" / %}
-                      </div>
-                    </div>
-                  {% else %}
-                    {% component "button" text="Catat Progres Hari Ini" variant="secondary" size="lg" full_width=True attrs="data-modal-open='checkin-modal'" icon_left="pencil" / %}
-                  {% endif %}
-                </div>
-
-              </div>
-            {% endif %}
-
-          </div>
-
-          <!-- Riwayat Check-In List (Jika Sudah Bergabung) -->
-          {% if is_joined %}
-          <div class="rounded-3xl border border-neutral-400 bg-neutral-50 p-6 shadow-sm">
-            <h3 class="font-display text-lg text-secondary-900 mb-4 flex items-center justify-between">
-              <span>Riwayat Check-in</span>
-              <span class="text-xs font-sans text-neutral-600 font-normal">{{ progress_records|length }} log</span>
-            </h3>
-
-            {% if progress_records %}
-              <div class="space-y-3 max-h-72 overflow-y-auto pr-1">
-                {% for record in progress_records %}
-                <div class="p-3.5 rounded-2xl border border-neutral-300 bg-neutral-100/60 text-xs">
-                  <div class="flex items-center justify-between mb-1">
-                    <span class="font-semibold text-secondary-900">
-                      {{ record.progress_date|date:"l, d M Y" }}
-                    </span>
-                    <span class="inline-flex items-center text-primary-700 font-bold">
-                      {% lucide "check" class="w-3.5 h-3.5" %}
-                    </span>
-                  </div>
-                  {% if record.notes %}
-                    <p class="text-neutral-700 italic mt-1 bg-neutral-50 p-2 rounded-xl border border-neutral-200">
-                      "{{ record.notes }}"
-                    </p>
-                  {% else %}
-                    <p class="text-neutral-500 italic mt-0.5">Check-in harian selesai tanpa catatan.</p>
-                  {% endif %}
-                </div>
-                {% endfor %}
-              </div>
-            {% else %}
-              <div class="py-6 text-center text-xs text-neutral-500">
-                {% lucide "clipboard-list" class="w-8 h-8 mx-auto text-neutral-400 mb-2" %}
-                <span>Belum ada catatan progres. Mulai check-in pertamamu hari ini!</span>
-              </div>
-            {% endif %}
-          </div>
-          {% endif %}
-
-        </aside>
-
-      </div>
-
-    </main>
-
-    <!-- Modal Check-in Harian (Menggunakan Django Component Modal) -->
-    {% component "modal" id="checkin-modal" title="Catat Progres Harian" size="md" has_footer=True %}
-      {% fill "content" %}
-        <form id="checkin-form" method="POST" action="{% url 'challenges:progress' challenge.slug %}" class="space-y-4">
-          {% csrf_token %}
-          <div>
-            <span class="block text-xs font-semibold text-neutral-600 mb-1">Tanggal Check-in</span>
-            <div class="flex items-center gap-2 p-3 rounded-xl bg-neutral-100 border border-neutral-300 text-sm font-semibold text-secondary-900">
-              {% lucide "calendar" class="w-4 h-4 text-secondary-600" %}
-              <span>{{ today|date:"l, d F Y" }}</span>
-            </div>
-          </div>
-
-          <div>
-            <label for="checkin-notes" class="block text-xs font-semibold text-secondary-900 mb-1.5">
-              Refleksi / Catatan Aksi Ramah Lingkungan Hari Ini
-            </label>
-            <textarea
-              id="checkin-notes"
-              name="notes"
-              rows="4"
-              placeholder="Ceritakan aksi nyata apa yang Anda lakukan hari ini untuk mendukung kelestarian bumi..."
-              class="w-full rounded-xl border border-neutral-400 bg-neutral-50 p-3.5 text-sm text-secondary-900 placeholder:text-neutral-500 focus:border-primary-500 focus:ring-2 focus:ring-primary-400/30 outline-none transition-all resize-none"
-            ></textarea>
-            <p class="text-xs text-neutral-500 mt-1">Catatan ini akan tersimpan dalam riwayat progres harian Anda.</p>
-          </div>
-        </form>
-      {% endfill %}
-
-      {% fill "footer" %}
-        {% component "button" text="Batal" variant="neutral-ghost" size="sm" attrs="data-modal-close" class_="modal-close" / %}
-        {% component "button" text="Simpan Progres" variant="primary" size="sm" type="submit" attrs="form='checkin-form'" icon_left="save" / %}
-      {% endfill %}
-    {% endcomponent %}
-
-    <!-- Footer Template Include -->
-    {% include "components/footer.html" %}
-
-    <!-- Modal Interaction Script -->
-    <script src="{% static 'js/components/modal/modal.js' %}"></script>
-
-  </body>
-</html>
+{% load static component_tags lucide %}
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="{% static 'assets/images/logo.svg' %}" />
+    <title>{{ challenge.title }} | Tantangan SELARAS</title>
+
+    <!-- Google Fonts & Fonts CDN -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link href="https://fonts.cdnfonts.com/css/transcity" rel="stylesheet" />
+
+    <!-- Tailwind Compiled Output CSS -->
+    <link rel="stylesheet" href="{% static 'css/output.css' %}" />
+  </head>
+
+  <body class="min-h-screen flex flex-col bg-neutral-100 font-sans text-foreground antialiased selection:bg-primary-300 selection:text-secondary-900">
+    
+    <!-- Navbar dari Design System -->
+    {% component "navbar" / %}
+
+    <!-- Main Content Container -->
+    <main class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-36 sm:pt-40 pb-20">
+      
+      <!-- Back Link via Design System Button -->
+      <nav class="mb-6 flex items-center justify-between">
+        {% url 'challenges:list' as list_url %}
+        {% component "button" text="Kembali ke Semua Tantangan" variant="neutral-ghost" size="sm" icon_left="arrow-left" href=list_url / %}
+      </nav>
+
+      <!-- Admin Toolbar (Khusus Role Admin) -->
+      {% if user.is_authenticated and user.is_admin %}
+      <div class="mb-6 flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl bg-secondary-900 text-neutral-50 shadow-sm">
+        <div class="flex items-center gap-2 text-xs font-semibold">
+          {% lucide "shield-check" class="w-4 h-4 text-primary-400" %}
+          <span>Menu Manajemen Admin</span>
+        </div>
+        <div class="flex items-center gap-2">
+          {% url 'challenges:update' challenge.slug as edit_url %}
+          {% component "button" text="Edit Tantangan" variant="neutral" size="sm" icon_left="pencil" href=edit_url / %}
+          {% component "button" text="Hapus" variant="tertiary" size="sm" type="button" icon_left="trash-2" attrs="data-modal-open='delete-challenge-modal'" / %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Grid Layout: Konten Utama & Kartu Aksi -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-start">
+        
+        <!-- Kolom Kiri: Informasi Detail & Panduan (Order 2 di Mobile, Order 1 di Desktop) -->
+        <div class="order-2 lg:order-1 lg:col-span-2 space-y-6 sm:space-y-8">
+          
+          <!-- Header Card Info -->
+          <article class="rounded-3xl border border-neutral-400 bg-neutral-50 p-5 sm:p-8 shadow-sm">
+            <!-- Badges -->
+            <div class="flex flex-wrap items-center gap-2 mb-4">
+              {% if is_ended %}
+                <span class="inline-flex items-center gap-1.5 rounded-full bg-neutral-200 border border-neutral-400 px-3 py-1 text-xs font-semibold text-neutral-800">
+                  {% lucide "clock" class="w-3.5 h-3.5" %}
+                  Tantangan Berakhir
+                </span>
+              {% elif is_upcoming %}
+                <span class="inline-flex items-center gap-1.5 rounded-full bg-neutral-200/80 border border-neutral-400 px-3 py-1 text-xs font-semibold text-neutral-800">
+                  {% lucide "calendar" class="w-3.5 h-3.5" %}
+                  Akan Datang
+                </span>
+              {% else %}
+                <span class="inline-flex items-center gap-1.5 rounded-full bg-primary-100 border border-primary-300 px-3 py-1 text-xs font-semibold text-secondary-800">
+                  {% lucide "flame" class="w-3.5 h-3.5 text-primary-600" %}
+                  Tantangan Aktif
+                </span>
+              {% endif %}
+
+              <span class="inline-flex items-center gap-1.5 rounded-full bg-secondary-50 border border-secondary-200 px-3 py-1 text-xs font-semibold text-secondary-800">
+                {% lucide "calendar-days" class="w-3.5 h-3.5 text-secondary-600" %}
+                Durasi: {{ duration_days }} Hari
+              </span>
+
+              <span class="inline-flex items-center gap-1.5 rounded-full bg-neutral-100 border border-neutral-400 px-3 py-1 text-xs font-medium text-neutral-700">
+                {% lucide "users" class="w-3.5 h-3.5 text-secondary-500" %}
+                {{ challenge.participations.count }} Peserta
+              </span>
+            </div>
+
+            <!-- Judul Tantangan -->
+            <h1 class="font-display text-2xl sm:text-3xl lg:text-4xl text-secondary-900 leading-tight">
+              {{ challenge.title }}
+            </h1>
+
+            <div class="mt-3 flex items-center gap-2 text-xs sm:text-sm text-neutral-700">
+              {% lucide "calendar" class="w-4 h-4 text-secondary-500" %}
+              <span>Periode: <strong>{{ challenge.start_date|date:"d M Y" }}</strong> s/d <strong>{{ challenge.end_date|date:"d M Y" }}</strong></span>
+            </div>
+
+            <!-- Deskripsi Lengkap -->
+            <div class="mt-6 border-t border-neutral-400/60 pt-6">
+              <h2 class="font-display text-xl text-secondary-900 mb-3">Tentang Tantangan Ini</h2>
+              <p class="font-sans text-sm sm:text-base text-neutral-800 leading-relaxed whitespace-pre-line">
+                {{ challenge.description }}
+              </p>
+            </div>
+          </article>
+
+          <!-- Panduan Aksi Ramah Lingkungan -->
+          <section class="rounded-3xl border border-neutral-400 bg-neutral-50 p-6 sm:p-8 shadow-sm">
+            <h2 class="font-display text-xl text-secondary-900 mb-4 flex items-center gap-2">
+              {% lucide "compass" class="w-5 h-5 text-primary-600" %}
+              Panduan Menjalankan Tantangan
+            </h2>
+            <ul class="space-y-4 font-sans text-sm text-neutral-800">
+              <li class="flex items-start gap-3">
+                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary-100 text-xs font-bold text-secondary-800">1</span>
+                <span>Lakukan aksi ramah lingkungan setiap hari sesuai dengan topik tantangan yang Anda ikuti.</span>
+              </li>
+              <li class="flex items-start gap-3">
+                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary-100 text-xs font-bold text-secondary-800">2</span>
+                <span>Buka halaman ini dan tekan tombol <strong>"Catat Progres Hari Ini"</strong> untuk melakukan check-in dan menulis refleksi singkat.</span>
+              </li>
+              <li class="flex items-start gap-3">
+                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary-100 text-xs font-bold text-secondary-800">3</span>
+                <span>Capai target hari hingga 100% untuk membuka Lencana Keberhasilan (*Badge*) di profil Anda!</span>
+              </li>
+            </ul>
+          </section>
+
+          <!-- Reward / Badge Showcase -->
+          <section class="rounded-3xl border border-secondary-300/60 bg-gradient-to-br from-primary-50 via-neutral-50 to-secondary-50 p-6 sm:p-8 shadow-sm">
+            <div class="flex items-center gap-4">
+              <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-secondary-700 text-primary-300 shadow-md">
+                {% lucide "award" class="w-8 h-8" %}
+              </div>
+              <div>
+                <span class="text-xs font-semibold uppercase tracking-wider text-secondary-700">Lencana Apresiasi</span>
+                <h3 class="font-display text-xl text-secondary-900">
+                  Lencana Eco-Warrior
+                </h3>
+                <p class="text-xs sm:text-sm text-neutral-700 mt-0.5">
+                  Tuntaskan semua hari tantangan ini untuk menambahkan lencana eksklusif ini ke portofolio hijau Anda.
+                </p>
+              </div>
+            </div>
+          </section>
+
+        </div>
+
+        <!-- Kolom Kanan: Panel Partisipasi & Tracking Progres (Order 1 di Mobile, Order 2 di Desktop Sticky) -->
+        <aside class="order-1 lg:order-2 lg:col-span-1 space-y-6 lg:sticky lg:top-28">
+          
+          <div class="rounded-3xl border border-neutral-400 bg-neutral-50 p-6 sm:p-7 shadow-sm">
+            
+            {% if not user.is_authenticated %}
+              <!-- State 1: User Belum Login -->
+              <div class="text-center py-4">
+                <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-100 text-secondary-800 mb-3">
+                  {% lucide "user-plus" class="w-6 h-6 text-primary-600" %}
+                </div>
+                <h3 class="font-display text-xl text-secondary-900">Ikuti Tantangan</h3>
+                <p class="mt-2 text-xs text-neutral-700 leading-relaxed mb-6">
+                  Masuk ke akun SELARAS Anda untuk mulai mengikuti tantangan ini dan mencatat progres harianmu.
+                </p>
+                <div>
+                  {% url 'accounts:login' as login_url %}
+                  {% component "button" text="Masuk untuk Bergabung" variant="primary" size="lg" full_width=True icon_right="arrow-right" href=login_url|add:"?next="|add:request.path / %}
+                </div>
+              </div>
+
+            {% elif not is_joined %}
+              <!-- State 2: User Login, Belum Bergabung -->
+              <div>
+                <h3 class="font-display text-xl text-secondary-900 mb-2">Gabung Sekarang</h3>
+                <p class="text-xs text-neutral-700 leading-relaxed mb-6">
+                  Tantangan ini gratis dan terbuka untuk seluruh komunitas SELARAS. Siap berkomitmen untuk bumi?
+                </p>
+
+                {% if is_ended %}
+                  <div class="p-3.5 rounded-xl bg-neutral-200 border border-neutral-400 text-xs text-neutral-700 text-center font-medium">
+                    Tantangan ini telah berakhir pada {{ challenge.end_date|date:"d M Y" }}.
+                  </div>
+                {% else %}
+                  <form method="POST" action="{% url 'challenges:join' challenge.slug %}">
+                    {% csrf_token %}
+                    {% component "button" text="Ikuti Tantangan Ini" variant="primary" size="lg" full_width=True type="submit" icon_left="circle-check" / %}
+                  </form>
+                {% endif %}
+              </div>
+
+            {% else %}
+              <!-- State 3: User Sudah Bergabung (Tracking & Check-in) -->
+              <div class="space-y-6">
+                <!-- Status Badge -->
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-semibold text-secondary-800">Status Keikutsertaan</span>
+                  {% if participation.completed_at %}
+                    <span class="inline-flex items-center gap-1 rounded-full bg-secondary-700 px-3 py-1 text-xs font-semibold text-neutral-50">
+                      {% lucide "award" class="w-3.5 h-3.5 text-primary-400" %}
+                      Selesai 🎉
+                    </span>
+                  {% else %}
+                    <span class="inline-flex items-center gap-1 rounded-full bg-primary-200 px-3 py-1 text-xs font-semibold text-secondary-900">
+                      {% lucide "activity" class="w-3.5 h-3.5 text-secondary-700" %}
+                      Sedang Berjalan
+                    </span>
+                  {% endif %}
+                </div>
+
+                <!-- Progress Bar -->
+                <div>
+                  <div class="flex items-center justify-between text-xs mb-2">
+                    <span class="font-semibold text-secondary-900">Progres Tantangan</span>
+                    <span class="font-bold text-secondary-700 text-sm">{{ progress_percentage }}%</span>
+                  </div>
+                  <div class="h-3 w-full rounded-full bg-neutral-200 overflow-hidden border border-neutral-300">
+                    <div
+                      class="h-full rounded-full bg-primary-500 transition-all duration-500 ease-out"
+                      style="width: {{ progress_percentage }}%;"
+                    ></div>
+                  </div>
+                  <p class="mt-2 text-xs text-secondary-800 font-medium">
+                    <strong>{{ days_completed }}</strong> dari <strong>{{ duration_days }}</strong> hari target terselesaikan
+                  </p>
+                </div>
+
+                <!-- Action Button: Check-in Harian via Design System Button -->
+                <div class="pt-2 border-t border-neutral-400/60">
+                  {% if already_checked_in_today %}
+                    <div class="space-y-3">
+                      <div class="flex items-center gap-2 p-3 rounded-2xl bg-primary-100 border border-primary-300 text-xs font-semibold text-secondary-900 justify-center">
+                        {% lucide "circle-check" class="w-4 h-4 text-primary-600" %}
+                        <span>Sudah Check-in Hari Ini!</span>
+                      </div>
+                      <div class="text-center">
+                        {% component "button" text="Perbarui Catatan Progres" variant="neutral-ghost" size="xs" full_width=True attrs="data-modal-open='checkin-modal'" icon_left="pencil" / %}
+                      </div>
+                    </div>
+                  {% else %}
+                    {% component "button" text="Catat Progres Hari Ini" variant="secondary" size="lg" full_width=True attrs="data-modal-open='checkin-modal'" icon_left="pencil" / %}
+                  {% endif %}
+                </div>
+
+                <!-- Tombol Batal Mengikuti Tantangan (Triggers Design System Modal) -->
+                <div class="pt-3 border-t border-neutral-300">
+                  {% component "button" type="button" text="Batal Mengikuti Tantangan" variant="neutral" size="xs" full_width=True icon_left="circle-x" class_="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200" attrs="data-modal-open='leave-challenge-modal'" / %}
+                </div>
+
+              </div>
+            {% endif %}
+
+          </div>
+
+          <!-- Riwayat Check-In List (Jika Sudah Bergabung) -->
+          {% if is_joined %}
+          <div class="rounded-3xl border border-neutral-400 bg-neutral-50 p-6 shadow-sm">
+            <h3 class="font-display text-lg text-secondary-900 mb-4 flex items-center justify-between">
+              <span>Riwayat Check-in</span>
+              <span class="text-xs font-sans text-neutral-600 font-normal">{{ progress_records|length }} log</span>
+            </h3>
+
+            {% if progress_records %}
+              <div class="space-y-3 max-h-72 overflow-y-auto pr-1">
+                {% for record in progress_records %}
+                <div class="p-3.5 rounded-2xl border border-neutral-300 bg-neutral-100/60 text-xs">
+                  <div class="flex items-center justify-between mb-1">
+                    <span class="font-semibold text-secondary-900">
+                      {{ record.progress_date|date:"l, d M Y" }}
+                    </span>
+                    <span class="inline-flex items-center text-primary-700 font-bold">
+                      {% lucide "check" class="w-3.5 h-3.5" %}
+                    </span>
+                  </div>
+                  {% if record.notes %}
+                    <p class="text-neutral-700 italic mt-1 bg-neutral-50 p-2 rounded-xl border border-neutral-200">
+                      "{{ record.notes }}"
+                    </p>
+                  {% else %}
+                    <p class="text-neutral-500 italic mt-0.5">Check-in harian selesai tanpa catatan.</p>
+                  {% endif %}
+                </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="py-6 text-center text-xs text-neutral-500">
+                {% lucide "clipboard-list" class="w-8 h-8 mx-auto text-neutral-400 mb-2" %}
+                <span>Belum ada catatan progres. Mulai check-in pertamamu hari ini!</span>
+              </div>
+            {% endif %}
+          </div>
+          {% endif %}
+
+        </aside>
+
+      </div>
+
+    </main>
+
+    <!-- Modal Check-in Harian (Menggunakan Django Component Modal) -->
+    {% component "modal" id="checkin-modal" title="Catat Progres Harian" size="md" has_footer=True %}
+      {% fill "content" %}
+        <form id="checkin-form" method="POST" action="{% url 'challenges:progress' challenge.slug %}" class="space-y-4">
+          {% csrf_token %}
+          <div>
+            <span class="block text-xs font-semibold text-secondary-900 mb-1">Tanggal Check-in</span>
+            <div class="flex items-center gap-2 p-3 rounded-xl bg-neutral-100 border border-neutral-300 text-sm font-semibold text-secondary-900">
+              {% lucide "calendar" class="w-4 h-4 text-secondary-600" %}
+              <span>{{ today|date:"l, d F Y" }}</span>
+            </div>
+          </div>
+
+          <div>
+            <label for="checkin-notes" class="block text-xs font-semibold text-secondary-900 mb-1.5">
+              Refleksi / Catatan Aksi Ramah Lingkungan Hari Ini
+            </label>
+            <textarea
+              id="checkin-notes"
+              name="notes"
+              rows="4"
+              placeholder="Ceritakan aksi nyata apa yang Anda lakukan hari ini untuk mendukung kelestarian bumi..."
+              class="w-full rounded-xl border border-neutral-400 bg-neutral-50 p-3.5 text-sm text-secondary-900 placeholder:text-neutral-500 focus:border-primary-500 focus:ring-2 focus:ring-primary-400/30 outline-none transition-all resize-none"
+            ></textarea>
+            <p class="text-xs text-secondary-700 font-medium mt-1">Catatan ini akan tersimpan dalam riwayat progres harian Anda.</p>
+          </div>
+        </form>
+      {% endfill %}
+
+      {% fill "footer" %}
+        {% component "button" text="Batal" variant="neutral" size="sm" attrs="data-modal-close" class_="modal-close" / %}
+        {% component "button" text="Simpan Progres" variant="primary" size="sm" type="submit" attrs="form='checkin-form'" icon_left="save" / %}
+      {% endfill %}
+    {% endcomponent %}
+
+    <!-- Modal Konfirmasi Batal Mengikuti Tantangan -->
+    {% component "modal" id="leave-challenge-modal" title="Batalkan Keikutsertaan" size="md" %}
+      {% fill "content" %}
+        <p class="text-sm text-neutral-800 leading-relaxed">
+          Apakah Anda yakin ingin membatalkan keikutsertaan dalam tantangan <strong class="text-secondary-900">"{{ challenge.title }}"</strong>?
+        </p>
+        <p class="text-xs text-red-600 bg-red-50 border border-red-200 p-3 rounded-xl font-medium mt-2">
+          Perhatian: Seluruh catatan dan riwayat check-in Anda pada tantangan ini akan dihapus secara permanen.
+        </p>
+      {% endfill %}
+      {% fill "footer" %}
+        <div class="flex items-center justify-end gap-3 w-full">
+          {% component "button" text="Kembali" variant="neutral" size="sm" attrs="data-modal-close" / %}
+          <form method="POST" action="{% url 'challenges:leave' challenge.slug %}">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{% url 'challenges:detail' challenge.slug %}" />
+            {% component "button" type="submit" text="Ya, Batalkan Partisipasi" variant="neutral" size="sm" class_="text-red-600 hover:text-red-700 hover:bg-red-50 border border-red-200" / %}
+          </form>
+        </div>
+      {% endfill %}
+    {% endcomponent %}
+
+    {% if user.is_authenticated and user.is_admin %}
+    <!-- Modal Konfirmasi Hapus Tantangan (Admin) -->
+    {% component "modal" id="delete-challenge-modal" title="Hapus Tantangan" size="md" %}
+      {% fill "content" %}
+        <p class="text-sm text-neutral-800 leading-relaxed">
+          Apakah Anda yakin ingin menghapus tantangan <strong class="text-secondary-900">"{{ challenge.title }}"</strong> secara permanen?
+        </p>
+        <p class="text-xs text-neutral-600 bg-neutral-100 p-3 rounded-xl border border-neutral-300 mt-2">
+          Catatan: Tantangan yang sudah memiliki peserta tidak dapat dihapus dan harus dinonaktifkan status publikasinya.
+        </p>
+      {% endfill %}
+      {% fill "footer" %}
+        <div class="flex items-center justify-end gap-3 w-full">
+          {% component "button" text="Batal" variant="neutral" size="sm" attrs="data-modal-close" / %}
+          <form method="POST" action="{% url 'challenges:delete' challenge.slug %}">
+            {% csrf_token %}
+            {% component "button" type="submit" text="Ya, Hapus Tantangan" variant="tertiary" size="sm" icon_left="trash-2" / %}
+          </form>
+        </div>
+      {% endfill %}
+    {% endcomponent %}
+    {% endif %}
+
+    <!-- Footer Template Include -->
+    {% include "components/footer.html" %}
+
+    <!-- Main JS for Toast & Modal Design System -->
+    <script type="module" src="{% static 'js/main.js' %}"></script>
+
+    <!-- Django Messages via Design System Toast -->
+    {% if messages %}
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        setTimeout(function () {
+          {% for message in messages %}
+            if (typeof window.showToast === "function") {
+              window.showToast({
+                type: "{% if message.tags == 'error' %}error{% elif message.tags == 'warning' %}warning{% elif message.tags == 'info' %}info{% else %}success{% endif %}",
+                title: "{% if message.tags == 'error' %}Terjadi Kesalahan{% elif message.tags == 'warning' %}Perhatian{% else %}Berhasil{% endif %}",
+                message: "{{ message|escapejs }}",
+                duration: 4500
+              });
+            }
+          {% endfor %}
+        }, 80);
+      });
+    </script>
+    {% endif %}
+
+  </body>
+</html>
