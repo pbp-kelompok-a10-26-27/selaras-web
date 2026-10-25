@@ -1,3 +1,4 @@
+from django.core.paginator import Paginator
 from django.http import HttpResponse, HttpRequest, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
@@ -265,9 +266,41 @@ def ticket_list_api(request: HttpRequest):
 		.select_related("requester", "assigned_to")
 		.annotate(messages_count=Count("messages"))
 	)
-	ticket_data = [serialize_ticket_summary(ticket) for ticket in tickets]
-	
-	return JsonResponse({"tickets": ticket_data, "total_count": all_tickets.count()})
+	page_tickets, pagination = paginate(tickets, parse_page(request))
+
+	return JsonResponse({
+		"tickets": [serialize_ticket_summary(ticket) for ticket in page_tickets],
+		"pagination": pagination,
+		"total_count": all_tickets.count(),
+	})
+
+
+# ============================== PAGINATION ==============================
+
+TICKETS_PER_PAGE = 10
+
+
+def parse_page(request, param="page"):
+	try:
+		return max(1, int(request.GET.get(param, 1)))
+	except (TypeError, ValueError):
+		return 1
+
+
+def paginate(queryset, page_number, per_page=TICKETS_PER_PAGE):
+	"""One page of a queryset plus what the pager needs. Out-of-range pages snap to the last one,
+	so a page that emptied (e.g. after a delete or a narrower filter) still shows tickets."""
+
+	paginator = Paginator(queryset, per_page)
+	page = paginator.get_page(page_number)
+	return page.object_list, {
+		"page": page.number,
+		"total_pages": paginator.num_pages,
+		"count": paginator.count,
+		"per_page": per_page,
+		"start": page.start_index(),
+		"end": page.end_index(),
+	}
 
 # Helper function to serialize a ticket for the ticket cards (list + create API).
 # Expects `messages_count` to be annotated (or set) on the ticket.

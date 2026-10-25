@@ -6,6 +6,7 @@ import {
   createAvatarElement,
   createChipElement,
   createIcon,
+  createPagination,
   createTicketIdElement,
   createTimeElement,
   el,
@@ -35,7 +36,8 @@ const assignedCount = document.getElementById("assignedCount");
 const othersSection = document.getElementById("othersSection");
 const othersList = document.getElementById("othersList");
 const othersCount = document.getElementById("othersCount");
-const loadMoreButton = document.getElementById("adminTicketsLoadMore");
+const assignedPagination = document.getElementById("assignedPagination");
+const othersPagination = document.getElementById("othersPagination");
 const refreshButton = document.getElementById("adminTicketsRefresh");
 
 const deleteConfirmButton = document.getElementById("deleteTicketConfirm");
@@ -52,8 +54,10 @@ const ASSIGNMENT_CHIP_CONFIG = {
 };
 const SEARCH_CHIP_CONFIG = { icon: "search", chip: "border-neutral-500 bg-neutral-50", iconColor: "text-neutral-800" };
 
-// What the lists currently show, so actions can update counts without refetching
-const listState = { assigned: 0, othersTotal: 0, othersShown: 0, totalCount: 0, page: 1 };
+// What the lists currently show. Each section is paged on its own (10 per page):
+// "Assigned to you" uses ?mine_page=, "All other tickets" uses ?page=.
+const listState = { assigned: 0, othersTotal: 0, totalCount: 0 };
+const pages = { mine: 1, others: 1 };
 
 /* ================================ REQUESTS ================================ */
 
@@ -300,7 +304,7 @@ function createTicketRow(ticket) {
   const replies = el("span", "inline-flex items-center gap-1.5");
   const count = ticket.messages_count ?? 0;
   replies.append(createIcon("message-square", "w-3.5 h-3.5"), `${count} ${count === 1 ? "reply" : "replies"}`);
-  const updated = el("span", "inline-flex items-center gap-1.5");
+  const updated = el("span", "inline-flex items-center gap-3 mt-3");
   updated.append(createIcon("clock", "w-3.5 h-3.5"), createTimeElement(ticket.updated_at, "updated "));
   activityCell.append(replies, updated);
 
@@ -395,10 +399,38 @@ function updateCounts(query = getQuery()) {
   resultCount.textContent = hasActiveFilters(query)
     ? `${shown} of ${listState.totalCount} tickets match`
     : `${listState.totalCount} ${listState.totalCount === 1 ? "ticket" : "tickets"}`;
+}
 
-  const remaining = listState.othersTotal - listState.othersShown;
-  loadMoreButton.hidden = remaining <= 0;
-  loadMoreButton.querySelector("[data-button-text]").textContent = `Load more (${remaining} left)`;
+function pageHref(query, nextPages) {
+  const queryString = buildParams(query, nextPages).toString();
+  return queryString ? `${location.pathname}?${queryString}` : location.pathname;
+}
+
+// Paging one section keeps the other section on its page; afterwards the
+// section's heading is brought into view and focused (it has tabindex="-1")
+async function goToSectionPage(section, page) {
+  const nextPages = { ...pages, [section]: page };
+  await loadTickets({ minePage: nextPages.mine, othersPage: nextPages.others });
+  const heading = document.getElementById(section === "mine" ? "assignedTitle" : "othersTitle");
+  heading.scrollIntoView({ behavior: prefersReducedMotion.matches ? "auto" : "smooth", block: "start" });
+  heading.focus({ preventScroll: true });
+}
+
+function renderPagers(query, assignedPage, othersPage) {
+  assignedPagination.replaceChildren(createPagination({
+    page: assignedPage.page,
+    totalPages: assignedPage.total_pages,
+    label: "Pages of your assigned tickets",
+    hrefFor: (page) => pageHref(query, { ...pages, mine: page }),
+    onChange: (page) => goToSectionPage("mine", page),
+  }));
+  othersPagination.replaceChildren(createPagination({
+    page: othersPage.page,
+    totalPages: othersPage.total_pages,
+    label: "Pages of other tickets",
+    hrefFor: (page) => pageHref(query, { ...pages, others: page }),
+    onChange: (page) => goToSectionPage("others", page),
+  }));
 }
 
 /* ============================ QUERY & FILTERS ============================ */
@@ -417,19 +449,21 @@ function hasActiveFilters(query) {
   return Boolean(query.status || query.priority || query.assignment || query.search);
 }
 
-function buildParams(query, page = 1) {
+function buildParams(query, { mine = 1, others = 1 } = {}) {
   const params = new URLSearchParams();
   if (query.status) params.set("status", query.status);
   if (query.priority) params.set("priority", query.priority);
   if (query.assignment) params.set("assignment", query.assignment);
   if (query.sort !== DEFAULT_SORT) params.set("sort", query.sort);
   if (query.search) params.set("search", query.search);
-  if (page > 1) params.set("page", page);
+  // Page 1 stays out of the URL, so a plain visit keeps a clean address
+  if (mine > 1) params.set("mine_page", mine);
+  if (others > 1) params.set("page", others);
   return params;
 }
 
-function syncUrl(query) {
-  const queryString = buildParams(query).toString();
+function syncUrl(query, pageNumbers) {
+  const queryString = buildParams(query, pageNumbers).toString();
   // replaceState: typing a search shouldn't add a history entry per keystroke
   history.replaceState(null, "", queryString ? `${location.pathname}?${queryString}` : location.pathname);
 }
@@ -539,57 +573,52 @@ function setListsBusy(isBusy) {
   });
 }
 
-async function loadTickets({ page = 1 } = {}) {
+// New filters, sort or search start both sections at page 1 (the defaults);
+// paging, refreshes and actions pass the pages to keep
+async function loadTickets({ minePage = 1, othersPage = 1 } = {}) {
   const query = getQuery();
-  if (page === 1) {
-    syncUrl(query);
-    renderFilterChips(query);
-    // Sections that the assignment filter rules out are hidden, not shown empty
-    assignedSection.hidden = query.assignment === "unassigned" || query.assignment === "others";
-    othersSection.hidden = query.assignment === "me";
-  }
+  renderFilterChips(query);
+  // Sections that the assignment filter rules out are hidden, not shown empty
+  assignedSection.hidden = query.assignment === "unassigned" || query.assignment === "others";
+  othersSection.hidden = query.assignment === "me";
 
   // A newer request makes the older one irrelevant
   listController?.abort();
   const controller = new AbortController();
   listController = controller;
-
-  if (page === 1) setListsBusy(true);
-  else setButtonLoading(loadMoreButton, true, "Loading…");
+  setListsBusy(true);
 
   try {
-    const data = await getJson(`${LIST_URL}?${buildParams(query, page)}`, controller.signal);
-    listState.totalCount = data.total_count;
-    listState.othersTotal = data.others_total;
-    listState.page = data.page;
+    const requested = { mine: minePage, others: othersPage };
+    const data = await getJson(`${LIST_URL}?${buildParams(query, requested)}`, controller.signal);
 
-    const newRows = data.others.map(createTicketRow);
-    if (page === 1) {
-      listState.assigned = data.assigned.length;
-      assignedList.replaceChildren(...(data.assigned.length ? data.assigned.map(createTicketRow) : [assignedEmptyState(query)]));
-      othersList.replaceChildren(...(newRows.length ? newRows : [othersEmptyState(query)]));
-      listState.othersShown = newRows.length;
-      renderLucideIcons(assignedList);
-    } else {
-      othersList.append(...newRows);
-      listState.othersShown += newRows.length;
-      // Keyboard users continue from the first newly loaded ticket
-      newRows[0]?.querySelector("article")?.focus({ preventScroll: true });
-    }
+    // The server may correct a page (e.g. past the last one after a delete)
+    pages.mine = data.assigned_pagination.page;
+    pages.others = data.others_pagination.page;
+    syncUrl(query, pages);
+
+    listState.totalCount = data.total_count;
+    listState.assigned = data.assigned_pagination.count;
+    listState.othersTotal = data.others_pagination.count;
+
+    assignedList.replaceChildren(...(data.assigned.length ? data.assigned.map(createTicketRow) : [assignedEmptyState(query)]));
+    othersList.replaceChildren(...(data.others.length ? data.others.map(createTicketRow) : [othersEmptyState(query)]));
+    renderLucideIcons(assignedList);
     renderLucideIcons(othersList);
+    renderPagers(query, data.assigned_pagination, data.others_pagination);
     updateCounts(query);
   } catch (error) {
     if (error.name === "AbortError") return;
     console.error(error);
     window.showToast?.({ type: "error", title: "Couldn't load tickets", message: error.message });
   } finally {
-    if (listController === controller) {
-      setListsBusy(false);
-      setButtonLoading(loadMoreButton, false);
-      // After the button's own text is restored, so "N left" is current
-      updateCounts(query);
-    }
+    if (listController === controller) setListsBusy(false);
   }
+}
+
+// Same filters and pages, fresh from the server (after an action changed the lists)
+function reloadCurrentPages() {
+  return loadTickets({ minePage: pages.mine, othersPage: pages.others });
 }
 
 /* ================================ ACTIONS ================================ */
@@ -618,30 +647,24 @@ async function assignTicket(ticket, button, item) {
     if (!response.ok) {
       window.showToast?.({ type: "error", title: "Couldn't assign ticket", message: data.error ?? `Request failed (${response.status})` });
       // Someone else may have taken it: show the current state
-      if (response.status === 409) loadTickets();
+      if (response.status === 409) reloadCurrentPages();
       return;
     }
 
     window.showToast?.({ type: "success", title: "Assigned to you", message: `${shortId(ticket.id)} · ${ticket.title}` });
 
-    // Move the row from "All other tickets" to "Assigned to you"
-    removeRow(item, () => {
-      listState.othersTotal -= 1;
-      listState.othersShown -= 1;
-      if (!othersList.querySelector("li[data-ticket-id]")) othersList.replaceChildren(othersEmptyState(getQuery()));
-
-      if (!assignedSection.hidden) {
-        assignedList.querySelector("[data-empty-state]")?.remove();
-        const newItem = createTicketRow(data.ticket);
-        assignedList.prepend(newItem);
-        renderLucideIcons(newItem);
-        listState.assigned += 1;
-        const newRow = newItem.querySelector("article");
-        newRow.scrollIntoView({ behavior: prefersReducedMotion.matches ? "auto" : "smooth", block: "nearest" });
-        newRow.focus({ preventScroll: true });
-        highlight(newRow);
+    // The ticket moves between sections, and pages shift: reload what's shown
+    removeRow(item, async () => {
+      await reloadCurrentPages();
+      const moved = assignedList.querySelector(`li[data-ticket-id="${CSS.escape(ticket.id)}"] article`);
+      if (moved) {
+        moved.scrollIntoView({ behavior: prefersReducedMotion.matches ? "auto" : "smooth", block: "nearest" });
+        moved.focus({ preventScroll: true });
+        highlight(moved);
+      } else {
+        // Not on the current page of "Assigned to you" (or that section is filtered out)
+        document.getElementById(assignedSection.hidden ? "othersTitle" : "assignedTitle")?.focus();
       }
-      updateCounts();
     });
     loadStats();
   } catch (error) {
@@ -678,25 +701,15 @@ async function confirmDelete() {
 
     const list = item.parentElement;
     const isAssigned = list === assignedList;
-    // The trash button that opened the dialog is going away: move focus to the next ticket, or the section heading
-    const nextFocus =
-      item.nextElementSibling?.querySelector("article") ??
-      item.previousElementSibling?.querySelector("article") ??
-      document.getElementById(isAssigned ? "assignedTitle" : "othersTitle");
+    const index = [...list.children].indexOf(item);
 
-    removeRow(item, () => {
-      if (isAssigned) listState.assigned -= 1;
-      else {
-        listState.othersTotal -= 1;
-        listState.othersShown -= 1;
-      }
-      listState.totalCount -= 1;
-      if (!list.querySelector("li[data-ticket-id]")) {
-        list.replaceChildren(isAssigned ? assignedEmptyState(getQuery()) : othersEmptyState(getQuery()));
-        renderLucideIcons(list);
-      }
-      updateCounts();
-      nextFocus?.focus({ preventScroll: true });
+    // Pages shift after a delete (the next page's first ticket moves up),
+    // so reload what's shown; the trash button is gone, so focus a neighbour
+    removeRow(item, async () => {
+      await reloadCurrentPages();
+      const rows = list.querySelectorAll("li[data-ticket-id] article");
+      (rows[Math.min(index, rows.length - 1)] ?? document.getElementById(isAssigned ? "assignedTitle" : "othersTitle"))
+        ?.focus({ preventScroll: true });
     });
     loadStats();
     pendingDelete = null;
@@ -727,10 +740,9 @@ function init() {
     input?.addEventListener("change", () => loadTickets()),
   );
   searchInput?.addEventListener("input", debounce(() => loadTickets(), SEARCH_DEBOUNCE_MS));
-  loadMoreButton?.addEventListener("click", () => loadTickets({ page: listState.page + 1 }));
   refreshButton?.addEventListener("click", async () => {
     setButtonLoading(refreshButton, true, "Refreshing…");
-    await Promise.all([loadStats(), loadTickets()]);
+    await Promise.all([loadStats(), reloadCurrentPages()]);
     setButtonLoading(refreshButton, false);
   });
 
@@ -750,8 +762,13 @@ function init() {
     /* storage unavailable or bad JSON: nothing to show */
   }
 
+  // Open on the pages in the URL (a refreshed or shared link keeps them)
+  const params = new URLSearchParams(location.search);
   loadStats();
-  loadTickets();
+  loadTickets({
+    minePage: Number(params.get("mine_page")) || 1,
+    othersPage: Number(params.get("page")) || 1,
+  });
 }
 
 init();

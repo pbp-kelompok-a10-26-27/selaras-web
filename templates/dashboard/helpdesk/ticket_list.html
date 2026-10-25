@@ -1,7 +1,7 @@
 {% extends "dashboard/base.html" %}
 {% load static lucide component_tags %}
 
-{% block title %}Helpdesk tickets{% endblock %}
+{% block title %}Helpdesk Tickets Management{% endblock %}
 
 {% block content %}
 <div
@@ -26,7 +26,7 @@
     <div class="flex flex-wrap items-end justify-between gap-3">
       <div class="flex flex-col gap-1">
         <h1 class="font-display text-h3 leading-tight text-foreground sm:text-h2">Helpdesk tickets</h1>
-        <p class="max-w-2xl font-sans text-b3 text-neutral-900">Every ticket on SELARAS. You can reply to the ones assigned to you; take an unassigned one to start helping.</p>
+        <p class="max-w-2xl font-sans text-b3 text-neutral-900">Every ticket on SELARAS. You can reply to the ones assigned to you or take an unassigned one to start helping.</p>
       </div>
       {% component "button" id="adminTicketsRefresh" text="Refresh" variant="neutral" size="sm" icon_left="refresh-cw" attrs='title="Reload stats and tickets"' / %}
     </div>
@@ -66,7 +66,7 @@
   <section id="assignedSection" aria-labelledby="assignedTitle" class="flex flex-col gap-3">
     <div class="flex flex-wrap items-end justify-between gap-2">
       <div class="flex flex-col">
-        <h2 id="assignedTitle" class="flex items-center gap-2 font-sans text-lg font-semibold text-foreground" tabindex="-1">
+        <h2 id="assignedTitle" class="flex scroll-mt-24 items-center gap-2 font-sans text-lg font-semibold text-foreground outline-none" tabindex="-1">
           <span class="text-orange-100">{% lucide "user-check" class="w-5 h-5" %}</span>
           Assigned to you
           <span id="assignedCount" class="rounded-full bg-orange-100/20 px-2 py-0.5 font-sans text-xs font-bold tabular-nums text-secondary-900"></span>
@@ -77,12 +77,14 @@
     <ul id="assignedList" class="flex flex-col gap-2" aria-busy="true">
       {% for i in "12" %}<li aria-hidden="true">{% component "skeleton" variant="rect" height="h-24" rounded="rounded-2xl" / %}</li>{% endfor %}
     </ul>
+    <!-- Pager for this section (10 per page, ?mine_page=), rendered by admin_tickets.js -->
+    <div id="assignedPagination"></div>
   </section>
 
   <!-- 4. Every other ticket (paged) -->
   <section id="othersSection" aria-labelledby="othersTitle" class="flex flex-col gap-3">
     <div class="flex flex-col">
-      <h2 id="othersTitle" class="flex items-center gap-2 font-sans text-lg font-semibold text-foreground" tabindex="-1">
+      <h2 id="othersTitle" class="flex scroll-mt-24 items-center gap-2 font-sans text-lg font-semibold text-foreground outline-none" tabindex="-1">
         <span class="text-secondary-500">{% lucide "layers" class="w-5 h-5" %}</span>
         All other tickets
         <span id="othersCount" class="rounded-full bg-neutral-300 px-2 py-0.5 font-sans text-xs font-bold tabular-nums text-secondary-900"></span>
@@ -99,9 +101,8 @@
       {% for i in "123" %}<li aria-hidden="true">{% component "skeleton" variant="rect" height="h-24" rounded="rounded-2xl" / %}</li>{% endfor %}
     </ul>
 
-    <div class="flex justify-center">
-      {% component "button" id="adminTicketsLoadMore" text="Load more" variant="neutral" icon_left="chevron-down" attrs="hidden" / %}
-    </div>
+    <!-- Pager for this section (10 per page, ?page=), rendered by admin_tickets.js -->
+    <div id="othersPagination"></div>
   </section>
 </div>
 

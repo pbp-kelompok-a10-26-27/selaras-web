@@ -66,7 +66,7 @@ function applyPermissions() {
   const iconSlot = notice.querySelector("[data-notice-icon]");
   iconSlot.innerHTML = `<i data-lucide="${icon}" class="w-4 h-4" aria-hidden="true"></i>`;
   notice.querySelector("[data-notice-text]").textContent =
-    kind === "others" ? `View only. This ticket is assigned to ${ticket.assignee.name}; only they can reply or change its status.` : text;
+    kind === "others" ? `View only. This ticket is assigned to ${ticket.assignee.name}, only they can reply or change its status.` : text;
   renderLucideIcons(notice);
 }
 

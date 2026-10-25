@@ -36,17 +36,38 @@ class AdminTicketManagementTests(TestCase):
         self.assertEqual(sorted(t["title"] for t in data["assigned"]), ["Certificate mismatch", "Old issue"])
         self.assertTrue(all(not t["is_assigned_to_me"] for t in data["others"]))
 
-    def test_other_tickets_are_paged(self):
+    def test_other_tickets_are_paged_by_10(self):
         first = self.api()
-        self.assertEqual((len(first["others"]), first["others_total"], first["has_more"]), (20, 28, True))
+        self.assertEqual(len(first["others"]), 10)
+        self.assertEqual(first["others_pagination"], {"page": 1, "total_pages": 3, "count": 28, "per_page": 10, "start": 1, "end": 10})
 
-        second = self.api("?page=2")
-        self.assertEqual(len(second["others"]), 8)
-        self.assertIsNone(second["assigned"])  # only sent with page 1
-        self.assertFalse(second["has_more"])
+        last = self.api("?page=3")
+        self.assertEqual(len(last["others"]), 8)
+        self.assertEqual((last["others_pagination"]["start"], last["others_pagination"]["end"]), (21, 28))
 
-        ids = {t["id"] for t in first["others"]} | {t["id"] for t in second["others"]}
+        ids = set()
+        for page in (1, 2, 3):
+            ids |= {t["id"] for t in self.api(f"?page={page}")["others"]}
         self.assertEqual(len(ids), 28)  # no overlap, nothing skipped
+
+    def test_each_section_is_paged_on_its_own(self):
+        # Paging "others" leaves "assigned" on its own page 1, and the reverse
+        data = self.api("?page=2")
+        self.assertEqual((data["assigned_pagination"]["page"], data["others_pagination"]["page"]), (1, 2))
+        self.assertEqual(len(data["assigned"]), 2)
+
+        data = self.api("?mine_page=1&page=3")
+        self.assertEqual((data["assigned_pagination"]["page"], data["others_pagination"]["page"]), (1, 3))
+
+    def test_out_of_range_or_bad_pages_snap(self):
+        self.assertEqual(self.api("?page=99")["others_pagination"]["page"], 3)  # last page
+        self.assertEqual(self.api("?page=abc&mine_page=-4")["others_pagination"]["page"], 1)
+        self.assertEqual(self.api("?mine_page=7")["assigned_pagination"]["page"], 1)
+
+    def test_filters_apply_before_paging(self):
+        data = self.api("?assignment=unassigned&page=3")
+        self.assertEqual(data["others_pagination"]["total_pages"], 3)  # 27 unassigned
+        self.assertTrue(all(t["assignee"] is None for t in data["others"]))
 
     def test_row_fields(self):
         row = next(t for t in self.api()["assigned"] if t["title"] == "Certificate mismatch")
@@ -64,7 +85,7 @@ class AdminTicketManagementTests(TestCase):
         unassigned = self.api("?assignment=unassigned")
         self.assertEqual(unassigned["assigned"], [])
         # Every status counts here (27); the "Unassigned" stat only counts active ones (26)
-        self.assertEqual(unassigned["others_total"], 27)
+        self.assertEqual(unassigned["others_pagination"]["count"], 27)
         self.assertTrue(all(t["assignee"] is None for t in unassigned["others"]))
 
         self.assertEqual([t["title"] for t in self.api("?assignment=others")["others"]], ["Login loop"])
@@ -77,13 +98,13 @@ class AdminTicketManagementTests(TestCase):
         self.assertEqual([t["title"] for t in self.api("?priority=high")["assigned"]], ["Certificate mismatch"])
 
     def test_search_covers_requester_and_ticket_id(self):
-        self.assertEqual(self.api("?search=safitri")["others_total"], 28)
-        self.assertEqual(self.api("?search=alya.safitri@")["others_total"], 28)
+        self.assertEqual(self.api("?search=safitri")["others_pagination"]["count"], 28)
+        self.assertEqual(self.api("?search=alya.safitri@")["others_pagination"]["count"], 28)
         short_id = str(self.theirs.id)[:8].upper()
         self.assertEqual([t["title"] for t in self.api(f"?search=%23{short_id}")["others"]], ["Login loop"])
 
     def test_invalid_query_values_are_ignored(self):
-        self.assertEqual(self.api("?assignment=hack&status=nope&sort=password")["others_total"], 28)
+        self.assertEqual(self.api("?assignment=hack&status=nope&sort=password")["others_pagination"]["count"], 28)
 
     def test_priority_sort_puts_high_first(self):
         self.assertEqual(self.api("?sort=-priority")["assigned"][0]["title"], "Certificate mismatch")

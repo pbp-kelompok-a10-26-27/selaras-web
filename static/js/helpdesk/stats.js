@@ -8,8 +8,10 @@ import {
   createIcon,
   createTicketIdElement,
   createPersonElement,
+  createPagination,
   createTimeElement,
   el,
+  formatPageRange,
   renderLucideIcons,
 } from "./shared.js";
 
@@ -50,7 +52,7 @@ async function fetchTickets(params, signal) {
   const url = queryString ? `${TICKETS_API_URL}?${queryString}` : TICKETS_API_URL;
   const data = await fetchJson(url, "tickets", { signal });
   const tickets = data.tickets ?? [];
-  return { tickets, totalCount: data.total_count ?? tickets.length };
+  return { tickets, totalCount: data.total_count ?? tickets.length, pagination: data.pagination };
 }
 
 function createTicketsCardElement(ticket, index = 0) {
@@ -514,6 +516,7 @@ const ticketStatusInput = document.getElementById("tickets-status-dropdown");
 const ticketPriorityInput = document.getElementById("tickets-priority-dropdown");
 const ticketSortInput = document.getElementById("tickets-sorting-dropdown");
 const ticketsResultCount = document.getElementById("ticketsResultCount");
+const ticketsPagination = document.getElementById("ticketsPagination");
 const ticketsActiveFilters = document.getElementById("ticketsActiveFilters");
 
 const SEARCH_CHIP_CONFIG = {
@@ -538,12 +541,14 @@ function hasActiveTicketFilters(query) {
   return Boolean(query.status || query.priority || query.search);
 }
 
-function buildTicketParams(query) {
+function buildTicketParams(query, page = 1) {
   const params = new URLSearchParams();
   if (query.status) params.set("status", query.status);
   if (query.priority) params.set("priority", query.priority);
   if (query.sort !== DEFAULT_TICKET_SORT) params.set("sort", query.sort);
   if (query.search) params.set("search", query.search);
+  // Page 1 stays out of the URL, so a plain visit keeps a clean address
+  if (page > 1) params.set("page", page);
   return params;
 }
 
@@ -683,19 +688,40 @@ function renderActiveFilterChips(query) {
   renderLucideIcons(ticketsActiveFilters);
 }
 
-function renderTicketsResultCount(count, totalCount, query) {
+function renderTicketsResultCount(pagination, totalCount, query) {
   if (!ticketsResultCount) return;
 
-  if (totalCount === 0) {
-    ticketsResultCount.textContent = "";
-  } else if (hasActiveTicketFilters(query)) {
-    ticketsResultCount.textContent = `Showing ${count} of ${totalCount} tickets`;
-  } else {
-    ticketsResultCount.textContent = `${totalCount} ${totalCount === 1 ? "ticket" : "tickets"}`;
-  }
+  // "Showing 11–20 of 23 matching tickets" / "Showing 11–20 of 47 tickets"
+  ticketsResultCount.textContent = totalCount === 0
+    ? ""
+    : formatPageRange(pagination, hasActiveTicketFilters(query) ? "matching tickets" : "tickets");
 }
 
-function renderTickets(tickets, totalCount, query) {
+function renderTicketsPagination(pagination, query) {
+  if (!ticketsPagination) return;
+  ticketsPagination.replaceChildren(
+    createPagination({
+      page: pagination.page,
+      totalPages: pagination.total_pages,
+      label: "Ticket pages",
+      hrefFor: (page) => {
+        const queryString = buildTicketParams(query, page).toString();
+        return queryString ? `${location.pathname}?${queryString}` : location.pathname;
+      },
+      onChange: goToTicketPage,
+    }),
+  );
+}
+
+// After switching pages, bring the list (not the pager at the bottom) into view
+// and move focus there, so keyboard and screen reader users start at the top
+async function goToTicketPage(page) {
+  await loadTickets({ page });
+  ticketsContainer.scrollIntoView({ behavior: prefersReducedMotion.matches ? "auto" : "smooth", block: "start" });
+  ticketsContainer.focus({ preventScroll: true });
+}
+
+function renderTickets(tickets, totalCount, query, pagination) {
   let content;
 
   if (tickets.length) {
@@ -725,17 +751,19 @@ function renderTickets(tickets, totalCount, query) {
 
   ticketsContainer.replaceChildren(...content);
   renderLucideIcons(ticketsContainer);
-  renderTicketsResultCount(tickets.length, totalCount, query);
-  lastTicketsResult = { count: tickets.length, totalCount };
+  renderTicketsResultCount(pagination, totalCount, query);
+  renderTicketsPagination(pagination, query);
 }
 
 let ticketsRequestController = null;
-// Counts from the last render, so a new ticket can be added without refetching
-let lastTicketsResult = { count: 0, totalCount: 0 };
+// The page the list is showing; the server may correct it (e.g. past the last page)
+let currentTicketPage = 1;
 
-async function loadTickets() {
+// Any change to filters, sort or search starts again at page 1 (the default);
+// paging and refreshes pass the page explicitly
+async function loadTickets({ page = 1 } = {}) {
   const query = getTicketQuery();
-  const params = buildTicketParams(query);
+  const params = buildTicketParams(query, page);
   syncUrlWithTicketParams(params);
   // Chips update right away, without waiting for the server
   renderActiveFilterChips(query);
@@ -747,11 +775,14 @@ async function loadTickets() {
   ticketsContainer.setAttribute("aria-busy", "true");
 
   try {
-    const { tickets, totalCount } = await fetchTickets(
+    const { tickets, totalCount, pagination } = await fetchTickets(
       params,
       controller.signal,
     );
-    renderTickets(tickets, totalCount, query);
+    currentTicketPage = pagination.page;
+    // Keep the URL on the page actually shown (a too-high ?page= snaps back)
+    if (pagination.page !== page) syncUrlWithTicketParams(buildTicketParams(query, pagination.page));
+    renderTickets(tickets, totalCount, query, pagination);
   } catch (error) {
     if (error.name === "AbortError") return;
 
@@ -771,13 +802,14 @@ async function loadTickets() {
 
 function bindTicketControls() {
 
-  ticketStatusInput?.addEventListener("change", loadTickets);
-  ticketPriorityInput?.addEventListener("change", loadTickets);
-  ticketSortInput?.addEventListener("change", loadTickets);
+  // New filters, sort or search: back to page 1 (loadTickets' default)
+  ticketStatusInput?.addEventListener("change", () => loadTickets());
+  ticketPriorityInput?.addEventListener("change", () => loadTickets());
+  ticketSortInput?.addEventListener("change", () => loadTickets());
 
   ticketSearchInput?.addEventListener(
     "input",
-    debounce(loadTickets, SEARCH_DEBOUNCE_MS),
+    debounce(() => loadTickets(), SEARCH_DEBOUNCE_MS),
   );
 }
 
@@ -786,7 +818,9 @@ function initTickets() {
   if (!ticketsContainer || !TICKETS_API_URL) return;
 
   bindTicketControls();
-  loadTickets();
+  // Open on the page in the URL (a refreshed or shared link keeps its page)
+  const initialPage = Number(new URLSearchParams(location.search).get("page")) || 1;
+  loadTickets({ page: initialPage });
 }
 
 /* =========================== CREATED TICKETS =========================== */
@@ -830,27 +864,11 @@ async function handleTicketCreated(event) {
     return;
   }
 
-  // Newest first (the default): it belongs at the top, so add it right away
-  if (query.sort === DEFAULT_TICKET_SORT) {
-    const card = createTicketsCardElement(ticket);
-    // Replace the empty state if this is the first ticket
-    if (!ticketsContainer.querySelector("article[data-ticket-id]")) {
-      ticketsContainer.replaceChildren();
-    }
-    ticketsContainer.prepend(card);
-    renderLucideIcons(card);
+  // Newest first (the default): the new ticket is first on page 1, so go there.
+  // Any other sort: the server decides where it lands; stay on this page.
+  const page = query.sort === DEFAULT_TICKET_SORT ? 1 : currentTicketPage;
+  await loadTickets({ page });
 
-    lastTicketsResult = {
-      count: lastTicketsResult.count + 1,
-      totalCount: lastTicketsResult.totalCount + 1,
-    };
-    renderTicketsResultCount(lastTicketsResult.count, lastTicketsResult.totalCount, query);
-    highlightTicketCard(card);
-    return;
-  }
-
-  // Any other sort: let the server place it correctly
-  await loadTickets();
   const card = ticketsContainer.querySelector(
     `article[data-ticket-id="${CSS.escape(ticket.id)}"]`,
   );

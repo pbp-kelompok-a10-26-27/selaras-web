@@ -38,7 +38,8 @@
     {% component "sidebar" sections=sidebar_sections home_url=dashboard_home_url logout_url=logout_url / %}
 
     <div class="transition-[padding] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none lg:pl-64 lg:sidebar-collapsed:pl-20">
-      <main id="dashboard-main" tabindex="-1" class="mx-auto w-full max-w-7xl px-4 py-6 outline-none sm:px-6 lg:px-10 lg:py-10">
+      {# lg:pb-48: on desktop toasts stack bottom-right; the extra room lets the last rows scroll clear of them #}
+      <main id="dashboard-main" tabindex="-1" class="mx-auto w-full max-w-7xl px-4 py-6 outline-none sm:px-6 lg:px-10 lg:pt-10 lg:pb-48">
         {% block content %}{% endblock %}
       </main>
     </div>

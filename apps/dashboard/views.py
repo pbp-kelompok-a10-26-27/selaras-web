@@ -16,6 +16,8 @@ from apps.helpdesk.views import (
     STATUS_FILTER_OPTIONS,
     apply_ticket_query,
     create_ticket_message,
+    paginate,
+    parse_page,
     parse_ticket_query,
     serialize_ticket_message,
     serialize_ticket_summary,
@@ -77,7 +79,6 @@ def admin_dashboard(request: HttpRequest):
 
 # ============================= Helpdesk Admin Dashboard Views ============================= #
 
-TICKETS_PAGE_SIZE = 20
 ACTIVE_STATUSES = [Ticket.Status.OPEN, Ticket.Status.IN_PROGRESS]
 
 # Assignment filter: value -> (label, icon). Empty value = anyone.
@@ -200,7 +201,8 @@ def admin_ticket_list(request: HttpRequest):
 
 @admin_required
 def admin_ticket_list_api(request: HttpRequest):
-    """Both lists for the page: the admin's assigned tickets, then every other ticket (paged)."""
+    """Both lists for the page, each paged on its own (10 per page):
+    the admin's assigned tickets (?mine_page=) and every other ticket (?page=)."""
 
     query = parse_admin_ticket_query(request)
     tickets = (
@@ -209,24 +211,14 @@ def admin_ticket_list_api(request: HttpRequest):
         .annotate(messages_count=Count("messages"))
     )
 
-    try:
-        page = max(1, int(request.GET.get("page", 1)))
-    except ValueError:
-        page = 1
-
-    assigned = tickets.filter(assigned_to=request.user)
-    others = tickets.exclude(assigned_to=request.user)
-    others_total = others.count()
-    start = (page - 1) * TICKETS_PAGE_SIZE
-    others_page = others[start:start + TICKETS_PAGE_SIZE]
+    assigned, assigned_pagination = paginate(tickets.filter(assigned_to=request.user), parse_page(request, "mine_page"))
+    others, others_pagination = paginate(tickets.exclude(assigned_to=request.user), parse_page(request, "page"))
 
     return JsonResponse({
-        # Page 2+ only needs more "others"; the assigned list is sent once
-        "assigned": [serialize_admin_ticket(t, request.user) for t in assigned] if page == 1 else None,
-        "others": [serialize_admin_ticket(t, request.user) for t in others_page],
-        "others_total": others_total,
-        "page": page,
-        "has_more": start + TICKETS_PAGE_SIZE < others_total,
+        "assigned": [serialize_admin_ticket(t, request.user) for t in assigned],
+        "assigned_pagination": assigned_pagination,
+        "others": [serialize_admin_ticket(t, request.user) for t in others],
+        "others_pagination": others_pagination,
         "total_count": Ticket.objects.count(),
     })
 

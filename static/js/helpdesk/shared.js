@@ -108,12 +108,34 @@ export function createIcon(name, className = "w-4 h-4") {
   return icon;
 }
 
-export function renderLucideIcons(root) {
-  if (window.lucide) {
-    window.lucide.createIcons({ root });
-  } else {
+const toPascalCase = (name) => name.replace(/(^|-)(\w)/g, (_, __, letter) => letter.toUpperCase());
+
+// Swaps the <i data-lucide> placeholders inside `root` for SVGs. Done by hand
+// because lucide.createIcons() (0.469 UMD) ignores `root` and only scans
+// `document`, so elements not yet on the page (like a freshly built pager) were skipped.
+export function renderLucideIcons(root = document) {
+  const lucide = window.lucide;
+  if (!lucide) {
     console.warn("Lucide is not loaded. Icons will not be rendered.");
+    return;
   }
+
+  root.querySelectorAll("[data-lucide]:not(svg)").forEach((placeholder) => {
+    const name = placeholder.getAttribute("data-lucide");
+    const iconNode = lucide.icons[toPascalCase(name)];
+    if (!iconNode) {
+      console.warn(`Lucide icon "${name}" not found.`);
+      return;
+    }
+
+    const svg = lucide.createElement(iconNode);
+    // Keep the placeholder's attributes (aria-hidden, data-*, …) and add its classes
+    for (const { name: attr, value } of placeholder.attributes) {
+      if (attr !== "class") svg.setAttribute(attr, value);
+    }
+    svg.setAttribute("class", `lucide lucide-${name} ${placeholder.getAttribute("class") ?? ""}`.trim());
+    placeholder.replaceWith(svg);
+  });
 }
 
 // Relative time shown, exact date on hover
@@ -231,6 +253,106 @@ export function createTicketIdElement(ticketId) {
   });
 
   return wrapper;
+}
+
+/* ============================== PAGINATION ============================== */
+
+// Which page numbers to show: first, last and the current one ±1, with "…"
+// for the gaps (a gap of exactly one page shows that page instead).
+function getPageItems(page, totalPages) {
+  const pages = [...new Set([1, page - 1, page, page + 1, totalPages])]
+    .filter((p) => p >= 1 && p <= totalPages)
+    .sort((a, b) => a - b);
+
+  const items = [];
+  pages.forEach((p, i) => {
+    const gap = i ? p - pages[i - 1] : 0;
+    if (gap === 2) items.push(p - 1);
+    else if (gap > 2) items.push("gap");
+    items.push(p);
+  });
+  return items;
+}
+
+/**
+ * Numbered pager. Links carry real ?page= URLs (Ctrl/middle-click opens a new
+ * tab); a plain click calls onChange(page) instead of reloading.
+ * Phones show "Previous · Page 2 of 5 · Next"; wider screens show the numbers.
+ */
+export function createPagination({ page, totalPages, label, hrefFor, onChange }) {
+  const nav = el("nav", "flex items-center justify-between gap-2 pt-2 pb-8 sm:justify-center");
+  nav.setAttribute("aria-label", label);
+  if (totalPages <= 1) {
+    nav.hidden = true;
+    return nav;
+  }
+
+  const base =
+    "inline-flex min-h-10 min-w-10 items-center justify-center gap-1.5 rounded-xl border px-3 font-sans text-sm font-semibold tabular-nums outline-none transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1";
+
+  const link = (target, className) => {
+    const a = el("a", `${base} ${className}`);
+    a.href = hrefFor(target);
+    a.addEventListener("click", (event) => {
+      if (event.ctrlKey || event.metaKey || event.shiftKey || event.button !== 0) return;
+      event.preventDefault();
+      onChange(target);
+    });
+    return a;
+  };
+
+  const step = (target, text, icon, disabled) => {
+    if (disabled) {
+      const span = el("span", `${base} cursor-not-allowed border-neutral-400 text-neutral-700 opacity-50`);
+      span.setAttribute("aria-disabled", "true");
+      span.append(createIcon(icon, "w-4 h-4"), el("span", "sr-only sm:not-sr-only", text));
+      if (icon === "chevron-right") span.append(span.firstChild);
+      return span;
+    }
+    const a = link(target, "border-neutral-400 bg-neutral-50 text-secondary-800 hover:border-neutral-500 hover:bg-neutral-300 active:scale-[0.97]");
+    a.setAttribute("aria-label", `${text} page`);
+    a.append(createIcon(icon, "w-4 h-4"), el("span", "sr-only sm:not-sr-only", text));
+    if (icon === "chevron-right") a.append(a.firstChild); // icon after the text
+    return a;
+  };
+
+  const numbers = el("ol", "hidden items-center gap-1 sm:flex");
+  getPageItems(page, totalPages).forEach((item) => {
+    const li = el("li");
+    if (item === "gap") {
+      li.append(el("span", "inline-flex min-w-6 justify-center font-sans text-sm text-neutral-800", "…"));
+      li.setAttribute("aria-hidden", "true");
+    } else if (item === page) {
+      const current = el("span", `${base} border-secondary-700 bg-secondary-700 text-neutral-50 shadow-sm`, String(item));
+      current.setAttribute("aria-current", "page");
+      current.setAttribute("aria-label", `Page ${item}, current page`);
+      li.append(current);
+    } else {
+      const a = link(item, "border-transparent text-secondary-800 hover:border-neutral-400 hover:bg-neutral-300 active:scale-[0.97]");
+      a.textContent = item;
+      a.setAttribute("aria-label", `Page ${item}`);
+      li.append(a);
+    }
+    numbers.append(li);
+  });
+
+  const compact = el("p", "font-sans text-sm text-neutral-900 sm:hidden");
+  compact.append("Page ", el("strong", "font-semibold", String(page)), ` of ${totalPages}`);
+
+  nav.append(
+    step(page - 1, "Previous", "chevron-left", page <= 1),
+    compact,
+    numbers,
+    step(page + 1, "Next", "chevron-right", page >= totalPages),
+  );
+  renderLucideIcons(nav);
+  return nav;
+}
+
+// "Showing 11–20 of 47" for a pagination payload from the API
+export function formatPageRange({ start, end, count }, noun = "tickets") {
+  if (!count) return `0 ${noun}`;
+  return start === 1 && end === count ? `${count} ${count === 1 ? noun.replace(/s$/, "") : noun}` : `Showing ${start}–${end} of ${count} ${noun}`;
 }
 
 /* =============================== PEOPLE =============================== */

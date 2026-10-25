@@ -91,15 +91,20 @@
 
   <!-- Ticket Section -->
   <section
-    class="grid lg:grid-cols-3 mt-6 md:grid-cols-2 grid-cols-1 items-stretch gap-4 sm:gap-6 w-full transition-opacity duration-200 aria-busy:opacity-60"
+    class="grid lg:grid-cols-3 mt-6 md:grid-cols-2 grid-cols-1 items-stretch gap-4 sm:gap-6 w-full scroll-mt-32 outline-none transition-opacity duration-200 aria-busy:opacity-60"
     data-tickets-url="{% url 'helpdesk:ticket_list_api' %}"
     id="ticketsContainer"
+    tabindex="-1"
+    aria-label="Tickets"
   >
     <!-- Shown until stats.js renders the first page of tickets -->
     {% for i in "123" %}
     <div aria-hidden="true">{% component "skeleton" variant="rect" height="h-72" rounded="rounded-2xl" / %}</div>
     {% endfor %}
   </section>
+
+  <!-- Pager (10 tickets per page), rendered by stats.js -->
+  <div id="ticketsPagination" class="mt-8 w-full"></div>
 
   <!-- Loading placeholder for the stats panels (cloned by stats.js, also on retry) -->
   <template id="tpl-stats-skeleton">

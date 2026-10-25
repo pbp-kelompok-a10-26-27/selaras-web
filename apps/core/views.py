@@ -70,3 +70,10 @@ def design_system(request):
             "dropdown_options": dropdown_options,
         },
     )
+
+
+def home(request):
+    """Landing page: the growth rings, filled with live numbers from each app."""
+    from .landing import get_landing_context
+
+    return render(request, "landing/home.html", get_landing_context())

@@ -357,3 +357,246 @@
   }
 }
 /* ================================================================== */
+
+/* ============================ LANDING ============================= */
+/* Smooth in-page scrolling on the landing page only (anchor links, "Lihat keempat lapisan"),
+   with room for the fixed navbar so headings don't land underneath it */
+html:has(#landing) {
+  scroll-behavior: smooth;
+  scroll-padding-top: 7rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:has(#landing) {
+    scroll-behavior: auto;
+  }
+}
+
+/* One continuous background, read top to bottom: the meadow's pale green (the hero
+   image fades into primary-100) -> fresh green layers -> bark. It stays light to the
+   end; a short green fade above the closing section (home.html) takes it into the dark */
+.landing-flow {
+  background-image: linear-gradient(
+    180deg,
+    var(--color-primary-100) 0%,
+    var(--color-primary-50) 18%,
+    var(--color-primary-100) 38%,
+    var(--color-primary-200) 58%,
+    var(--color-secondary-50) 80%,
+    var(--color-secondary-100) 100%
+  );
+}
+
+/* Dusk above the closing section. A plain two-stop fade shows a visible band where it
+   meets the dark; these eased stops (one colour, only the opacity changes) start and
+   finish so gently that there is no edge on either side */
+.landing-dusk {
+  background-image: linear-gradient(
+    180deg,
+    rgb(33 43 28 / 0) 0%,
+    rgb(33 43 28 / 0.013) 8.1%,
+    rgb(33 43 28 / 0.049) 15.5%,
+    rgb(33 43 28 / 0.104) 22.5%,
+    rgb(33 43 28 / 0.175) 29%,
+    rgb(33 43 28 / 0.259) 35.3%,
+    rgb(33 43 28 / 0.352) 41.2%,
+    rgb(33 43 28 / 0.45) 47.1%,
+    rgb(33 43 28 / 0.55) 52.9%,
+    rgb(33 43 28 / 0.648) 58.8%,
+    rgb(33 43 28 / 0.741) 64.7%,
+    rgb(33 43 28 / 0.825) 71%,
+    rgb(33 43 28 / 0.896) 77.5%,
+    rgb(33 43 28 / 0.951) 84.5%,
+    rgb(33 43 28 / 0.987) 91.9%,
+    var(--color-secondary-900) 100%
+  );
+}
+
+/* Hero: headline words and blocks rise in one after another (--i = order) */
+@keyframes hero-rise {
+  from {
+    opacity: 0;
+    transform: translateY(1.25rem);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+.hero-rise {
+  animation: hero-rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--i, 0) * 90ms + 100ms);
+}
+
+/* The meadow drifts with the scroll/pointer (home.js sets --hero-x / --hero-y) */
+.hero-image {
+  translate: var(--hero-x, 0) var(--hero-y, 0);
+  will-change: translate;
+}
+
+/* Soft sunlight following the pointer (home.js sets --glow-x / --glow-y) */
+.hero-glow {
+  background: radial-gradient(
+    32rem circle at var(--glow-x, 70%) var(--glow-y, 30%),
+    color-mix(in srgb, var(--color-neutral-50) 55%, transparent),
+    transparent 70%
+  );
+  mix-blend-mode: soft-light;
+}
+
+/* Manifesto: each word brightens as the reader scrolls past it */
+[data-manifesto] .word {
+  opacity: 0.18;
+  transition: opacity 0.4s ease-out;
+}
+
+[data-manifesto] .word.is-lit {
+  opacity: 1;
+}
+
+/* Glassy card with a light that follows the pointer (home.js sets --spot-x / --spot-y) */
+.landing-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 1.5rem;
+  border: 1px solid color-mix(in srgb, var(--color-secondary-200) 70%, transparent);
+  background: color-mix(in srgb, var(--color-neutral-50) 65%, transparent);
+  outline: none;
+  transition:
+    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.3s,
+    box-shadow 0.4s;
+}
+
+.landing-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0;
+  background: radial-gradient(
+    18rem circle at var(--spot-x, 50%) var(--spot-y, 50%),
+    var(--color-primary-200),
+    transparent 70%
+  );
+  transition: opacity 0.3s;
+}
+
+.landing-card:hover,
+.landing-card:focus-visible {
+  transform: translateY(-4px);
+  border-color: var(--color-secondary-300);
+  box-shadow: 0 24px 48px -28px rgb(33 43 28 / 0.4);
+}
+
+.landing-card:hover::before,
+.landing-card:focus-visible::before {
+  opacity: 1;
+}
+
+.landing-card:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-primary-500);
+}
+
+/* "Jelajahi ..." links under each layer */
+.landing-link {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 0.75rem;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-secondary-800);
+  outline: none;
+}
+
+.landing-link:hover {
+  color: var(--color-secondary-900);
+}
+
+.landing-link:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-primary-500);
+}
+
+/* Day slider: thin track that fills up to the thumb (home.js sets --fill) */
+.landing-range {
+  appearance: none;
+  height: 1.5rem;
+  background: transparent;
+}
+
+.landing-range::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    var(--color-secondary-700) var(--fill, 50%),
+    var(--color-secondary-200) var(--fill, 50%)
+  );
+}
+
+.landing-range::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    var(--color-secondary-700) var(--fill, 50%),
+    var(--color-secondary-200) var(--fill, 50%)
+  );
+}
+
+.landing-range::-webkit-slider-thumb {
+  appearance: none;
+  margin-top: -8px;
+  height: 20px;
+  width: 20px;
+  border-radius: 999px;
+  border: 3px solid var(--color-neutral-50);
+  background: var(--color-secondary-700);
+  box-shadow: 0 2px 8px rgb(33 43 28 / 0.3);
+  transition: transform 0.2s;
+}
+
+.landing-range::-moz-range-thumb {
+  height: 14px;
+  width: 14px;
+  border-radius: 999px;
+  border: 3px solid var(--color-neutral-50);
+  background: var(--color-secondary-700);
+  box-shadow: 0 2px 8px rgb(33 43 28 / 0.3);
+}
+
+.landing-range:active::-webkit-slider-thumb,
+.landing-range:hover::-webkit-slider-thumb {
+  transform: scale(1.15);
+}
+
+.landing-range:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 4px;
+  border-radius: 999px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-rise {
+    animation: none;
+  }
+
+  [data-manifesto] .word {
+    opacity: 1;
+    transition: none;
+  }
+
+  .landing-card,
+  .landing-card:hover,
+  .landing-card:focus-visible {
+    transform: none;
+    transition: none;
+  }
+}
