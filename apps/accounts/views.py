@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import login, views as auth_views
+from django.contrib.auth import login
+from django.contrib.auth import views as auth_views
 from django.contrib.auth.views import LoginView
 from django.shortcuts import redirect
 from django.urls import reverse_lazy

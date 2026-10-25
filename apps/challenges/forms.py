@@ -2,6 +2,31 @@ from django import forms
 
 from .models import Challenge
 
+INPUT_CLASSES = (
+    "w-full rounded-xl border border-neutral-400 bg-neutral-50 px-4 py-3 "
+    "font-sans text-sm text-secondary-900 placeholder:text-neutral-500 "
+    "focus:border-primary-500 focus:ring-2 focus:ring-primary-400/30 "
+    "outline-none transition-all"
+)
+
+TEXTAREA_CLASSES = (
+    "w-full rounded-xl border border-neutral-400 bg-neutral-50 p-4 "
+    "font-sans text-sm text-secondary-900 placeholder:text-neutral-500 "
+    "focus:border-primary-500 focus:ring-2 focus:ring-primary-400/30 "
+    "outline-none transition-all resize-none leading-relaxed"
+)
+
+DATE_CLASSES = (
+    "w-full rounded-xl border border-neutral-400 bg-neutral-50 px-4 py-3 "
+    "font-sans text-sm text-secondary-900 focus:border-primary-500 "
+    "focus:ring-2 focus:ring-primary-400/30 outline-none transition-all"
+)
+
+CHECKBOX_CLASSES = (
+    "h-5 w-5 rounded-md border-neutral-400 text-primary-600 "
+    "focus:ring-primary-500 cursor-pointer accent-primary-600"
+)
+
 
 class ChallengeForm(forms.ModelForm):
     """Form for creating and editing challenges by administrative staff."""
@@ -13,31 +38,34 @@ class ChallengeForm(forms.ModelForm):
             "title": forms.TextInput(
                 attrs={
                     "placeholder": "Contoh: 7 Hari Bebas Sampah Plastik Sekali Pakai",
-                    "class": "w-full rounded-xl border border-neutral-400 bg-neutral-50 px-4 py-3 font-sans text-sm text-secondary-900 placeholder:text-neutral-500 focus:border-primary-500 focus:ring-2 focus:ring-primary-400/30 outline-none transition-all",
+                    "class": INPUT_CLASSES,
                 }
             ),
             "description": forms.Textarea(
                 attrs={
                     "rows": 4,
-                    "placeholder": "Jelaskan tujuan, latar belakang, dan aksi nyata apa yang diharapkan dari peserta...",
-                    "class": "w-full rounded-xl border border-neutral-400 bg-neutral-50 p-4 font-sans text-sm text-secondary-900 placeholder:text-neutral-500 focus:border-primary-500 focus:ring-2 focus:ring-primary-400/30 outline-none transition-all resize-none leading-relaxed",
+                    "placeholder": (
+                        "Jelaskan tujuan, latar belakang, dan aksi nyata apa yang "
+                        "diharapkan dari peserta..."
+                    ),
+                    "class": TEXTAREA_CLASSES,
                 }
             ),
             "start_date": forms.DateInput(
                 attrs={
                     "type": "date",
-                    "class": "w-full rounded-xl border border-neutral-400 bg-neutral-50 px-4 py-3 font-sans text-sm text-secondary-900 focus:border-primary-500 focus:ring-2 focus:ring-primary-400/30 outline-none transition-all",
+                    "class": DATE_CLASSES,
                 }
             ),
             "end_date": forms.DateInput(
                 attrs={
                     "type": "date",
-                    "class": "w-full rounded-xl border border-neutral-400 bg-neutral-50 px-4 py-3 font-sans text-sm text-secondary-900 focus:border-primary-500 focus:ring-2 focus:ring-primary-400/30 outline-none transition-all",
+                    "class": DATE_CLASSES,
                 }
             ),
             "is_published": forms.CheckboxInput(
                 attrs={
-                    "class": "h-5 w-5 rounded-md border-neutral-400 text-primary-600 focus:ring-primary-500 cursor-pointer accent-primary-600",
+                    "class": CHECKBOX_CLASSES,
                 }
             ),
         }
@@ -49,7 +77,10 @@ class ChallengeForm(forms.ModelForm):
             "is_published": "Publikasikan Tantangan Sekarang",
         }
         help_texts = {
-            "is_published": "Centang agar tantangan dapat dilihat dan diikuti oleh seluruh pengguna di aplikasi.",
+            "is_published": (
+                "Centang agar tantangan dapat dilihat dan diikuti oleh "
+                "seluruh pengguna di aplikasi."
+            ),
         }
 
     def clean(self):

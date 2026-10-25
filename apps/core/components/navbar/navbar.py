@@ -9,7 +9,6 @@ class Navbar(component.Component):
         return {
             "logo_url": kwargs.get("logo_url", "/"),
             "logo_text": kwargs.get("logo_text", "SELARAS"),
-
             "links": kwargs.get(
                 "links",
                 [
@@ -20,10 +19,8 @@ class Navbar(component.Component):
                     {"label": "Help Desk", "href": "/helpdesk/"},
                 ],
             ),
-
             "login_url": kwargs.get("login_url", "/login/"),
             "register_url": kwargs.get("register_url", "/register/"),
-
             "preview": kwargs.get("preview", False),
             "class_": kwargs.get("class_", ""),
         }

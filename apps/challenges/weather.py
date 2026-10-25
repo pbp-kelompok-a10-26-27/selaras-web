@@ -1,5 +1,5 @@
-"""
-Open-Meteo Integration for Challenges Module.
+"""Open-Meteo Integration for Challenges Module.
+
 Conforms to PRD Section 9 and Section 29 (External Weather Integration).
 """
 
@@ -15,17 +15,23 @@ DEFAULT_LONGITUDE = 106.8456
 
 
 def _interpret_weather_code(code: int, temp: float) -> dict:
-    """Interpret WMO Weather interpretation codes into user-friendly Indonesian text & icons."""
+    """Interpret WMO Weather codes into Indonesian text & icons."""
     if code == 0:
         condition = "Cerah"
         icon = "sun"
         is_outdoor = True
-        suggestion = "Cuaca sangat cerah! Waktu sempurna untuk tantangan outdoor seperti bersepeda atau jalan kaki."
+        suggestion = (
+            "Cuaca sangat cerah! Waktu sempurna untuk tantangan outdoor "
+            "seperti bersepeda atau jalan kaki."
+        )
     elif code in (1, 2, 3):
         condition = "Cerah Berawan"
         icon = "cloud-sun"
         is_outdoor = True
-        suggestion = "Cuaca bersahabat dan sejuk. Sangat cocok untuk aktivitas ramah lingkungan di luar ruangan!"
+        suggestion = (
+            "Cuaca bersahabat dan sejuk. Sangat cocok untuk aktivitas ramah "
+            "lingkungan di luar ruangan!"
+        )
     elif code in (45, 48):
         condition = "Berkabut / Berawan Tebal"
         icon = "cloud"
@@ -35,12 +41,18 @@ def _interpret_weather_code(code: int, temp: float) -> dict:
         condition = "Hujan Ringan / Hujan"
         icon = "cloud-rain"
         is_outdoor = False
-        suggestion = "Sedang turun hujan. Waktu yang pas untuk aksi ramah lingkungan indoor seperti memilah sampah dapur atau hemat listrik."
+        suggestion = (
+            "Sedang turun hujan. Waktu yang pas untuk aksi ramah lingkungan "
+            "indoor seperti memilah sampah dapur atau hemat listrik."
+        )
     elif code in (95, 96, 99):
         condition = "Hujan Badai"
         icon = "cloud-lightning"
         is_outdoor = False
-        suggestion = "Cuaca kurang bersahabat. Tetap aman di dalam ruangan dan lakukan aksi hemat energi!"
+        suggestion = (
+            "Cuaca kurang bersahabat. Tetap aman di dalam ruangan dan lakukan "
+            "aksi hemat energi!"
+        )
     else:
         condition = "Berawan"
         icon = "cloud"
@@ -58,9 +70,9 @@ def _interpret_weather_code(code: int, temp: float) -> dict:
 
 
 def get_current_weather_suggestion(lat=None, lon=None) -> dict:
-    """
-    Fetch current weather from Open-Meteo API for specified coordinates or default to Jakarta.
-    Fails gracefully to a safe default if network/API is unreachable or coordinates are invalid.
+    """Fetch current weather from Open-Meteo API for coordinates or default to Jakarta.
+
+    Fails gracefully to a safe default if network/API is unreachable.
     """
     target_lat = DEFAULT_LATITUDE
     target_lon = DEFAULT_LONGITUDE
@@ -99,12 +111,14 @@ def get_current_weather_suggestion(lat=None, lon=None) -> dict:
                 temp = current.get("temperature_2m", 28.0)
                 code = current.get("weather_code", 1)
                 data = _interpret_weather_code(code, temp)
-                data.update({
-                    "location_label": location_label,
-                    "is_custom_location": is_custom_location,
-                    "latitude": target_lat,
-                    "longitude": target_lon,
-                })
+                data.update(
+                    {
+                        "location_label": location_label,
+                        "is_custom_location": is_custom_location,
+                        "latitude": target_lat,
+                        "longitude": target_lon,
+                    }
+                )
                 return data
     except Exception as exc:
         logger.warning(
@@ -117,7 +131,10 @@ def get_current_weather_suggestion(lat=None, lon=None) -> dict:
         "condition": "Cerah Berawan",
         "icon": "cloud-sun",
         "is_outdoor_friendly": True,
-        "suggestion": "Cuaca hari ini mendukung untuk aktivitas ramah lingkungan. Yuk ambil tantangan hari ini!",
+        "suggestion": (
+            "Cuaca hari ini mendukung untuk aktivitas ramah lingkungan. "
+            "Yuk ambil tantangan hari ini!"
+        ),
         "location_label": location_label,
         "is_custom_location": is_custom_location,
         "latitude": target_lat,

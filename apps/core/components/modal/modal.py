@@ -1,9 +1,9 @@
 from django_components import component
 
+
 @component.register("modal")
 class Modal(component.Component):
     template_name = "modal.html"
-    
 
     def get_template_data(self, args, kwargs: dict, slots, context):
         return {

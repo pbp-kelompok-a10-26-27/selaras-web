@@ -14,8 +14,6 @@
 
     <title>Tantangan Lingkungan - SELARAS</title>
 
-
-
     <!-- Google Fonts & Typography -->
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -32,15 +30,11 @@
 
     <link href="https://fonts.cdnfonts.com/css/transcity" rel="stylesheet" />
 
-
-
     <!-- Tailwind Compiled Output CSS -->
 
     <link rel="stylesheet" href="{% static 'css/output.css' %}" />
 
   </head>
-
-
 
   <body class="min-h-screen flex flex-col bg-neutral-100 font-sans text-foreground antialiased selection:bg-primary-300 selection:text-secondary-900">
 
@@ -49,8 +43,6 @@
     <!-- Navbar dari Design System (apps/core/components/navbar) -->
 
     {% component "navbar" / %}
-
-
 
     <!-- Main Content Container (pt-36 sm:pt-40 agar tidak tertimpa floating navbar) -->
 
@@ -78,8 +70,6 @@
 
         </div>
 
-
-
         {% if user.is_authenticated and user.is_admin or user.is_staff %}
 
         <div class="shrink-0">
@@ -93,8 +83,6 @@
         {% endif %}
 
       </header>
-
-
 
       <!-- Weather Suggestion Widget (Open-Meteo Integration) -->
 
@@ -135,8 +123,6 @@
               </span>
 
             </div>
-
-
 
             <div class="flex-1 min-w-0">
 
@@ -183,8 +169,6 @@
       </section>
 
       {% endif %}
-
-
 
       <!-- Search & Filters Bar (Integrated Dropdown in Searchbar) -->
 
@@ -238,21 +222,17 @@
 
           </div>
 
-
-
           <!-- Dropdown Filter Status dari Design System -->
 
           <div class="w-full sm:w-60 shrink-0">
 
-            {% component "dropdown" id="active-status-input" name="status" default_value="all" initial_value=status_filter|default:"all" default_label=status_label options=status_options class_="py-3.5 rounded-2xl shadow-sm border-neutral-400 bg-neutral-50 hover:border-secondary-500" / %}
+            {% component "dropdown" id="active-status-input" name="status" default_value="all" placeholder=status_label options=status_options dropdown_class="py-3.5 rounded-2xl shadow-sm border-neutral-400 bg-neutral-50 hover:border-secondary-500" / %}
 
           </div>
 
         </form>
 
       </section>
-
-
 
       <!-- Challenge Cards Grid (Updated Asynchronously via AJAX) -->
 
@@ -262,11 +242,7 @@
 
       </section>
 
-
-
     </main>
-
-
 
     <!-- Modal Konfirmasi Batal Mengikuti (Design System Component) -->
 
@@ -310,19 +286,13 @@
 
     {% endcomponent %}
 
-
-
     <!-- Footer Template Include (templates/components/footer.html) -->
 
     {% include "components/footer.html" %}
 
-
-
     <!-- Main JS for Toast & Modal Design System -->
 
     <script type="module" src="{% static 'js/main.js' %}"></script>
-
-
 
     <!-- Django Messages via Design System Toast -->
 
@@ -362,8 +332,6 @@
 
     {% endif %}
 
-
-
     <!-- Script Cuaca, Clickable Card, & AJAX Live Filter -->
 
     <script>
@@ -380,15 +348,12 @@
 
         const gridContainer = document.getElementById("challenges-grid-container");
 
-
-
         let debounceTimer = null;
 
         let currentSearch = searchInput ? searchInput.value.trim() : "";
 
-        let currentStatus = activeStatusInput ? activeStatusInput.value : "all";
-
-
+        let currentStatus = (activeStatusInput && activeStatusInput.value) ? activeStatusInput.value : "{{ status_filter|default:'all' }}";
+        if (activeStatusInput) activeStatusInput.value = currentStatus;
 
         function updateDropdownUI(status) {
 
@@ -413,8 +378,6 @@
           }
 
         }
-
-
 
         function initCardListeners() {
 
@@ -442,8 +405,6 @@
 
           });
 
-
-
           // Reset filter button in empty state
 
           const resetBtn = document.getElementById("btn-reset-filters");
@@ -470,15 +431,11 @@
 
         }
 
-
-
         function fetchChallenges(search, status, updateHistory = true) {
 
           if (!gridContainer) return;
 
           gridContainer.style.opacity = "0.5";
-
-
 
           const params = new URLSearchParams();
 
@@ -488,11 +445,7 @@
 
           params.set("ajax", "1");
 
-
-
           const fetchUrl = `{% url 'challenges:list' %}?${params.toString()}`;
-
-
 
           fetch(fetchUrl, {
 
@@ -516,8 +469,6 @@
 
               initCardListeners();
 
-
-
               if (updateHistory) {
 
                 const historyUrl = new URL(window.location);
@@ -526,13 +477,9 @@
 
                 else historyUrl.searchParams.delete("search");
 
-
-
                 if (status && status !== "all") historyUrl.searchParams.set("status", status);
 
                 else historyUrl.searchParams.delete("status");
-
-
 
                 window.history.pushState({ search: search, status: status }, "", historyUrl.toString());
 
@@ -549,8 +496,6 @@
             });
 
         }
-
-
 
         // Live search with debounce
 
@@ -580,8 +525,6 @@
 
         }
 
-
-
         // Clear search button
 
         if (clearSearchBtn) {
@@ -600,8 +543,6 @@
 
         }
 
-
-
         // Dropdown status filter change (Dispatched by Design System dropdown.js)
 
         if (activeStatusInput) {
@@ -619,8 +560,6 @@
           });
 
         }
-
-
 
         // Browser Back/Forward navigation (popstate)
 
@@ -649,8 +588,6 @@
           fetchChallenges(search, status, false);
 
         });
-
-
 
         // 2. Dynamic Modal Trigger for Leave Challenge
 
@@ -694,8 +631,6 @@
 
         });
 
-
-
         // 3. Weather Geolocation & Dynamic Updates
 
         const detectBtn = document.getElementById("btn-detect-location");
@@ -712,8 +647,6 @@
 
         const suggestionEl = document.getElementById("weather-suggestion");
 
-
-
         function setStatus(message, isError = false) {
 
           if (!statusMsg) return;
@@ -725,8 +658,6 @@
           statusMsg.textContent = message;
 
         }
-
-
 
         function updateWeatherUI(data) {
 
@@ -774,8 +705,6 @@
 
         }
 
-
-
         function fetchWeatherForCoords(lat, lon) {
 
           setStatus("Menghubungi server untuk prakiraan cuaca lokasi Anda...");
@@ -816,8 +745,6 @@
 
         }
 
-
-
         if (detectBtn) {
 
           detectBtn.addEventListener("click", function () {
@@ -830,13 +757,9 @@
 
             }
 
-
-
             setStatus("Mendeteksi koordinat perangkat...");
 
             detectBtn.setAttribute("disabled", "true");
-
-
 
             navigator.geolocation.getCurrentPosition(
 
@@ -880,8 +803,6 @@
 
         }
 
-
-
         // Auto-sync jika pengguna sebelumnya sudah mengizinkan lokasi di peramban ini
 
         const cachedLat = localStorage.getItem("selaras_weather_lat");
@@ -895,8 +816,6 @@
           fetchWeatherForCoords(cachedLat, cachedLon);
 
         }
-
-
 
         initCardListeners();
 

@@ -1,0 +1,7 @@
+# Use the project virtualenv's ruff/python even if it isn't activated.
+for dir in venv/Scripts venv/bin .venv/Scripts .venv/bin; do
+  [ -d "$dir" ] && PATH="$PWD/$dir:$PATH"
+done
+export PATH
+
+npx lint-staged

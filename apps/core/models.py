@@ -1,8 +1,8 @@
 from django.db import models
 
+
 # SELARAS Shared Model for reusable purpose
 class TimeStamp(models.Model):
-
     """
     Abstract base model for providing datetime creation and updation purpose.
     """
@@ -11,12 +11,10 @@ class TimeStamp(models.Model):
     updated_at = models.DateTimeField(auto_now=True, null=True)
 
     class Meta:
-
         abstract = True
 
 
 class SoftDeleteModel(models.Model):
-
     """
     Abstract model for records that should be hidden instead of
     immediately deleted from the database.
@@ -26,5 +24,4 @@ class SoftDeleteModel(models.Model):
     deleted_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        
         abstract = True
