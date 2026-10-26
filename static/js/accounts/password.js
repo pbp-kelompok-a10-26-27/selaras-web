@@ -1,5 +1,6 @@
-// Change password page (templates/accounts/password_change.html): strength
-// meter, live requirement checklist and a submit button that waits for them.
+// New password forms (templates/accounts/_new_password_fields.html, on the change
+// password and reset confirm pages): strength meter, live requirement checklist
+// and a submit button that waits for them.
 import { setButtonLoading, showMessagesAsToasts } from "./shared.js";
 
 const STRENGTH_LABELS = ["Not set", "Weak", "Fair", "Good", "Strong"];
@@ -64,7 +65,9 @@ if (form) {
     if (mismatch) confirm.setAttribute("aria-invalid", "true");
     else confirm.removeAttribute("aria-invalid");
 
-    submit.disabled = !(current.value && met.length && met.numeric && met.match);
+    // The reset confirm page has no current password field
+    const hasCurrent = !current || Boolean(current.value);
+    submit.disabled = !(hasCurrent && met.length && met.numeric && met.match);
   }
 
   form.addEventListener("input", update);

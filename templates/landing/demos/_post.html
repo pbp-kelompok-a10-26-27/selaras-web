@@ -1,0 +1,26 @@
+{% load lucide %}
+{# One post in the Berbagi demo feed; rendered empty inside a <template> for new posts #}
+<li class="share-post" data-share-post>
+  <div class="flex gap-3">
+    <span aria-hidden="true" class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-tertiary-300 font-sans text-sm font-semibold text-tertiary-900" data-post-initial>{{ post.initial|default:"A" }}</span>
+    <div class="min-w-0 flex-1">
+      <p class="flex flex-wrap items-baseline gap-x-2 font-sans text-sm">
+        <strong class="font-semibold text-secondary-900" data-post-name>{{ post.name|default:"Anda" }}</strong>
+        <span class="text-xs text-secondary-600" data-post-time>{{ post.time|default:"baru saja" }}</span>
+        {% if post %}<span class="rounded-full bg-tertiary-200 px-1.5 font-sans text-[0.625rem] font-semibold uppercase tracking-wider text-tertiary-800">Contoh</span>{% endif %}
+      </p>
+      <p class="mt-1 font-sans text-sm leading-relaxed break-words text-secondary-800" data-post-text>{{ post.text }}</p>
+      <div class="mt-2 flex items-center gap-1">
+        <button type="button" class="share-action" data-like aria-pressed="false" data-base="{{ post.likes|default:0 }}">
+          <span class="share-heart">{% lucide "heart" class="w-4 h-4" %}</span>
+          <span class="tabular-nums" data-like-count>{{ post.likes|default:0 }}</span><span class="sr-only"> suka</span>
+        </button>
+        <button type="button" class="share-action" data-cheer aria-pressed="false" data-base="0">
+          {% lucide "sprout" class="w-4 h-4" %}
+          <span>Semangat</span><span class="tabular-nums empty:hidden" data-cheer-count></span>
+        </button>
+      </div>
+    </div>
+  </div>
+  <span class="share-pop" aria-hidden="true">{% lucide "heart" class="w-14 h-14" fill="currentColor" %}</span>
+</li>

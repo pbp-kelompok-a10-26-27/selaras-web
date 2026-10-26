@@ -1,4 +1,4 @@
-{% load static %}
+{% load lucide static component_tags %}
 
 <nav
   data-navbar
@@ -49,20 +49,13 @@
         {% for link in links %}
         <a
           href="{{ link.href }}"
-          class="group relative rounded-full px-4 py-2 font-sans text-sm font-semibold text-secondary-700 transition-all duration-200 ease-out hover:bg-neutral-50 hover:text-secondary-900 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1"
-          {%
-          if
-          link.active
-          %}
-          aria-current="page"
-          {%
-          endif
-          %}
+          class="group nav-link relative rounded-full px-4 py-2 font-sans text-sm font-semibold transition-all duration-200 ease-out hover:bg-neutral-50 hover:text-secondary-900 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1 {% if link.active %}bg-neutral-50 text-secondary-900 shadow-sm{% else %}text-secondary-700{% endif %}"
+          {% if link.active %}aria-current="page"{% endif %}
         >
           <span class="relative z-10"> {{ link.label }} </span>
 
           <span
-            class="absolute inset-x-4 bottom-1 h-px origin-center scale-x-0 bg-primary-500 transition-transform duration-300 group-hover:scale-x-100"
+            class="absolute inset-x-4 bottom-1 h-px origin-center bg-primary-500 transition-transform duration-300 group-hover:scale-x-100 {% if link.active %}scale-x-100{% else %}scale-x-0{% endif %}"
           ></span>
         </a>
         {% endfor %}
@@ -90,20 +83,23 @@
     <div class="hidden shrink-0 items-center gap-2 lg:flex">
       <a
         href="{{ profile_url }}"
-        class="rounded-xl px-4 py-2.5 font-sans text-sm font-semibold text-secondary-800 transition-all duration-200 hover:bg-secondary-50 hover:text-secondary-900 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+        class="rounded-xl flex flex-row px-4 py-2.5 font-sans text-sm font-semibold transition-all duration-200 hover:bg-secondary-50 hover:text-secondary-900 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 {% if profile_active %}bg-secondary-50 text-secondary-900{% else %}text-secondary-800{% endif %}"
+        {% if profile_active %}aria-current="page"{% endif %}
       >
+        {% lucide "circle-user-round" class="w-5 h-5 mr-1.5" %}
         Profile
       </a>
 
       {# Logging out must be a POST (Django's LogoutView rejects GET) #}
       <form method="post" action="{{ logout_url }}">
         <input type="hidden" name="csrfmiddlewaretoken" value="{{ logout_csrf_token }}" />
-        <button
+        <!-- <button
           type="submit"
           class="cursor-pointer rounded-xl border border-primary-500 bg-primary-500 px-5 py-3 font-sans text-sm font-semibold text-secondary-900 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary-400 hover:bg-primary-400 hover:shadow-md active:translate-y-0 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
         >
           Logout
-        </button>
+        </button> -->
+        {% component "button" variant="tertiary" text="Logout" icon_right="log-out" size="md" type="submit" / %}
       </form>
     </div>
     {% endif %}
@@ -145,15 +141,8 @@
           {% for link in links %}
           <a
             href="{{ link.href }}"
-            class="rounded-xl px-4 py-3 font-sans text-sm font-semibold text-secondary-700 transition-all duration-200 hover:bg-secondary-50 hover:pl-5 hover:text-secondary-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
-            {%
-            if
-            link.active
-            %}
-            aria-current="page"
-            {%
-            endif
-            %}
+            class="rounded-xl px-4 py-3 font-sans text-sm font-semibold transition-all duration-200 hover:bg-secondary-50 hover:pl-5 hover:text-secondary-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 {% if link.active %}border-l-2 border-primary-500 bg-secondary-50 text-secondary-900{% else %}text-secondary-700{% endif %}"
+            {% if link.active %}aria-current="page"{% endif %}
           >
             {{ link.label }}
           </a>
@@ -184,7 +173,8 @@
           >
             <a
               href="{{ profile_url }}"
-              class="flex items-center justify-center rounded-xl border border-neutral-400 px-4 py-3 font-sans text-sm font-semibold text-secondary-800 transition-all duration-200 hover:bg-secondary-50 active:scale-[0.98]"
+              class="flex items-center justify-center rounded-xl border px-4 py-3 font-sans text-sm font-semibold text-secondary-800 transition-all duration-200 hover:bg-secondary-50 active:scale-[0.98] {% if profile_active %}border-primary-500 bg-secondary-50{% else %}border-neutral-400{% endif %}"
+              {% if profile_active %}aria-current="page"{% endif %}
             >
               Profile
             </a>

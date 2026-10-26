@@ -1,6 +1,8 @@
 {% load lucide %} {% if href %}
 <a
   href="{{ href }}"
+  {% if id %}id="{{ id }}"{% endif %}
+  {% if attrs %}{{ attrs|safe }}{% endif %}
   class="group relative inline-flex shrink-0 items-center justify-center gap-2 overflow-hidden rounded-xl border font-sans font-semibold outline-none transition-all duration-200 ease-out
 
     {% if variant == 'primary' %}

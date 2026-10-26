@@ -1,0 +1,20 @@
+{% load lucide %}
+{# One row of _recovery_steps.html: done (before step), current (== step) or still to come #}
+<li class="flex items-center gap-3 {% if number == step %}font-semibold text-secondary-800{% else %}text-secondary-600{% endif %}" {% if number == step %}aria-current="step"{% endif %}>
+  {% if number < step %}
+  <span class="recovery-step-done flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-500 text-neutral-50" style="--i: {{ number }}">
+    {% lucide "check" class="w-3.5 h-3.5" stroke_width=3 aria_hidden="true" %}
+  </span>
+  <span class="line-through decoration-secondary-200">{{ label }}</span>
+  <span class="sr-only">(done)</span>
+  {% elif number == step %}
+  <span class="relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-secondary-700 text-xs text-neutral-50">
+    <span class="absolute inset-0 animate-ping rounded-full bg-secondary-500/30 motion-reduce:hidden" aria-hidden="true"></span>
+    <span class="relative">{{ number }}</span>
+  </span>
+  {{ label }}
+  {% else %}
+  <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-secondary-200 bg-neutral-50 text-xs">{{ number }}</span>
+  {{ label }}
+  {% endif %}
+</li>

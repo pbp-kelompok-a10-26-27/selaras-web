@@ -1,0 +1,13 @@
+{% load lucide %}
+{# Animated "all done" check for the success pages: the ring and tick draw in, then leaves pop out (input.css: .account-check) #}
+<div class="account-check relative mx-auto mb-8 h-24 w-24" aria-hidden="true">
+  <span class="account-check-glow absolute inset-0 rounded-full bg-primary-200"></span>
+  <svg class="relative h-full w-full" viewBox="0 0 96 96" fill="none">
+    <circle class="account-check-ring" cx="48" cy="48" r="40" pathLength="100" stroke-width="4" stroke-linecap="round" />
+    <path class="account-check-tick" d="M32 49.5 L43 60 L64 37" pathLength="100" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+  </svg>
+  <span class="account-check-leaf absolute -top-2 -left-3 text-primary-500" style="--i: 0">{% lucide "leaf" class="w-5 h-5 -rotate-45" %}</span>
+  <span class="account-check-leaf absolute -top-3 right-0 text-tertiary-500" style="--i: 1">{% lucide "sprout" class="w-4 h-4" %}</span>
+  <span class="account-check-leaf absolute -right-4 bottom-2 text-secondary-400" style="--i: 2">{% lucide "leaf" class="w-5 h-5 rotate-45" %}</span>
+  <span class="account-check-leaf absolute bottom-0 -left-4 h-2.5 w-2.5 rounded-full bg-tertiary-400" style="--i: 3"></span>
+</div>

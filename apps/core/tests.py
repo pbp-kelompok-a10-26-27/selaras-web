@@ -35,3 +35,15 @@ class ErrorPageTests(TestCase):
 
         self.assertEqual(response.status_code, 403)
         self.assertIn(b"/accounts/login/?next=%2Fdashboard%2F", response.content)
+
+
+class LandingDemoTests(TestCase):
+    def test_signed_out_visitor_gets_every_demo_and_the_estimator(self):
+        response = self.client.get(reverse("home"))
+
+        self.assertEqual(response.status_code, 200)
+        for demo in ("learn", "act", "share", "give"):
+            self.assertContains(response, f'data-demo="{demo}"')
+        self.assertContains(response, "data-quiz-card", count=4)
+        self.assertContains(response, 'id="impactDays"')
+        self.assertContains(response, 'id="habitData"')

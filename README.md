@@ -28,6 +28,13 @@ SELARAS provides structured challenges with daily progress tracking and badges/s
 - [x] Added pre-commit hooks (Husky + lint-staged) for ruff lint/format and migration checks
 - [x] Added `ruff format --check` to CI
 
+- [x] Created helpdesk module for ticket management system
+- [x] Finalized profile page and authentication system
+- [x] Refined and updated some design system components
+- [x] Created 403 and 404 Page (won't visible for now since DEBUG = True)
+- [x] Reconstruct landing page
+
+
 
 ### Design System Notes
 All components will be using `django-components` configuration (still not applied for the others), in progress. For more details, read the existing navbar and button configuration components. Furthermore, you can read [Django Components](https://django-components.github.io/django-components/docs/). Components will be placed in `apps/core/components/` with this given structure.

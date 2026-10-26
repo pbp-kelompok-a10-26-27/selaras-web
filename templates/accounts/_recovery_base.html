@@ -1,0 +1,93 @@
+{% load static lucide %}
+{# Standalone layout for the signed-out password reset flow (reset, check email, new password, done), #}
+{# styled like templates/accounts/login.html. Children fill the blocks; recovery_step (1-4) lights up the steps. #}
+<!doctype html>
+<html lang="en" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Reset Password{% endblock %} | SELARAS</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link href="https://fonts.cdnfonts.com/css/transcity" rel="stylesheet" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="{% static 'assets/images/logo.svg' %}" />
+
+    <link rel="stylesheet" href="{% static 'css/output.css' %}" />
+  </head>
+  <body
+    class="flex min-h-full items-center justify-center bg-primary-50 p-4 font-sans text-secondary-900 selection:bg-primary-300 selection:text-secondary-900 sm:p-6 lg:p-8"
+  >
+    <div id="falling-leaves" class="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden="true"></div>
+
+    <main
+      class="fade-in relative z-10 grid min-h-[600px] w-full max-w-5xl grid-cols-1 overflow-hidden rounded-3xl border border-neutral-400 bg-neutral-50 shadow-sm lg:grid-cols-12"
+    >
+      <!-- Left: brand + illustration + steps -->
+      <section
+        class="relative flex flex-col justify-between overflow-hidden border-b border-neutral-400 bg-gradient-to-br from-primary-100 via-primary-200 to-primary-50 p-8 lg:col-span-5 lg:border-r lg:border-b-0 lg:p-12"
+      >
+        <div class="pointer-events-none absolute -top-12 -left-12 h-48 w-48 rounded-full bg-tertiary-200 opacity-60 blur-2xl"></div>
+        <div class="pointer-events-none absolute -right-16 -bottom-16 h-64 w-64 rounded-full bg-primary-300 opacity-30 blur-3xl"></div>
+
+        <a href="{% url 'home' %}" class="relative z-10 flex items-center gap-3 self-start rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
+          <img src="{% static 'assets/images/logo.svg' %}" alt="" class="h-14 w-14" />
+          <span class="font-display text-2xl tracking-wide text-primary-900">SELARAS</span>
+        </a>
+
+        <div class="relative z-10 my-8 flex flex-col items-center justify-center text-center lg:my-0">
+          <div class="relative mb-6 flex h-44 w-44 items-center justify-center sm:h-52 sm:w-52" aria-hidden="true">
+            <svg class="animate-float absolute inset-0 h-full w-full text-primary-300/40" viewBox="0 0 200 200" fill="currentColor">
+              <path d="M41.5,-52.1C52.6,-41.8,59.8,-27.5,62.4,-12.3C65,2.9,63,19,55.3,31.7C47.6,44.4,34.2,53.7,19.3,58.8C4.4,63.9,-12,64.8,-27.4,59.2C-42.8,53.6,-57.2,41.5,-64.1,25.8C-71,10,-70.4,-9.4,-62.7,-24.8C-55,-40.2,-40.2,-51.6,-25.4,-57.4C-10.6,-63.2,4.2,-63.4,18.8,-59.5C33.4,-55.6,30.4,-62.4,41.5,-52.1Z" transform="translate(100 100)" />
+            </svg>
+            <svg class="animate-float-reverse absolute inset-2 h-11/12 w-11/12 text-tertiary-300/50" viewBox="0 0 200 200" fill="currentColor">
+              <path d="M38.1,-48.5C48.8,-37.8,56.5,-23.7,58.8,-8.5C61.1,6.7,58,23,49.2,35.8C40.4,48.6,25.9,57.9,9.8,59.8C-6.3,61.7,-24,56.2,-37.7,45.8C-51.4,35.4,-61.1,20.1,-62.9,3.7C-64.7,-12.7,-58.6,-30.2,-46.8,-41.3C-35,-52.4,-17.5,-57.1,-0.7,-56.1C16.1,-55.1,27.4,-59.2,38.1,-48.5Z" transform="translate(100 100)" />
+            </svg>
+            <span class="relative flex h-20 w-20 items-center justify-center rounded-3xl bg-neutral-50 text-secondary-600 shadow-lg">
+              {% block illustration_icon %}{% lucide "mail-check" class="w-9 h-9" %}{% endblock %}
+            </span>
+            <span class="absolute top-2 right-4 h-2 w-2 rounded-full bg-primary-600"></span>
+            <span class="absolute bottom-4 left-6 h-3 w-3 rounded-full bg-tertiary-400"></span>
+          </div>
+          <p class="mb-1 text-xs font-semibold tracking-widest text-secondary-300 uppercase">{% block eyebrow %}Account recovery{% endblock %}</p>
+          <p class="max-w-xs text-sm leading-relaxed text-secondary-600">{% block tagline %}Happens to the best of us. Let's get you back on your path.{% endblock %}</p>
+        </div>
+
+        {% block steps %}{% endblock %}
+      </section>
+
+      <!-- Right: content -->
+      <section class="flex flex-col justify-center bg-neutral-50 p-8 sm:p-10 lg:col-span-7 lg:p-14">
+        <div class="slide-in-up mx-auto w-full max-w-md">
+          {% block content %}{% endblock %}
+
+          {% block back_link %}
+          <div class="mt-8 border-t border-neutral-400 pt-6 text-center">
+            <p class="text-sm text-neutral-800">
+              {% block back_prompt %}Remembered it?{% endblock %}
+              <a
+                href="{% if user.is_authenticated %}{% url 'accounts:profile' %}{% else %}{% url 'accounts:login' %}{% endif %}"
+                class="group ml-1 inline-flex items-center gap-1 rounded-md font-semibold text-secondary-600 transition-all hover:text-secondary-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+              >
+                <span>{% if user.is_authenticated %}Back to profile{% else %}Back to log in{% endif %}</span>
+                {% lucide "chevron-right" class="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" aria_hidden="true" %}
+              </a>
+            </p>
+          </div>
+          {% endblock %}
+        </div>
+      </section>
+    </main>
+
+    {% include "accounts/_messages.html" %}
+    <script type="module" src="{% static 'js/main.js' %}"></script>
+    <script type="module" src="{% static 'js/accounts/recovery.js' %}"></script>
+    {% block scripts %}{% endblock %}
+  </body>
+</html>

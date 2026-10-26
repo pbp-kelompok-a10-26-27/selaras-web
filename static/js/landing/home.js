@@ -1,6 +1,9 @@
 // Landing page interactions: the meadow hero, the manifesto, the growth rings, live
-// counters, the sticky layer index and the impact estimator. Without JS the page still
-// shows plain rings, numbers and the default estimate.
+// counters and the sticky layer index. The try-it demos and the impact estimator live in
+// their own modules. Without JS the page still shows plain rings, numbers and the
+// default estimate.
+import { initDemos } from "./demos.js";
+import { initImpact } from "./impact.js";
 
 const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const finePointer = window.matchMedia("(pointer: fine)").matches;
@@ -325,79 +328,6 @@ function initPointerEffects() {
   area.addEventListener("pointerleave", () => (tilt.style.transform = ""));
 }
 
-/* ============================ IMPACT ESTIMATOR ============================ */
-
-function formatAmount(value) {
-  // One decimal for small fractional amounts (0,2 kg), whole numbers otherwise
-  const digits = value < 100 && !Number.isInteger(value) ? 1 : 0;
-  return new Intl.NumberFormat("id-ID", { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(value);
-}
-
-function initImpact() {
-  const form = document.querySelector("[data-impact]");
-  const habits = JSON.parse(document.getElementById("habitData")?.textContent ?? "[]");
-  if (!form || !habits.length) return;
-
-  const valueNode = document.querySelector("[data-impact-value]");
-  const unitNode = document.querySelector("[data-impact-unit]");
-  const noteNode = document.querySelector("[data-impact-note]");
-  const rings = document.querySelector("[data-impact-rings]");
-  let shown = 30;
-  let frame = 0;
-
-  // Faint rings behind the result: the longer the habit runs, the more rings
-  function drawRings(days, animate = true) {
-    const count = { 7: 3, 30: 7, 365: 14 }[days] ?? 7;
-    rings.replaceChildren(
-      ...Array.from({ length: count }, (_, i) => {
-        const path = document.createElementNS(SVG_NS, "path");
-        path.setAttribute("d", ringPath(18 + i * 13, 77, 2 + i * 0.6, 200));
-        path.setAttribute("class", "fill-none stroke-primary-300");
-        path.setAttribute("stroke-width", "1.5");
-        return path;
-      }),
-    );
-    // Measured once they're in the page (getTotalLength needs it)
-    if (animate) [...rings.children].forEach((path, i) => drawIn(path, i * 50));
-  }
-
-  function animateTo(target) {
-    cancelAnimationFrame(frame);
-    if (prefersReducedMotion) {
-      shown = target;
-      valueNode.textContent = formatAmount(target);
-      return;
-    }
-    const from = shown;
-    const start = performance.now();
-    const step = (now) => {
-      const progress = Math.min((now - start) / 700, 1);
-      shown = from + (target - from) * (1 - Math.pow(1 - progress, 3));
-      valueNode.textContent = formatAmount(progress < 1 ? Math.round(shown) : target);
-      if (progress < 1) frame = requestAnimationFrame(step);
-      else shown = target;
-    };
-    frame = requestAnimationFrame(step);
-  }
-
-  let lastDays = 30;
-  function update() {
-    const data = new FormData(form);
-    const habit = habits.find((h) => h.key === data.get("habit")) ?? habits[0];
-    const days = Number(data.get("days"));
-    const people = Number(data.get("people"));
-    unitNode.textContent = habit.unit;
-    noteNode.textContent = habit.note;
-    if (days !== lastDays) drawRings(days);
-    lastDays = days;
-    animateTo(Math.round(habit.per_day * days * people * 10) / 10);
-  }
-
-  form.addEventListener("change", update);
-  form.addEventListener("submit", (event) => event.preventDefault());
-  drawRings(30, false);
-}
-
 /* ============================ COUNTERS & REVEALS ============================ */
 
 function countUp(node) {
@@ -550,6 +480,7 @@ initManifesto();
 initGrowthRings();
 initPointerEffects();
 initImpact();
+initDemos();
 initDrawnStrokes();
 initOnView();
 initLayerIndex();

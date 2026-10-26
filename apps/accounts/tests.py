@@ -191,6 +191,16 @@ class ProfileLayoutTests(TestCase):
             ["Tickets filed", "In progress", "Resolved"],
         )
 
+    def test_profile_no_longer_offers_a_reset_email(self):
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("accounts:profile"))
+
+        self.assertNotContains(response, "Send link")
+        self.assertNotContains(
+            response, f'action="{reverse("accounts:password_reset")}"'
+        )
+
     def test_admin_account_pages_use_the_dashboard_layout(self):
         self.client.force_login(self.admin)
         for name in ("accounts:profile", "accounts:password_change"):
@@ -232,3 +242,59 @@ class ProfileLayoutTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["profile_user"].first_name, "")
         self.assertContains(response, 'data-has-errors="true"')
+
+
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+class PasswordPagesTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="regular",
+            email="regular@example.com",
+            password="Strong-password-123",
+        )
+
+    def test_password_change_done_uses_the_role_layout(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("accounts:password_change_done"))
+        self.assertTemplateUsed(response, "base.html")
+        self.assertContains(response, "Password changed")
+
+    def test_reset_flow_pages_render_with_their_step(self):
+        response = self.client.get(reverse("accounts:password_reset_done"))
+        self.assertTemplateUsed(response, "accounts/_recovery_base.html")
+        self.assertContains(response, 'data-cooldown="30"')
+
+        response = self.client.get(reverse("accounts:password_reset_complete"))
+        self.assertContains(response, "Password reset")
+        self.assertContains(response, reverse("accounts:login"))
+
+    def test_reset_confirm_shows_form_for_valid_link_and_notice_for_bad_one(self):
+        self.client.post(reverse("accounts:password_reset"), {"email": self.user.email})
+        # The emailed link redirects once to a "set-password" URL that holds the token
+        link = next(
+            line
+            for line in mail.outbox[0].body.splitlines()
+            if "/password/reset/" in line
+        ).strip()
+        response = self.client.get(link, follow=True)
+        self.assertTrue(response.context["validlink"])
+        self.assertContains(response, "data-password-form")
+        # username for password managers
+        self.assertContains(response, 'value="regular"')
+
+        response = self.client.post(
+            response.redirect_chain[-1][0],
+            {
+                "new_password1": "New-strong-password-456",
+                "new_password2": "New-strong-password-456",
+            },
+        )
+        self.assertRedirects(response, reverse("accounts:password_reset_complete"))
+
+        bad = reverse(
+            "accounts:password_reset_confirm",
+            kwargs={"uidb64": "bad", "token": "bad-token"},
+        )
+        response = self.client.get(bad)
+        self.assertFalse(response.context["validlink"])
+        self.assertContains(response, "This link has expired")

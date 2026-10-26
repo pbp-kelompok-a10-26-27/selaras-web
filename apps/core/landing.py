@@ -279,12 +279,105 @@ def get_landing_context():
                 "note": "energi yang dihemat dari jaringan listrik.",
             },
         ],
-        "impact_days": [(7, "1 minggu"), (30, "1 bulan"), (365, "1 tahun")],
-        "impact_people": [
-            (1, "Anda sendiri"),
-            (100, "100 orang"),
-            (1000, "1.000 orang"),
+        # Impact estimator: quick picks next to the duration and people sliders
+        "impact_days": [
+            (7, "1 minggu"),
+            (30, "1 bulan"),
+            (90, "3 bulan"),
+            (365, "1 tahun"),
         ],
+        "impact_people": [
+            (1, "Anda"),
+            (30, "Satu kelas"),
+            (100, "Satu RT"),
+            (1000, "Satu kampus"),
+        ],
+        # Try-it demos under each layer. They run in the browser only and save nothing.
+        "learn_quiz": [
+            {
+                "text": (
+                    "Plastik dengan simbol segitiga daur ulang pasti akan didaur ulang."
+                ),
+                "answer": "mitos",
+                "why": (
+                    "Simbol itu hanya menunjukkan jenis plastiknya. Banyak plastik "
+                    "bersimbol tetap berakhir di TPA."
+                ),
+            },
+            {
+                "text": "Sisa makanan yang menumpuk di TPA menghasilkan gas metana.",
+                "answer": "fakta",
+                "why": (
+                    "Sampah organik yang membusuk tanpa udara melepaskan metana, gas "
+                    "rumah kaca yang jauh lebih kuat daripada CO₂."
+                ),
+            },
+            {
+                "text": (
+                    "Charger yang tetap tercolok tanpa ponsel tidak memakai listrik "
+                    "sama sekali."
+                ),
+                "answer": "mitos",
+                "why": (
+                    "Charger yang tercolok masih menarik sedikit listrik. Kecil per "
+                    "hari, tetapi berjalan terus."
+                ),
+            },
+            {
+                "text": "Membilas kemasan sebelum dipilah membantu proses daur ulang.",
+                "answer": "fakta",
+                "why": (
+                    "Kemasan bersih lebih mudah diterima pendaur ulang dan tidak "
+                    "mengotori sampah lain."
+                ),
+            },
+        ],
+        "act_demo_badges": [
+            (1, "sprout", "Langkah pertama"),
+            (3, "flame", "Mulai terbiasa"),
+            (7, "award", "Kebiasaan baru"),
+        ],
+        "share_demo_prompts": [
+            "Hari ini saya membawa tumbler sendiri.",
+            "Saya menolak sedotan plastik saat makan siang.",
+            "Saya mulai memilah sampah di rumah.",
+        ],
+        "share_demo_posts": [
+            {
+                "name": "Rani",
+                "initial": "R",
+                "time": "2 jam lalu",
+                "text": (
+                    "Hari ke-12 tanpa plastik sekali pakai. Ternyata membawa tumbler "
+                    "jauh lebih mudah daripada yang saya bayangkan."
+                ),
+                "likes": 24,
+            },
+            {
+                "name": "Bima",
+                "initial": "B",
+                "time": "5 jam lalu",
+                "text": (
+                    "Akhirnya punya komposter kecil di balkon. Sisa sayur sekarang "
+                    "jadi pupuk untuk cabai."
+                ),
+                "likes": 17,
+            },
+        ],
+        "give_demo": {
+            "title": "Tanam mangrove di pesisir utara",
+            "target": 5_000_000,
+            "target_label": format_rupiah(5_000_000),
+            "raised": 3_150_000,
+            "raised_label": format_rupiah(3_150_000),
+            "percent": 63,
+            "donors": 84,
+            "per_seedling": 5_000,
+            "amounts": [
+                (amount, format_rupiah_compact(amount))
+                for amount in (10_000, 25_000, 50_000, 100_000)
+            ],
+        },
         # The closing section's faint log-end rings
         "cta_rings": list(range(40, 400, 26)),
         "urls": {

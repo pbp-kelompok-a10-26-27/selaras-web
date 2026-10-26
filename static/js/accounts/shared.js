@@ -13,7 +13,9 @@ export const prefersReducedMotion = () =>
 // Shows the Django messages rendered by templates/accounts/_messages.html as toasts
 export function showMessagesAsToasts() {
   const source = document.getElementById("account-messages");
-  if (!source || typeof window.showToast !== "function") return;
+  // Several scripts on one page may call this; only the first shows them
+  if (!source || source.dataset.shown || typeof window.showToast !== "function") return;
+  source.dataset.shown = "true";
 
   let messages = [];
   try {

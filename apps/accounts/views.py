@@ -97,6 +97,6 @@ class UserPasswordChangeView(
 
 
 class UserPasswordChangeDoneView(
-    AuthenticatedRequiredMixin, auth_views.PasswordChangeDoneView
+    AuthenticatedRequiredMixin, AccountLayoutMixin, auth_views.PasswordChangeDoneView
 ):
     template_name = "accounts/password_change_done.html"

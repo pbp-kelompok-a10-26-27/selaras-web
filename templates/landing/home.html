@@ -19,7 +19,9 @@
   <!-- ============================== HERO: the meadow ============================== -->
   <section aria-labelledby="heroTitle" class="relative isolate flex min-h-[100svh] flex-col" data-hero>
     
-    <div aria-hidden="true" class="absolute inset-0 -z-10 overflow-hidden">
+    {# The meadow fades out through a mask (.hero-backdrop), not a colour painted on top,
+       so the page background shows through and there is no edge under the hero #}
+    <div aria-hidden="true" class="hero-backdrop absolute inset-0 -z-10 overflow-hidden">
       <img
         src="{% static 'assets/images/landing/bg-landing-page.webp' %}"
         alt=""
@@ -29,7 +31,6 @@
       />
       
       <div class="absolute inset-0 bg-linear-to-b from-neutral-300/90 via-neutral-300/55 via-45% to-transparent to-75%"></div>
-      <div class="absolute inset-x-0 bottom-0 h-40 bg-linear-to-b from-transparent to-primary-100"></div>
       
       <div class="hero-glow absolute inset-0 hidden pointer-fine:block" data-hero-glow></div>
     </div>
@@ -51,7 +52,7 @@
       </h1>
 
       <p class="hero-rise mt-6 max-w-xl font-sans text-b3 leading-relaxed text-secondary-800 sm:text-b2" style="--i: 6">
-        SELARAS membantu Anda membangun kebiasaan ramah lingkungan secara bertahap:
+        SELARAS membantu Anda membangun kebiasaan ramah lingkungan secara bertahap melalui kegiatan
         memahami, mempraktikkan, membagikan, lalu memberi kembali.
       </p>
 
@@ -95,7 +96,7 @@
   <section aria-label="Tentang SELARAS" class="relative mx-auto max-w-5xl px-4 py-28 sm:px-8 lg:py-40">
     <span aria-hidden="true" data-parallax="0.18" class="pointer-events-none absolute top-16 right-[4%] hidden w-10 rotate-[32deg] text-primary-300 sm:block"><svg viewBox="0 0 24 24" class="animate-float h-auto w-full"><use href="#landing-leaf" /></svg></span>
     <p class="mt-6 font-display text-[clamp(1.75rem,4.2vw,3.25rem)] leading-[1.15] text-secondary-900" data-manifesto>
-      Perubahan besar jarang datang sekaligus. Ia tumbuh seperti pohon: perlahan, konsisten,
+      Perubahan besar jarang datang sekaligus. Ia tumbuh seperti pohon yang bersifat perlahan, konsisten,
       satu lapis setiap hari. Kami percaya hidup berkelanjutan dimulai dari keseimbangan antara
       apa yang kita ketahui, apa yang kita lakukan, apa yang kita bagikan, dan apa yang kita berikan.
     </p>
@@ -217,6 +218,7 @@
               <h3 id="learnTitle" class="font-display text-[clamp(2.25rem,5vw,3.75rem)] leading-none text-secondary-900">Belajar</h3>
               <p class="max-w-2xl font-sans text-b3 text-secondary-800">Kebiasaan yang bertahan dimulai dari pemahaman. Baca artikel singkat dan praktis tentang sampah, energi, pangan, dan gaya hidup berkelanjutan.</p>
             </header>
+            {% include "landing/demos/_learn.html" %}
             {% if learn.latest %}
             <ul class="mt-8 grid gap-4 md:grid-cols-3">
               {% for article in learn.latest %}
@@ -262,6 +264,7 @@
               </li>
               {% endfor %}
             </ol>
+            {% include "landing/demos/_act.html" %}
 
             <dl class="mt-6 grid grid-cols-3 divide-x divide-secondary-200/70 rounded-3xl border border-secondary-200/70 bg-neutral-50/50">
               <div class="p-4 sm:p-5"><dt class="font-sans text-xs text-secondary-700">Peserta</dt><dd class="font-sans text-h4 font-semibold tracking-tight tabular-nums text-secondary-900" data-count="{{ act.participants }}">{{ act.participants }}</dd></div>
@@ -298,16 +301,8 @@
               <p class="max-w-2xl font-sans text-b3 text-secondary-800">Kebiasaan baik itu menular. Bagikan perjalanan Anda di feed, beri semangat melalui suka dan komentar, dan temukan orang-orang dengan tujuan yang sama.</p>
             </header>
 
-            <div class="mt-8 grid gap-4 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
-              {# A sample of what the feed feels like (illustrative, not a real post) #}
-              <figure class="relative rounded-3xl border border-tertiary-300/70 bg-tertiary-100/80 p-6">
-                <span aria-hidden="true" class="absolute -top-4 left-6 font-display text-6xl leading-none text-tertiary-500">“</span>
-                <blockquote class="font-sans text-b3 text-secondary-900">Hari ke-12 tanpa plastik sekali pakai. Ternyata membawa tumbler jauh lebih mudah daripada yang saya bayangkan.</blockquote>
-                <figcaption class="mt-4 flex items-center gap-3 font-sans text-sm text-secondary-700">
-                  <span aria-hidden="true" class="h-8 w-8 rounded-full bg-tertiary-300"></span>
-                  Contoh cerita di feed
-                </figcaption>
-              </figure>
+            <div class="mt-8 grid items-start gap-4 md:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+              {% include "landing/demos/_share.html" %}
               <dl class="grid grid-cols-3 gap-3 md:grid-cols-1">
                 <div class="flex flex-col justify-center rounded-2xl bg-tertiary-200/80 p-4 md:flex-row md:items-baseline md:justify-between"><dt class="order-2 font-sans text-xs text-secondary-700 md:order-1">Cerita dibagikan</dt><dd class="font-sans text-h4 font-semibold tracking-tight tabular-nums text-secondary-900" data-count="{{ share.count }}">{{ share.count }}</dd></div>
                 <div class="flex flex-col justify-center rounded-2xl bg-tertiary-200/80 p-4 md:flex-row md:items-baseline md:justify-between"><dt class="order-2 font-sans text-xs text-secondary-700 md:order-1">Suka</dt><dd class="font-sans text-h4 font-semibold tracking-tight tabular-nums text-secondary-900" data-count="{{ share.likes }}">{{ share.likes }}</dd></div>
@@ -352,6 +347,7 @@
               <p class="flex-1 font-sans text-sm text-secondary-800"><strong class="font-semibold text-secondary-900">Kampanye pertama sedang disiapkan.</strong> Setiap kampanye diverifikasi sebelum dapat menerima donasi.</p>
             </div>
             {% endif %}
+            {% include "landing/demos/_give.html" %}
             <p class="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 font-sans text-sm text-secondary-700">
               <span><strong class="font-semibold text-secondary-900" data-count="{{ give.donors }}">{{ give.donors }}</strong> donatur</span>
               <span><strong class="font-semibold text-secondary-900">{{ give.raised_full }}</strong> terkumpul</span>
@@ -366,84 +362,20 @@
   </section>
 
   <!-- ============================ IMPACT ESTIMATOR ============================ -->
-  <section id="dampak" aria-labelledby="impactTitle" class="relative mx-auto max-w-7xl px-4 pb-16 sm:px-8 lg:px-12 lg:pb-24">
-    <div class="overflow-hidden rounded-[2rem] border border-neutral-50/70 bg-neutral-50/60 shadow-[0_30px_80px_-40px_rgba(33,43,28,0.35)] backdrop-blur-xl" data-reveal>
-      <div class="grid lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
-        {# Choices #}
-        <form class="flex min-w-0 flex-col gap-8 p-5 sm:p-8 xl:p-10" data-impact aria-describedby="impactNote">
-          <header class="flex flex-col gap-3">
-            <h2 id="impactTitle" class="font-display text-[clamp(1.9rem,4vw,3rem)] leading-[1.05] text-secondary-900">Kecil bagi Anda, besar bila bersama.</h2>
-          </header>
-
-          <fieldset class="flex flex-col gap-3">
-            <legend class="mb-3 flex items-center gap-2 font-sans text-sm font-semibold text-secondary-900">
-              {% lucide "target" class="w-5 h-5 shrink-0" %}
-              Pilih satu kebiasaan
-            </legend>
-            <div class="grid gap-2 sm:grid-cols-2">
-              {% for habit in habits %}
-              <label class="group flex min-h-14 cursor-pointer items-center gap-3 rounded-2xl border border-secondary-200/80 bg-neutral-50/70 px-4 py-3 font-sans text-sm font-semibold text-secondary-800 transition-all duration-300 hover:border-secondary-300 has-checked:border-secondary-700 has-checked:bg-secondary-900 has-checked:text-neutral-50 has-focus-visible:ring-2 has-focus-visible:ring-primary-500">
-                <input type="radio" name="habit" value="{{ habit.key }}" class="sr-only" {% if forloop.first %}checked{% endif %} />
-                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary-200 text-secondary-800 transition-colors group-has-checked:bg-primary-300 group-has-checked:text-secondary-900">{% lucide habit.icon class="w-4 h-4" %}</span>
-                {{ habit.label }}
-              </label>
-              {% endfor %}
-            </div>
-          </fieldset>
-
-          {# Stacked, so each row of three options gets the full width #}
-          <div class="grid gap-6">
-            <fieldset class="min-w-0">
-              <legend class="mb-3 flex items-center gap-2 font-sans text-sm font-semibold text-secondary-900">
-                {% lucide "clock" class="w-5 h-5 shrink-0" %}
-                Durasi
-              </legend>
-              <div class="grid grid-cols-3 gap-1.5 rounded-2xl border border-secondary-200/80 bg-neutral-50/70 p-1.5">
-                {% for value, label in impact_days %}
-                <label class="flex min-h-12 cursor-pointer items-center justify-center rounded-xl px-3 py-2 text-center sm:px-5 font-sans text-xs leading-tight font-semibold text-secondary-700 transition-colors duration-300 hover:text-secondary-900 has-checked:bg-secondary-900 has-checked:text-neutral-50 has-focus-visible:ring-2 has-focus-visible:ring-primary-500 sm:text-sm">
-                  <input type="radio" name="days" value="{{ value }}" class="sr-only" {% if value == 30 %}checked{% endif %} />{{ label }}
-                </label>
-                {% endfor %}
-              </div>
-            </fieldset>
-            <fieldset class="min-w-0">
-              <legend class="mb-3 flex items-center gap-2 font-sans text-sm font-semibold text-secondary-900">
-                {% lucide "users" class="w-5 h-5 shrink-0" %}
-                Kuantitas
-              </legend>
-              <div class="grid grid-cols-3 gap-1.5 rounded-2xl border border-secondary-200/80 bg-neutral-50/70 p-1.5">
-                {% for value, label in impact_people %}
-                <label class="flex min-h-12 cursor-pointer items-center justify-center rounded-xl px-3 py-2 text-center sm:px-5 font-sans text-xs leading-tight font-semibold text-secondary-700 transition-colors duration-300 hover:text-secondary-900 has-checked:bg-secondary-900 has-checked:text-neutral-50 has-focus-visible:ring-2 has-focus-visible:ring-primary-500 sm:text-sm">
-                  <input type="radio" name="people" value="{{ value }}" class="sr-only" {% if forloop.first %}checked{% endif %} />{{ label }}
-                </label>
-                {% endfor %}
-              </div>
-            </fieldset>
-          </div>
-        </form>
-
-        {# Result #}
-        <div class="relative isolate flex min-h-80 flex-col justify-end gap-4 overflow-hidden bg-secondary-900 p-5 text-neutral-50 sm:p-8 lg:min-h-0 xl:p-10" aria-live="polite">
-          <img src="{% static 'assets/images/landing/image_3-removebg-preview.webp' %}" alt="" aria-hidden="true" loading="lazy" class="pointer-events-none absolute inset-x-0 bottom-0 -z-10 w-full opacity-25 mix-blend-luminosity" />
-          <svg aria-hidden="true" viewBox="0 0 400 400" class="pointer-events-none absolute -top-24 -right-24 -z-10 h-80 w-80 opacity-20" data-impact-rings></svg>
-          <p class="font-sans text-xs font-semibold uppercase tracking-[0.24em] text-primary-300">Perkiraan dampak</p>
-          <p class="font-sans text-[clamp(3.25rem,8vw,5.5rem)] font-semibold leading-none tracking-tighter tabular-nums" data-impact-value>30</p>
-          <p class="font-sans text-b3 font-semibold text-neutral-50" data-impact-unit>botol plastik</p>
-          <p class="max-w-sm font-sans text-sm text-secondary-200" data-impact-note>tidak berakhir di tempat sampah, sungai, atau laut.</p>
-          <p id="impactNote" class="mt-4 border-t border-secondary-700 pt-4 font-sans text-xs text-secondary-200">Angka ini merupakan perkiraan kasar untuk ilustrasi, bukan hasil pengukuran.</p>
-        </div>
-      </div>
-    </div>
-  </section>
+  {% include "landing/_impact.html" %}
 
   <!-- ============================ CLOSING CTA ============================ -->
   {# Dusk: an eased fade into the dark closing section (.landing-dusk in input.css) #}
   <div aria-hidden="true" class="landing-dusk h-48 sm:h-64"></div>
   <section aria-labelledby="ctaTitle" class="relative isolate overflow-hidden bg-secondary-900 text-neutral-50">
     {# Huge faint rings, like the end of a log; they turn slowly with the scroll #}
-    <svg aria-hidden="true" viewBox="0 0 800 800" class="pointer-events-none absolute -right-48 top-1/2 -z-10 h-[56rem] w-[56rem] -translate-y-1/2 opacity-20 sm:-right-24" data-cta-rings>
-      {% for r in cta_rings %}<circle cx="400" cy="400" r="{{ r }}" fill="none" class="stroke-primary-300" stroke-width="1.5" />{% endfor %}
-    </svg>
+    {# The wrapper fades the rings out before the section's top and bottom edges, so they
+       never end in a straight cut; the rings inside turn, the fade stays put #}
+    <div aria-hidden="true" class="cta-rings pointer-events-none absolute -right-48 top-1/2 -z-10 size-224 -translate-y-1/2 sm:-right-24">
+      <svg viewBox="0 0 800 800" class="h-full w-full opacity-20" data-cta-rings>
+        {% for r in cta_rings %}<circle cx="400" cy="400" r="{{ r }}" fill="none" class="stroke-primary-300" stroke-width="1.5" />{% endfor %}
+      </svg>
+    </div>
     <span aria-hidden="true" data-parallax="0.12" class="pointer-events-none absolute top-[20%] left-[55%] hidden w-8 rotate-[150deg] text-primary-300/70 sm:block"><svg viewBox="0 0 24 24" class="animate-float-reverse h-auto w-full"><use href="#landing-leaf" /></svg></span>
     <div class="mx-auto flex max-w-7xl flex-col gap-8 px-4 py-24 sm:px-8 lg:px-12 lg:py-32" data-reveal>
       <p class="font-sans text-xs font-semibold uppercase tracking-[0.24em] text-primary-300">Mulai hari ini</p>

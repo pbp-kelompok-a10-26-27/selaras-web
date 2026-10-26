@@ -69,7 +69,7 @@ if (root) {
 
     const percent = Math.round((done / steps.length) * 100);
     ring?.style.setProperty("--progress", percent);
-    if (fill) fill.style.width = `${percent}%`;
+    if (fill) fill.style.setProperty("--fill", `${percent}%`);
     bar?.setAttribute("aria-valuenow", percent);
     root.querySelectorAll("[data-completion-percent]").forEach((node) => {
       node.textContent = percent;
