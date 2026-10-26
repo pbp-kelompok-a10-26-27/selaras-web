@@ -17,9 +17,8 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import include, path
-from django.views.generic import TemplateView
 
-from apps.core.views import design_system
+from apps.core.views import design_system, home
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -30,10 +29,13 @@ urlpatterns = [
     path("donations/", include("apps.donations.urls")),
     path("helpdesk/", include("apps.helpdesk.urls")),
     path("design-system/", design_system, name="design_system"),
+    # Not "admin/": Django's admin above already owns that prefix and 404s any path
+    # it doesn't know
     path("dashboard/", include("apps.dashboard.urls")),
-    path(
-        "",
-        TemplateView.as_view(template_name="home.html"),
-        name="home",
-    ),
+    # Landing page (templates/landing/home.html) with live numbers from each app
+    path("", home, name="home"),
 ]
+
+# Custom error pages (templates/errors/), used when DEBUG is False
+handler404 = "apps.core.views.page_not_found"
+handler403 = "apps.core.views.permission_denied"

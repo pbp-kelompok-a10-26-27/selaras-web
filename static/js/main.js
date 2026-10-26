@@ -5,3 +5,4 @@ import "./components/toast/toast.js";
 import "./components/skeleton/skeleton.js";
 import "./components/tooltip/tooltip.js";
 import "./components/input/input.js";
+import "./components/sidebar/sidebar.js";

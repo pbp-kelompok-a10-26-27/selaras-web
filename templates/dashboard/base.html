@@ -1,0 +1,51 @@
+{% load static component_tags %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="{% static 'assets/images/logo.svg' %}" />
+
+    <title>{% block title %}Dashboard{% endblock %} · SELARAS Admin</title>
+
+    {# Apply the saved collapsed sidebar before first paint, so the layout never jumps #}
+    <script>
+      try {
+        if (localStorage.getItem("dashboard-sidebar") === "collapsed") {
+          document.documentElement.dataset.sidebarState = "collapsed";
+        }
+      } catch (e) {}
+    </script>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link href="https://fonts.cdnfonts.com/css/transcity" rel="stylesheet" />
+
+    <link rel="stylesheet" href="{% static 'css/output.css' %}" />
+  </head>
+
+  <body class="min-h-screen bg-neutral-200 text-foreground">
+    <a
+      href="#dashboard-main"
+      class="sr-only z-[70] rounded-xl bg-secondary-700 px-4 py-2 font-sans text-sm font-semibold text-neutral-50 focus:not-sr-only focus:fixed focus:top-4 focus:left-4"
+    >Skip to content</a>
+
+    {% component "sidebar" sections=sidebar_sections home_url=dashboard_home_url logout_url=logout_url / %}
+
+    <div class="transition-[padding] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none lg:pl-64 lg:sidebar-collapsed:pl-20">
+      {# lg:pb-48: on desktop toasts stack bottom-right; the extra room lets the last rows scroll clear of them #}
+      <main id="dashboard-main" tabindex="-1" class="mx-auto w-full max-w-7xl px-4 py-6 outline-none sm:px-6 lg:px-10 lg:pt-10 lg:pb-48">
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+
+    <script type="module" src="{% static 'js/main.js' %}" defer></script>
+    <script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+    {% block scripts %}{% endblock %}
+  </body>
+</html>

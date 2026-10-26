@@ -1,0 +1,143 @@
+{% extends "errors/base.html" %}
+{% load lucide component_tags %}
+
+{% block title %}Halaman tidak ditemukan | SELARAS{% endblock %}
+{% block code_label %}Not Found 404{% endblock %}
+
+{% block content %}
+<div class="grid w-full items-center gap-12 lg:grid-cols-12 lg:gap-10">
+
+  <!-- ============================ Message ============================ -->
+  <section aria-labelledby="errorTitle" class="lg:col-span-6">
+    <p class="hero-rise inline-flex items-center gap-2 rounded-full bg-tertiary-200 px-3 py-1 text-b4 font-semibold text-tertiary-900" style="--i: 0">
+      {% lucide "map-pin-off" class="h-4 w-4" %}
+      404 &middot; Halaman tidak ditemukan
+    </p>
+
+    <h1 id="errorTitle" class="mt-5 font-display text-[clamp(2.5rem,6vw,4.25rem)] leading-[1.02] tracking-tight text-secondary-900">
+      <span class="hero-rise inline-block" style="--i: 1">Jalur ini</span>
+      <span class="hero-rise relative inline-block text-secondary-500" style="--i: 2">
+        belum ditanami.
+        <svg aria-hidden="true" viewBox="0 0 220 24" class="absolute -bottom-2 left-0 h-3 w-full overflow-visible" preserveAspectRatio="none">
+          <path data-draw d="M3 16 C 40 6, 90 4, 130 10 S 200 20, 217 8" fill="none" class="stroke-primary-300" stroke-width="5" stroke-linecap="round" />
+        </svg>
+      </span>
+    </h1>
+
+    <p class="hero-rise mt-6 max-w-xl text-b3 leading-relaxed text-secondary-800" style="--i: 3">
+      Halaman yang Anda cari mungkin sudah dipindahkan, dihapus, atau alamatnya salah ketik.
+      Tidak apa-apa, setiap langkah yang tersesat bisa menjadi awal jalan baru.
+    </p>
+
+    {% if request_path %}
+      <p class="hero-rise mt-5 flex max-w-xl items-center gap-2 rounded-xl border border-secondary-200 bg-neutral-50/70 px-3 py-2 text-b4 text-secondary-700 backdrop-blur" style="--i: 4">
+        {% lucide "link-2-off" class="h-4 w-4 shrink-0 text-tertiary-600" %}
+        <span class="shrink-0 font-semibold">Alamat:</span>
+        <code class="truncate font-mono" title="{{ request_path }}">{{ request_path }}</code>
+      </p>
+    {% endif %}
+
+    <div class="hero-rise mt-8 flex flex-col gap-3 sm:flex-row sm:items-center" style="--i: 5">
+      {% url 'home' as home_url %}
+      {% component "button" text="Kembali ke beranda" variant="secondary" size="lg" href=home_url icon_left="house" / %}
+      {% component "button" text="Halaman sebelumnya" variant="secondary-ghost" size="lg" icon_left="arrow-left" attrs="data-back hidden" / %}
+    </div>
+
+    <!-- Suggestions -->
+    <nav aria-labelledby="suggestTitle" class="hero-rise mt-12" style="--i: 6">
+      <h2 id="suggestTitle" class="text-s6 font-sans font-semibold tracking-widest text-secondary-600 uppercase">
+        Mungkin Anda mencari
+      </h2>
+      <ul class="mt-4 grid gap-3 sm:grid-cols-2">
+        {% url 'articles:list' as articles_url %}
+        {% url 'challenges:list' as challenges_url %}
+        {% url 'feeds:list' as feeds_url %}
+        {% url 'donations:campaign_list' as donations_url %}
+        <li>
+          <a href="{{ articles_url }}" class="landing-card flex items-start gap-3 p-4" data-spotlight>
+            <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary-200 text-secondary-700">{% lucide "book-open" class="h-5 w-5" %}</span>
+            <span>
+              <span class="block text-b3 font-semibold text-secondary-900">Artikel</span>
+              <span class="block text-b4 text-neutral-800">Bacaan reflektif seputar hidup selaras.</span>
+            </span>
+          </a>
+        </li>
+        <li>
+          <a href="{{ challenges_url }}" class="landing-card flex items-start gap-3 p-4" data-spotlight>
+            <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary-200 text-secondary-700">{% lucide "sprout" class="h-5 w-5" %}</span>
+            <span>
+              <span class="block text-b3 font-semibold text-secondary-900">Tantangan</span>
+              <span class="block text-b4 text-neutral-800">Bangun kebiasaan kecil setiap hari.</span>
+            </span>
+          </a>
+        </li>
+        <li>
+          <a href="{{ feeds_url }}" class="landing-card flex items-start gap-3 p-4" data-spotlight>
+            <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-tertiary-200 text-tertiary-800">{% lucide "messages-square" class="h-5 w-5" %}</span>
+            <span>
+              <span class="block text-b3 font-semibold text-secondary-900">Feed</span>
+              <span class="block text-b4 text-neutral-800">Cerita dan progres dari komunitas.</span>
+            </span>
+          </a>
+        </li>
+        <li>
+          <a href="{{ donations_url }}" class="landing-card flex items-start gap-3 p-4" data-spotlight>
+            <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-tertiary-200 text-tertiary-800">{% lucide "hand-heart" class="h-5 w-5" %}</span>
+            <span>
+              <span class="block text-b3 font-semibold text-secondary-900">Donasi</span>
+              <span class="block text-b4 text-neutral-800">Dukung aksi lingkungan di sekitar Anda.</span>
+            </span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </section>
+
+  <!-- ============================ The garden ============================ -->
+  {# Click/tap anywhere in the garden (or use the button) to plant a sprout in the soil #}
+  <section aria-label="Kebun 404" class="hero-rise lg:col-span-6" style="--i: 3">
+    <div class="error-garden relative isolate overflow-hidden rounded-[2rem] border border-secondary-200/70 bg-neutral-50/60 px-4 pt-10 pb-0 shadow-[0_32px_64px_-40px_rgb(33_43_28/0.45)] backdrop-blur-sm sm:px-8 sm:pt-14" data-garden>
+
+      <div class="relative flex items-center justify-center gap-1 sm:gap-3" data-parallax data-depth="14">
+        <span class="error-digit" aria-hidden="true">4</span>
+
+        <button type="button" class="error-ring" data-ring aria-label="Ketuk cincin pertumbuhan">
+          <svg viewBox="0 0 520 520" class="h-full w-full overflow-visible" data-rings data-ring-count="7" aria-hidden="true">
+            {# Plain rings until errors.js draws the hand-made ones #}
+            <circle cx="260" cy="260" r="240" fill="none" class="stroke-secondary-300" stroke-width="6" />
+            <circle cx="260" cy="260" r="170" fill="none" class="stroke-primary-300" stroke-width="6" />
+            <circle cx="260" cy="260" r="100" fill="none" class="stroke-tertiary-400" stroke-width="6" />
+          </svg>
+          <span class="error-ring-core animate-float" aria-hidden="true">
+            {% lucide "sprout" class="h-full w-full" %}
+          </span>
+        </button>
+
+        <span class="error-digit" aria-hidden="true">4</span>
+      </div>
+
+      <p class="relative mt-6 text-center text-b4 text-secondary-700 sm:text-b3">
+        <span class="pointer-fine:hidden">Ketuk kebun ini untuk menanam tunas.</span>
+        <span class="hidden pointer-fine:inline">Klik di mana saja di kebun ini untuk menanam tunas.</span>
+      </p>
+
+      <div class="relative mt-4 flex flex-wrap items-center justify-center gap-3">
+        <button
+          type="button"
+          class="inline-flex min-h-11 items-center gap-2 rounded-xl border border-primary-500 bg-primary-300 px-4 text-b4 font-semibold text-secondary-900 shadow-sm outline-none transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary-400 hover:shadow-md focus-visible:ring-2 focus-visible:ring-secondary-600 focus-visible:ring-offset-2 active:translate-y-0 active:scale-[0.97]"
+          data-plant-button
+        >
+          {% lucide "shovel" class="h-4 w-4" %}
+          Tanam tunas
+        </button>
+        <p class="rounded-full bg-secondary-50 px-3 py-1.5 text-b4 font-semibold text-secondary-700" aria-live="polite">
+          <span data-plant-count>0</span> tunas ditanam saat tersesat
+        </p>
+      </div>
+
+      {# Soil strip: sprouts grow here #}
+      <div class="error-soil relative mt-8 -mx-4 h-28 sm:-mx-8 sm:h-32" data-soil aria-hidden="true"></div>
+    </div>
+  </section>
+</div>
+{% endblock %}

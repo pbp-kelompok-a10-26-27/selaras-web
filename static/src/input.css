@@ -2,7 +2,12 @@
 @import "tailwindcss";
 @source "../../templates/**/*.html";
 @source "../../apps/**/templates/**/*.html";
-@source "../../../apps/**/components/**/*.html";
+@source "../../apps/**/components/**/*.html";
+@source "../js/**/*.js";
+
+/* Admin dashboard: true while <html data-sidebar-state="collapsed"> (set by sidebar.js, and
+   before first paint by templates/dashboard/base.html so it never flickers) */
+@custom-variant sidebar-collapsed (&:where([data-sidebar-state="collapsed"] *));
 
 @theme {
   /* Primary (hijau muda / lime) */
@@ -43,6 +48,9 @@
 
   /* Red */
   --color-red-100: #df2525;
+  
+  /* Orange */
+  --color-orange-100: #FFA756;
   
   /* Yellow */
   --color-yellow-100: #fff49b;
@@ -346,6 +354,750 @@
   .leaf {
     animation: none;
     display: none;
+  }
+}
+/* ================================================================== */
+
+/* ============================ LANDING ============================= */
+/* Smooth in-page scrolling on the landing page only (anchor links, "Lihat keempat lapisan"),
+   with room for the fixed navbar so headings don't land underneath it */
+html:has(#landing) {
+  scroll-behavior: smooth;
+  scroll-padding-top: 7rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:has(#landing) {
+    scroll-behavior: auto;
+  }
+}
+
+/* One continuous background, read top to bottom: the meadow's pale green (the hero
+   image fades into primary-100) -> fresh green layers -> bark. It stays light to the
+   end; a short green fade above the closing section (home.html) takes it into the dark */
+.landing-flow {
+  background-image: linear-gradient(
+    180deg,
+    var(--color-primary-100) 0%,
+    var(--color-primary-50) 18%,
+    var(--color-primary-100) 38%,
+    var(--color-primary-200) 58%,
+    var(--color-secondary-50) 80%,
+    var(--color-secondary-100) 100%
+  );
+}
+
+/* Dusk above the closing section. A plain two-stop fade shows a visible band where it
+   meets the dark; these eased stops (one colour, only the opacity changes) start and
+   finish so gently that there is no edge on either side */
+.landing-dusk {
+  background-image: linear-gradient(
+    180deg,
+    rgb(33 43 28 / 0) 0%,
+    rgb(33 43 28 / 0.013) 8.1%,
+    rgb(33 43 28 / 0.049) 15.5%,
+    rgb(33 43 28 / 0.104) 22.5%,
+    rgb(33 43 28 / 0.175) 29%,
+    rgb(33 43 28 / 0.259) 35.3%,
+    rgb(33 43 28 / 0.352) 41.2%,
+    rgb(33 43 28 / 0.45) 47.1%,
+    rgb(33 43 28 / 0.55) 52.9%,
+    rgb(33 43 28 / 0.648) 58.8%,
+    rgb(33 43 28 / 0.741) 64.7%,
+    rgb(33 43 28 / 0.825) 71%,
+    rgb(33 43 28 / 0.896) 77.5%,
+    rgb(33 43 28 / 0.951) 84.5%,
+    rgb(33 43 28 / 0.987) 91.9%,
+    var(--color-secondary-900) 100%
+  );
+}
+
+/* Hero: headline words and blocks rise in one after another (--i = order) */
+@keyframes hero-rise {
+  from {
+    opacity: 0;
+    transform: translateY(1.25rem);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+.hero-rise {
+  animation: hero-rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--i, 0) * 90ms + 100ms);
+}
+
+/* The meadow drifts with the scroll/pointer (home.js sets --hero-x / --hero-y) */
+.hero-image {
+  translate: var(--hero-x, 0) var(--hero-y, 0);
+  will-change: translate;
+}
+
+/* Soft sunlight following the pointer (home.js sets --glow-x / --glow-y) */
+.hero-glow {
+  background: radial-gradient(
+    32rem circle at var(--glow-x, 70%) var(--glow-y, 30%),
+    color-mix(in srgb, var(--color-neutral-50) 55%, transparent),
+    transparent 70%
+  );
+  mix-blend-mode: soft-light;
+}
+
+/* Manifesto: each word brightens as the reader scrolls past it */
+[data-manifesto] .word {
+  opacity: 0.18;
+  transition: opacity 0.4s ease-out;
+}
+
+[data-manifesto] .word.is-lit {
+  opacity: 1;
+}
+
+/* Glassy card with a light that follows the pointer (home.js sets --spot-x / --spot-y) */
+.landing-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 1.5rem;
+  border: 1px solid color-mix(in srgb, var(--color-secondary-200) 70%, transparent);
+  background: color-mix(in srgb, var(--color-neutral-50) 65%, transparent);
+  outline: none;
+  transition:
+    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.3s,
+    box-shadow 0.4s;
+}
+
+.landing-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0;
+  background: radial-gradient(
+    18rem circle at var(--spot-x, 50%) var(--spot-y, 50%),
+    var(--color-primary-200),
+    transparent 70%
+  );
+  transition: opacity 0.3s;
+}
+
+.landing-card:hover,
+.landing-card:focus-visible {
+  transform: translateY(-4px);
+  border-color: var(--color-secondary-300);
+  box-shadow: 0 24px 48px -28px rgb(33 43 28 / 0.4);
+}
+
+.landing-card:hover::before,
+.landing-card:focus-visible::before {
+  opacity: 1;
+}
+
+.landing-card:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-primary-500);
+}
+
+/* "Jelajahi ..." links under each layer */
+.landing-link {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 0.75rem;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-secondary-800);
+  outline: none;
+}
+
+.landing-link:hover {
+  color: var(--color-secondary-900);
+}
+
+.landing-link:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-primary-500);
+}
+
+/* Day slider: thin track that fills up to the thumb (home.js sets --fill) */
+.landing-range {
+  appearance: none;
+  height: 1.5rem;
+  background: transparent;
+}
+
+.landing-range::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    var(--color-secondary-700) var(--fill, 50%),
+    var(--color-secondary-200) var(--fill, 50%)
+  );
+}
+
+.landing-range::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    var(--color-secondary-700) var(--fill, 50%),
+    var(--color-secondary-200) var(--fill, 50%)
+  );
+}
+
+.landing-range::-webkit-slider-thumb {
+  appearance: none;
+  margin-top: -8px;
+  height: 20px;
+  width: 20px;
+  border-radius: 999px;
+  border: 3px solid var(--color-neutral-50);
+  background: var(--color-secondary-700);
+  box-shadow: 0 2px 8px rgb(33 43 28 / 0.3);
+  transition: transform 0.2s;
+}
+
+.landing-range::-moz-range-thumb {
+  height: 14px;
+  width: 14px;
+  border-radius: 999px;
+  border: 3px solid var(--color-neutral-50);
+  background: var(--color-secondary-700);
+  box-shadow: 0 2px 8px rgb(33 43 28 / 0.3);
+}
+
+.landing-range:active::-webkit-slider-thumb,
+.landing-range:hover::-webkit-slider-thumb {
+  transform: scale(1.15);
+}
+
+.landing-range:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 4px;
+  border-radius: 999px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-rise {
+    animation: none;
+  }
+
+  [data-manifesto] .word {
+    opacity: 1;
+    transition: none;
+  }
+
+  .landing-card,
+  .landing-card:hover,
+  .landing-card:focus-visible {
+    transform: none;
+    transition: none;
+  }
+}
+
+/* ========================== ERROR PAGES =========================== */
+/* templates/errors/ (404, 403) with static/js/errors/errors.js */
+
+/* Soft light following the pointer (errors.js sets --glow-x / --glow-y) */
+.error-glow {
+  background: radial-gradient(
+    28rem circle at var(--glow-x, 70%) var(--glow-y, 40%),
+    color-mix(in srgb, var(--color-primary-200) 70%, transparent),
+    transparent 70%
+  );
+}
+
+/* The big 4 _ 4 / 4 _ 3; the middle digit is a growth ring. Transcity has no
+   numerals, so the digits use the body font */
+.error-digit {
+  font-family: var(--font-sans);
+  font-size: clamp(6rem, 19vw, 12.5rem);
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: var(--color-secondary-900);
+  user-select: none;
+}
+
+.error-ring {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: clamp(5.25rem, 16vw, 10.5rem);
+  aspect-ratio: 1;
+  flex-shrink: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.error-ring:active {
+  transform: scale(0.94);
+}
+
+.error-ring:focus-visible {
+  box-shadow:
+    0 0 0 3px var(--color-primary-50),
+    0 0 0 5px var(--color-secondary-600);
+}
+
+.error-ring > svg {
+  animation: error-ring-spin 90s linear infinite;
+}
+
+/* Each ring moves on its own when hovered: the 404 rings spread out, the 403 rings
+   pull tight around the lock */
+.error-ring-line {
+  transform-box: view-box;
+  transform-origin: 50% 50%;
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: calc(var(--ring-i, 0) * 40ms);
+}
+
+.error-ring:hover .error-ring-line,
+.error-ring:focus-visible .error-ring-line {
+  transform: scale(calc(1.08 - var(--ring-i, 0) * 0.012));
+}
+
+.error-garden--locked .error-ring:hover .error-ring-line,
+.error-garden--locked .error-ring:focus-visible .error-ring-line {
+  transform: scale(calc(0.9 + var(--ring-i, 0) * 0.012));
+}
+
+.error-ring-core {
+  position: absolute;
+  inset: 33%;
+  color: var(--color-secondary-500);
+  pointer-events: none;
+}
+
+.error-ring-core--lock {
+  color: var(--color-tertiary-700);
+}
+
+.error-ring-core--lock.is-shaking {
+  animation: error-lock-shake 0.55s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+
+.error-ripple {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  border: 2px solid var(--color-primary-300);
+  pointer-events: none;
+  animation: error-ripple 0.9s ease-out forwards;
+}
+
+.error-garden--locked .error-ripple {
+  border-color: var(--color-tertiary-400);
+}
+
+/* The ranger's speech bubble points up at the lock */
+.error-bubble {
+  position: relative;
+}
+
+.error-bubble::before {
+  content: "";
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  translate: -50% 0;
+  rotate: 45deg;
+  border-top: 1px solid var(--color-secondary-200);
+  border-left: 1px solid var(--color-secondary-200);
+  background: var(--color-neutral-50);
+}
+
+/* ---------- 404 garden ---------- */
+[data-garden] {
+  cursor: pointer;
+}
+
+/* Grass edge and earth along the bottom; sprouts stand just behind it */
+.error-soil::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 1;
+  height: 42%;
+  border-radius: 50% 50% 0 0 / 1.25rem 1.25rem 0 0;
+  background: linear-gradient(
+    180deg,
+    var(--color-primary-300) 0 6px,
+    var(--color-secondary-200) 6px,
+    var(--color-secondary-100)
+  );
+}
+
+.sprout {
+  position: absolute;
+  bottom: 34%;
+  width: 3.25rem;
+  height: 5.5rem;
+  translate: -50% 0;
+  transform-origin: 50% 100%;
+  scale: var(--sprout-scale, 1);
+  animation: error-sprout-grow 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  transition:
+    opacity 0.6s,
+    scale 0.6s;
+}
+
+.sprout > svg {
+  transform-origin: 50% 100%;
+  animation: error-sprout-sway 3.5s ease-in-out infinite alternate;
+}
+
+.sprout-leaf,
+.sprout-bloom {
+  transform-box: fill-box;
+  animation: error-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) 0.35s both;
+}
+
+.sprout-leaf--left {
+  transform-origin: 100% 100%;
+}
+
+.sprout-leaf--right {
+  transform-origin: 0 100%;
+}
+
+.sprout-bloom {
+  transform-origin: 50% 50%;
+  animation-delay: 0.55s;
+}
+
+.sprout.is-wilting {
+  opacity: 0;
+  scale: 1 0;
+}
+
+@keyframes error-ring-spin {
+  to {
+    rotate: 360deg;
+  }
+}
+
+@keyframes error-ripple {
+  from {
+    opacity: 0.9;
+    transform: scale(0.7);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.7);
+  }
+}
+
+@keyframes error-lock-shake {
+  0%,
+  100% {
+    rotate: 0deg;
+  }
+  20% {
+    rotate: -14deg;
+  }
+  40% {
+    rotate: 11deg;
+  }
+  60% {
+    rotate: -7deg;
+  }
+  80% {
+    rotate: 4deg;
+  }
+}
+
+@keyframes error-sprout-grow {
+  from {
+    scale: 0.4 0;
+  }
+}
+
+@keyframes error-sprout-sway {
+  from {
+    rotate: -3deg;
+  }
+  to {
+    rotate: 3deg;
+  }
+}
+
+@keyframes error-pop {
+  from {
+    transform: scale(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .error-ring > svg,
+  .sprout,
+  .sprout > svg,
+  .sprout-leaf,
+  .sprout-bloom,
+  .error-ring-core--lock.is-shaking {
+    animation: none;
+  }
+
+  .error-ring-line,
+  .error-ring {
+    transition: none;
+  }
+}
+/* ================================================================== */
+
+/* ============================ ACCOUNTS ============================ */
+/* templates/accounts/ (profile, password change, password reset) with static/js/accounts/ */
+
+/* Soft light on the profile cover that follows the pointer (profile.js sets --glow-x / --glow-y) */
+.profile-glow {
+  background: radial-gradient(
+    22rem circle at var(--glow-x, 75%) var(--glow-y, 25%),
+    color-mix(in srgb, var(--color-neutral-50) 70%, transparent),
+    transparent 70%
+  );
+}
+
+/* Completion ring around the avatar. The circle has pathLength="100", so
+   --progress (0-100) is exactly how much of it is drawn */
+.profile-ring-value {
+  stroke-dasharray: 100;
+  stroke-dashoffset: calc(100 - var(--progress, 0));
+  transition: stroke-dashoffset 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Tabs; the sliding underline is [data-tab-indicator], moved by profile.js */
+.profile-tab {
+  display: inline-flex;
+  min-height: 2.75rem;
+  flex-shrink: 0;
+  cursor: pointer;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 0.75rem 0.75rem 0 0;
+  padding: 0 1rem;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-neutral-800);
+  outline: none;
+  transition:
+    color 0.2s,
+    background-color 0.2s;
+}
+
+.profile-tab:hover {
+  color: var(--color-secondary-800);
+  background-color: var(--color-secondary-50);
+}
+
+.profile-tab[aria-selected="true"] {
+  color: var(--color-secondary-900);
+}
+
+.profile-tab:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--color-primary-500);
+}
+
+/* Stat tile with a light that follows the pointer (profile.js sets --spot-x / --spot-y) */
+.account-tile {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 1.5rem;
+  border: 1px solid var(--color-neutral-400);
+  background: var(--color-neutral-50);
+  outline: none;
+  transition:
+    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.3s,
+    box-shadow 0.4s;
+}
+
+.account-tile::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0;
+  background: radial-gradient(
+    14rem circle at var(--spot-x, 50%) var(--spot-y, 50%),
+    var(--color-primary-100),
+    transparent 70%
+  );
+  transition: opacity 0.3s;
+}
+
+.account-tile:hover,
+.account-tile:focus-visible {
+  transform: translateY(-3px);
+  border-color: var(--color-secondary-200);
+  box-shadow: 0 20px 40px -28px rgb(33 43 28 / 0.45);
+}
+
+.account-tile:hover::before,
+.account-tile:focus-visible::before {
+  opacity: 1;
+}
+
+.account-tile:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-primary-500);
+}
+
+/* Profile strength checklist */
+.profile-step-icon {
+  border-color: var(--color-neutral-500);
+  color: transparent;
+}
+
+.profile-step-label {
+  color: var(--color-secondary-800);
+}
+
+.profile-step[data-done="true"] .profile-step-icon {
+  border-color: var(--color-primary-500);
+  background: var(--color-primary-500);
+  color: var(--color-neutral-50);
+  transform: scale(1.05);
+}
+
+.profile-step[data-done="true"] .profile-step-label {
+  color: var(--color-neutral-700);
+  text-decoration: line-through;
+}
+
+/* Shortcut links in the profile side column */
+.profile-shortcut {
+  display: flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: 0.75rem;
+  padding: 0 0.5rem;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-secondary-800);
+  outline: none;
+  transition: background-color 0.2s;
+}
+
+.profile-shortcut:hover {
+  background-color: var(--color-primary-100);
+}
+
+.profile-shortcut:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-primary-500);
+}
+
+/* Unsaved-changes save bar (profile.js sets data-dirty on the form) */
+[data-profile-form][data-dirty="true"] [data-save-bar] {
+  position: sticky;
+  bottom: 1rem;
+  border-color: var(--color-secondary-300);
+  animation: account-nudge 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+[data-profile-form][data-dirty="true"] [data-save-dot] {
+  background-color: var(--color-orange-100);
+}
+
+/* Password strength bars (password.js sets data-level 1-4 on each lit bar) */
+.password-bar {
+  height: 0.375rem;
+  border-radius: 999px;
+  background: var(--color-neutral-400);
+  transition:
+    background-color 0.3s,
+    transform 0.3s;
+}
+
+.password-bar[data-level="1"] {
+  background: var(--color-tertiary-600);
+}
+
+.password-bar[data-level="2"] {
+  background: var(--color-orange-100);
+}
+
+.password-bar[data-level="3"] {
+  background: var(--color-primary-300);
+}
+
+.password-bar[data-level="4"] {
+  background: var(--color-secondary-500);
+}
+
+.password-bar[data-level] {
+  transform: scaleY(1.25);
+}
+
+/* Password requirement checklist */
+.password-rule {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-neutral-800);
+  transition: color 0.2s;
+}
+
+.password-rule-icon {
+  display: flex;
+  height: 1.125rem;
+  width: 1.125rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid var(--color-neutral-500);
+  color: transparent;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.password-rule[data-met="true"] {
+  color: var(--color-secondary-800);
+}
+
+.password-rule[data-met="true"] .password-rule-icon {
+  border-color: var(--color-primary-500);
+  background: var(--color-primary-500);
+  color: var(--color-neutral-50);
+  transform: scale(1.1);
+}
+
+@keyframes account-nudge {
+  0% {
+    transform: translateY(6px);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .profile-ring-value,
+  .account-tile,
+  .account-tile:hover,
+  .account-tile:focus-visible,
+  .password-bar,
+  .password-rule-icon {
+    transform: none;
+    transition: none;
+  }
+
+  [data-profile-form][data-dirty="true"] [data-save-bar] {
+    animation: none;
   }
 }
 /* ================================================================== */

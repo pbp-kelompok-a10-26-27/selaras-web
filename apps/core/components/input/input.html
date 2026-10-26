@@ -18,7 +18,7 @@
       {% if required %}required{% endif %}
       {% if disabled %}disabled{% endif %}
       {{ attrs|safe }}
-      autocomplete="current-password"
+      autocomplete="{% if autocomplete and autocomplete != 'off' %}{{ autocomplete }}{% else %}current-password{% endif %}"
       placeholder="{{ placeholder }}"
       class="floating-input w-full pl-11 pr-11 py-3.5 text-sm text-[#212b1c] bg-[#fffffe] rounded-xl border border-[#e6e4df] focus:border-[#475c3b] focus:ring-1 focus:ring-[#475c3b] outline-none transition-all duration-200 peer disabled:opacity-60 disabled:cursor-not-allowed {{ class_ }}"
     />
