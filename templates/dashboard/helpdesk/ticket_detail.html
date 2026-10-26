@@ -1,0 +1,118 @@
+{% extends "dashboard/base.html" %}
+{% load static lucide component_tags %}
+
+{% block title %}Ticket #{{ short_id }}{% endblock %}
+
+{% block content %}
+<div
+  class="mx-auto flex w-full max-w-5xl flex-col gap-6"
+  id="adminTicketDetail"
+  data-detail-url="{% url 'dashboard:admin_ticket_detail_api' ticket.id %}"
+  data-update-url="{% url 'dashboard:admin_ticket_update' ticket.id %}"
+  data-assign-url="{% url 'dashboard:admin_ticket_assign' ticket.id %}"
+  data-delete-url="{% url 'dashboard:admin_ticket_delete' ticket.id %}"
+  data-list-url="{% url 'dashboard:admin_ticket_list' %}"
+>
+  <input type="hidden" id="dashboardCsrfToken" value="{{ csrf_token }}" />
+
+  <!-- Breadcrumb -->
+  <nav aria-label="Breadcrumb">
+    <ol class="flex flex-wrap items-center gap-1.5 font-sans text-sm">
+      <li><a href="{{ dashboard_home_url }}" class="rounded-md px-1 py-0.5 text-neutral-800 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">Dashboard</a></li>
+      <li aria-hidden="true" class="text-neutral-700">{% lucide "chevron-right" class="w-4 h-4" %}</li>
+      <li><a href="{% url 'dashboard:admin_ticket_list' %}" class="rounded-md px-1 py-0.5 text-neutral-800 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">Helpdesk</a></li>
+      <li aria-hidden="true" class="text-neutral-700">{% lucide "chevron-right" class="w-4 h-4" %}</li>
+      <li><span aria-current="page" class="px-1 font-mono font-semibold text-primary-800">#{{ short_id }}</span></li>
+    </ol>
+  </nav>
+
+  <!-- Manage: status, assignment, delete -->
+  <section aria-labelledby="manageTicketTitle" class="flex flex-col gap-4 rounded-3xl border border-neutral-400 bg-neutral-50 p-4 shadow-sm sm:p-5">
+    <h2 id="manageTicketTitle" class="sr-only">Manage ticket</h2>
+
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+      <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+        <span id="statusControlLabel" class="font-sans text-sm font-semibold text-foreground">Status</span>
+        {# Segmented control: the pressed button is the current status #}
+        <div role="group" aria-labelledby="statusControlLabel" class="grid grid-cols-3 gap-1 rounded-2xl border border-neutral-400 bg-neutral-300 p-1 sm:inline-grid">
+          {% for value, label, icon, icon_color in status_actions %}
+          <button
+            type="button"
+            data-status-action="{{ value }}"
+            data-status-label="{{ label }}"
+            aria-pressed="{% if ticket.status == value %}true{% else %}false{% endif %}"
+            {% if not is_assignee %}disabled{% endif %}
+            class="group/status inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-xl px-3 font-sans text-sm font-semibold text-secondary-700 outline-none transition-all duration-200 hover:bg-neutral-50/70 focus-visible:ring-2 focus-visible:ring-primary-500 aria-pressed:bg-neutral-50 aria-pressed:text-secondary-900 aria-pressed:shadow-sm aria-busy:opacity-60 disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:bg-transparent disabled:aria-pressed:bg-neutral-50"
+          >
+            <span class="{{ icon_color }}">{% lucide icon class="w-4 h-4" %}</span>
+            <span class="whitespace-nowrap">{{ label }}</span>
+          </button>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2">
+        {% component "button" id="adminAssignButton" text="Assign to me" variant="secondary" size="sm" icon_left="user-plus" attrs='hidden' / %}
+        {% component "button" id="adminDeleteButton" text="Delete ticket" variant="danger-ghost" size="sm" icon_left="trash-2" / %}
+      </div>
+    </div>
+
+    {# Who can do what here, kept in sync by admin_ticket_detail.js #}
+    <p id="adminPermissionNotice" class="flex items-start gap-2 rounded-xl bg-neutral-300 px-3 py-2 font-sans text-sm text-neutral-900" role="status">
+      <span class="mt-0.5 shrink-0 text-secondary-500" data-notice-icon>{% lucide "info" class="w-4 h-4" %}</span>
+      <span data-notice-text>
+        {% if is_assignee %}You're the coordinator for this ticket: you can reply and change its status.
+        {% elif ticket.assigned_to %}View only. This ticket is assigned to {{ assignee_name }}; only they can reply or change its status.
+        {% else %}Unassigned. Assign it to yourself to reply and change its status.{% endif %}
+      </span>
+    </p>
+  </section>
+
+  <!-- Ticket card + conversation (rendered by admin_ticket_detail.js) -->
+  <section class="flex w-full flex-col gap-8" id="ticketCardSection" aria-busy="true"></section>
+
+  <!-- Reply composer: rendered for every admin so taking the ticket can reveal it without a reload;
+       the server still only accepts replies from the assigned coordinator -->
+  <section aria-labelledby="ticketReplyTitle" id="adminComposer" {% if not is_assignee %}hidden{% endif %}>
+    {% url 'dashboard:admin_ticket_message_create' ticket.id as action_url %}
+    {% include "helpdesk/_reply_composer.html" with action_url=action_url api_url=action_url draft_key="admin-ticket-reply-draft:"|add:ticket_id_str closed=ticket_is_closed closed_message="Set the status to In progress or Resolved to reopen the conversation." %}
+  </section>
+</div>
+
+<!-- Close confirmation: closing ends the conversation for both sides -->
+{% component "modal" id="closeTicketModal" title="Close this ticket?" size="sm" %}
+  {% fill "content" %}
+  <p class="font-sans text-sm text-foreground">The requester and you won't be able to reply anymore. You can reopen it later by setting it to In progress or Resolved.</p>
+  {% endfill %}
+  {% fill "footer" %}
+  {% component "button" text="Cancel" variant="neutral" attrs="data-modal-close data-modal-autofocus" / %}
+  {% component "button" id="closeTicketConfirm" text="Close ticket" variant="secondary" icon_left="lock" / %}
+  {% endfill %}
+{% endcomponent %}
+
+<!-- Delete confirmation -->
+{% component "modal" id="deleteTicketModal" title="Delete this ticket?" size="sm" %}
+  {% fill "content" %}
+  <div class="flex flex-col gap-3">
+    <p class="font-sans text-sm text-foreground">
+      <span class="font-semibold">#{{ short_id }} “{{ ticket.subject }}”</span> and its whole conversation will be permanently deleted.
+    </p>
+    <p class="flex items-start gap-2 rounded-xl border border-red-100/30 bg-red-100/5 p-3 font-sans text-xs text-foreground">
+      <span class="mt-0.5 shrink-0 text-red-100">{% lucide "triangle-alert" class="w-4 h-4" %}</span>
+      This can't be undone. The requester will no longer see this ticket.
+    </p>
+  </div>
+  {% endfill %}
+  {% fill "footer" %}
+  {% component "button" text="Cancel" variant="neutral" attrs="data-modal-close data-modal-autofocus" / %}
+  {% component "button" id="deleteTicketConfirm" text="Delete ticket" variant="danger" icon_left="trash-2" / %}
+  {% endfill %}
+{% endcomponent %}
+
+{% include "helpdesk/_detail_skeleton.html" %}
+{% include "helpdesk/_component_templates.html" %}
+{% endblock %}
+
+{% block scripts %}
+<script type="module" src="{% static 'js/dashboard/admin_ticket_detail.js' %}" defer></script>
+{% endblock %}

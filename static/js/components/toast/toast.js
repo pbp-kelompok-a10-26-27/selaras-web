@@ -1,11 +1,19 @@
 (function () {
+  // Older toasts are removed beyond this, so they never cover a small screen
+  const MAX_VISIBLE = 3;
+  const EXIT_MS = 300;
+
+  // Mobile & tablet: top of the screen, full width with a 16px gutter (and
+  // clear of the notch). Desktop (lg): bottom-right corner, fixed width.
+  // flex-col-reverse on top / flex-col at the bottom keeps the newest toast
+  // closest to the edge it slides in from.
   function getToastContainer() {
     let container = document.getElementById("toast-container");
     if (!container) {
       container = document.createElement("div");
       container.id = "toast-container";
       container.className =
-        "fixed md:top-4 md:right-4 top-6 right-0 z-50 flex flex-col gap-3 pointer-events-none max-w-md w-full px-4 sm:px-0";
+        "pointer-events-none fixed inset-x-0 top-[max(1rem,env(safe-area-inset-top))] z-[60] mx-auto flex w-full max-w-md flex-col-reverse gap-2 px-4 sm:gap-3 lg:inset-x-auto lg:top-auto lg:right-6 lg:bottom-6 lg:mx-0 lg:w-96 lg:max-w-none lg:flex-col lg:px-0";
       document.body.appendChild(container);
     }
     return container;
@@ -41,6 +49,11 @@
     }
   }
 
+  // Hidden state slides toward the edge the toast comes from:
+  // up on mobile/tablet (top), down on desktop (bottom-right)
+  const HIDDEN_CLASSES = ["opacity-0", "-translate-y-3", "lg:translate-y-3"];
+  const SHOWN_CLASSES = ["opacity-100", "translate-y-0", "lg:translate-y-0"];
+
   window.showToast = function (options = {}) {
     const {
       type = "success",
@@ -52,52 +65,72 @@
     const container = getToastContainer();
     const toast = document.createElement("div");
 
-    const colorClasses = getTypeClasses(type);
+    toast.className = `toast-item pointer-events-auto flex w-full items-start gap-3 rounded-2xl p-3 shadow-xl transition-all duration-300 ease-out motion-reduce:transition-none sm:p-4 ${HIDDEN_CLASSES.join(" ")} ${getTypeClasses(type)}`;
+    // Errors interrupt screen readers; other toasts wait for a pause
+    toast.setAttribute("role", type === "error" ? "alert" : "status");
 
-    toast.className = `toast-item pointer-events-auto flex items-start gap-3 w-full p-4 rounded-2xl shadow-xl transform translate-y-2 opacity-0 transition-all duration-300 ease-out ${colorClasses}`;
-    toast.setAttribute("role", "alert");
-
+    // Only fixed markup goes through innerHTML; title and message are set
+    // with textContent below, so user content (e.g. a ticket subject) can
+    // never be run as HTML
     toast.innerHTML = `
             <div class="flex-shrink-0 mt-0.5">${getIconSvg(type)}</div>
             <div class="flex-1 min-w-0">
-                ${title ? `<h4 class="font-sans md:text-s5 text-s6 text-foreground leading-tight truncate">${title}</h4>` : ""}
-                <p class="font-sans md:text-b3 text-b4 text-foreground/80 mt-0.5 leading-normal">${message}</p>
+                <h4 class="toast-title line-clamp-2 font-sans text-s6 leading-tight text-foreground sm:text-s5"></h4>
+                <p class="toast-message mt-0.5 break-words font-sans text-b4 leading-normal text-foreground/80 sm:text-sm"></p>
             </div>
-            <button type="button" class="toast-close flex-shrink-0 text-neutral-700 hover:text-foreground transition-colors p-1 rounded-lg hover:bg-neutral-200/60 cursor-pointer" aria-label="Close">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            <button type="button" class="toast-close -m-1.5 flex h-9 w-9 flex-shrink-0 cursor-pointer items-center justify-center rounded-lg text-neutral-700 transition-colors hover:bg-neutral-200/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500" aria-label="Close notification">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
         `;
 
+    const titleEl = toast.querySelector(".toast-title");
+    if (title) titleEl.textContent = title;
+    else titleEl.remove();
+    toast.querySelector(".toast-message").textContent = message;
+
     container.appendChild(toast);
+
+    // Drop the oldest toasts beyond the limit
+    const visible = container.querySelectorAll(".toast-item:not([data-leaving])");
+    [...visible].slice(0, Math.max(0, visible.length - MAX_VISIBLE)).forEach((old) => old._dismiss?.());
 
     // Trigger smooth entrance animation
     requestAnimationFrame(() => {
-      toast.classList.remove("translate-y-2", "opacity-0");
-      toast.classList.add("translate-y-0", "opacity-100");
+      toast.classList.remove(...HIDDEN_CLASSES);
+      toast.classList.add(...SHOWN_CLASSES);
     });
 
     let dismissTimeout;
 
     function dismiss() {
-      toast.classList.remove("translate-y-0", "opacity-100");
-      toast.classList.add("translate-y-2", "opacity-0");
+      if (toast.dataset.leaving) return;
+      toast.dataset.leaving = "true";
+      clearTimeout(dismissTimeout);
+      toast.classList.remove(...SHOWN_CLASSES);
+      toast.classList.add(...HIDDEN_CLASSES);
       setTimeout(() => {
         if (toast.parentElement) toast.remove();
-      }, 300);
+      }, EXIT_MS);
     }
+    toast._dismiss = dismiss;
 
     // Close button event
     toast.querySelector(".toast-close").addEventListener("click", dismiss);
 
-    // Auto dismiss timer
+    // Auto dismiss timer, paused while the user hovers or focuses the toast
     if (duration > 0) {
       dismissTimeout = setTimeout(dismiss, duration);
 
-      // Pause timer on hover
-      toast.addEventListener("mouseenter", () => clearTimeout(dismissTimeout));
-      toast.addEventListener("mouseleave", () => {
+      const pause = () => clearTimeout(dismissTimeout);
+      const resume = () => {
+        if (toast.matches(":hover, :focus-within")) return;
+        clearTimeout(dismissTimeout);
         dismissTimeout = setTimeout(dismiss, 2000);
-      });
+      };
+      toast.addEventListener("mouseenter", pause);
+      toast.addEventListener("focusin", pause);
+      toast.addEventListener("mouseleave", resume);
+      toast.addEventListener("focusout", () => setTimeout(resume));
     }
   };
 })();

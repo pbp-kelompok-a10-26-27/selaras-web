@@ -13,6 +13,12 @@ class Dropdown(component.Component):
             "label": kwargs.get("label", ""),
             "placeholder": kwargs.get("placeholder", "Select an option"),
             "default_value": kwargs.get("default_value", "All"),
+            "initial_value": kwargs.get(
+                "initial_value", ""
+            ),  # pre-selected option value
+            "default_label": kwargs.get(
+                "default_label", ""
+            ),  # label shown for initial_value
             "options": kwargs.get("options", {}),  # key: [value, icon]
             "options_group": kwargs.get(
                 "options_group", {}

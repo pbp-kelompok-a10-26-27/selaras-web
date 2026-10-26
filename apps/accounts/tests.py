@@ -162,3 +162,73 @@ class AuthorizationTests(TestCase):
         admin_request = self.factory.get("/admin-only/")
         admin_request.user = self.admin
         self.assertEqual(protected_view(admin_request).status_code, 200)
+
+
+class ProfileLayoutTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="regular",
+            email="regular@example.com",
+            password="Strong-password-123",
+        )
+        self.admin = User.objects.create_user(
+            username="administrator",
+            email="administrator@example.com",
+            password="Strong-password-123",
+            role=User.Role.ADMIN,
+        )
+
+    def test_user_account_pages_use_the_site_layout(self):
+        self.client.force_login(self.user)
+        for name in ("accounts:profile", "accounts:password_change"):
+            response = self.client.get(reverse(name))
+            self.assertTemplateUsed(response, "base.html")
+            self.assertTemplateNotUsed(response, "dashboard/base.html")
+
+        response = self.client.get(reverse("accounts:profile"))
+        self.assertEqual(
+            [stat["label"] for stat in response.context["stats"]],
+            ["Tickets filed", "In progress", "Resolved"],
+        )
+
+    def test_admin_account_pages_use_the_dashboard_layout(self):
+        self.client.force_login(self.admin)
+        for name in ("accounts:profile", "accounts:password_change"):
+            response = self.client.get(reverse(name))
+            self.assertTemplateUsed(response, "dashboard/base.html")
+            self.assertIn("sidebar_sections", response.context)
+
+        response = self.client.get(reverse("accounts:profile"))
+        self.assertEqual(response.context["stats"][0]["label"], "Assigned to you")
+
+    def test_profile_completion_counts_filled_fields(self):
+        self.client.force_login(self.user)
+        self.assertEqual(
+            self.client.get(reverse("accounts:profile")).context["completion"][
+                "percent"
+            ],
+            25,  # only the email
+        )
+
+        self.user.first_name, self.user.last_name, self.user.bio = (
+            "Ayu",
+            "Lestari",
+            "Hi",
+        )  # noqa: E501
+        self.user.save()
+        self.assertEqual(
+            self.client.get(reverse("accounts:profile")).context["completion"][
+                "percent"
+            ],
+            100,
+        )
+
+    def test_invalid_profile_post_keeps_saved_values_in_the_header(self):
+        self.client.force_login(self.user)
+        response = self.client.post(
+            reverse("accounts:profile"),
+            {"email": "not-an-email", "first_name": "Unsaved"},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["profile_user"].first_name, "")
+        self.assertContains(response, 'data-has-errors="true"')

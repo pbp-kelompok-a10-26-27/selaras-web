@@ -1,0 +1,209 @@
+{% extends 'base.html' %} {% load static lucide component_tags %} {% block title
+%}Helpdesk{% endblock %} {% block content %}
+<main
+  class="min-h-screen mt-40 flex flex-col items-center justify-center px-4 sm:px-8 lg:px-20 mx-auto overflow-hidden max-w-[1440px]"
+>
+  <!-- Header -->
+  <section class="flex flex-col w-full">
+    <!-- Welcoming Text -->
+    <h1 class="text-h1 text-center">Welcome to the helpdesk system!</h1>
+    <h2 class="text-h5 font-sans text-center">
+      File any complaints, bugs, reports and anything that bothers you :P
+    </h2>
+
+    <!-- Breadcrumb + Create ticket -->
+    <div class="mt-5 flex w-full flex-wrap items-center justify-between gap-3">
+    <nav aria-label="Breadcrumb">
+      <ol class="flex flex-wrap items-center gap-1.5 font-sans text-sm">
+        <li>
+          <a
+            href="{% url 'helpdesk:ticket_list' %}"
+            class="rounded-md px-1 py-0.5 text-neutral-800 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+            >Helpdesk</a
+          >
+        </li>
+        <li aria-hidden="true" class="text-neutral-700">
+          {% lucide "chevron-right" class="w-4 h-4" %}
+        </li>
+        <li>
+          <a
+            href="{% url 'helpdesk:ticket_list' %}"
+            class="rounded-md px-1 py-0.5 text-primary-800 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+            >Tickets</a
+          >
+        </li>
+      </ol>
+    </nav>
+
+      {% component "button" id="createTicketButton" text="Create ticket" variant="secondary" icon_left="plus" class_="max-sm:w-full" attrs='data-modal-open="createTicketModal" aria-haspopup="dialog"' / %}
+    </div>
+
+    <div
+      class="mt-10 w-full"
+      id="ticketStats"
+      data-stats-url="{% url 'helpdesk:ticket_stats_api' %}"
+    ></div>
+
+    <!-- Search, Filter, Sorting Section -->
+
+    <div
+      class="grid w-full grid-cols-1 items-end gap-4 mt-10 sm:grid-cols-3 lg:grid-cols-[minmax(0,2fr)_repeat(3,minmax(0,1fr))]"
+    >
+      <!-- Search -->
+      <!-- placeholder=" " keeps the floating label working (it moves up once the input isn't empty) -->
+      <search class="flex flex-col sm:col-span-3 lg:col-span-1">
+        {% component "input" type="search" id="ticketsSearch" name="search" label="Search by subject or description" placeholder=" " icon="search" value=query.search attrs='maxlength="100"' / %}
+      </search>
+
+      <!-- Status Filter Dropdown -->
+      {% component "dropdown" with id="tickets-status-dropdown" label="Status"
+      placeholder="All statuses" name="status" options=status_options
+      initial_value=query.status default_label=status_label / %}
+
+      <!-- Priority Filter Dropdown -->
+      {% component "dropdown" with id="tickets-priority-dropdown"
+      label="Priority" placeholder="All priorities" name="priority"
+      options=priority_options initial_value=query.priority
+      default_label=priority_label / %}
+
+      <!-- Sorting Dropdown (Priority & Dates) -->
+      {% component "dropdown" with id="tickets-sorting-dropdown" label="Sort by"
+      placeholder="Latest" name="sort" options=sorting_options
+      initial_value=query.sort default_label=sort_label / %}
+    </div>
+
+    <!-- Active filter chips (rendered by stats.js) + result count -->
+    <div class="mt-4 flex w-full flex-wrap items-center justify-between gap-3">
+      <div
+        id="ticketsActiveFilters"
+        class="flex flex-wrap items-center gap-2"
+        role="group"
+        aria-label="Active filters"
+      ></div>
+      <p
+        id="ticketsResultCount"
+        class="font-sans text-sm text-neutral-800"
+        role="status"
+        aria-live="polite"
+      ></p>
+    </div>
+  </section>
+
+  <!-- Ticket Section -->
+  <section
+    class="grid lg:grid-cols-3 mt-6 md:grid-cols-2 grid-cols-1 items-stretch gap-4 sm:gap-6 w-full scroll-mt-32 outline-none transition-opacity duration-200 aria-busy:opacity-60"
+    data-tickets-url="{% url 'helpdesk:ticket_list_api' %}"
+    id="ticketsContainer"
+    tabindex="-1"
+    aria-label="Tickets"
+  >
+    <!-- Shown until stats.js renders the first page of tickets -->
+    {% for i in "123" %}
+    <div aria-hidden="true">{% component "skeleton" variant="rect" height="h-72" rounded="rounded-2xl" / %}</div>
+    {% endfor %}
+  </section>
+
+  <!-- Pager (10 tickets per page), rendered by stats.js -->
+  <div id="ticketsPagination" class="mt-8 w-full"></div>
+
+  <!-- Loading placeholder for the stats panels (cloned by stats.js, also on retry) -->
+  <template id="tpl-stats-skeleton">
+    <div class="grid gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]" aria-hidden="true">
+      <div class="flex flex-col gap-4 rounded-3xl border border-neutral-400 bg-neutral-300 p-4 sm:p-6">
+        {% component "skeleton" variant="rect" width="w-40" height="h-9" rounded="rounded-xl" / %}
+        <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
+          {% for i in "1234" %}
+          {% component "skeleton" variant="rect" height="h-36" rounded="rounded-2xl" / %}
+          {% endfor %}
+        </div>
+      </div>
+      <div class="flex flex-col gap-4 rounded-3xl border border-neutral-400 bg-neutral-300 p-4 sm:p-6">
+        {% component "skeleton" variant="rect" width="w-32" height="h-9" rounded="rounded-xl" / %}
+        {% component "skeleton" variant="rect" height="h-3" rounded="rounded-full" / %}
+        {% for i in "123" %}
+        {% component "skeleton" variant="rect" height="h-11" rounded="rounded-xl" / %}
+        {% endfor %}
+      </div>
+    </div>
+  </template>
+
+  {% include "helpdesk/_component_templates.html" %}
+</main>
+
+{% component "modal" id="createTicketModal" title="Create a ticket" size="lg" %}
+  {% fill "content" %}
+  <form
+    id="createTicketForm"
+    method="post"
+    action="{% url 'helpdesk:ticket_create' %}"
+    data-api-url="{% url 'helpdesk:ticket_create_api' %}"
+    novalidate
+    class="flex flex-col gap-6"
+  >
+    {% csrf_token %}
+    <p class="font-sans text-sm text-neutral-800">
+      Tell us what's going on and we'll get back to you. Fields marked <span aria-hidden="true">*</span><span class="sr-only">as required</span> are required.
+    </p>
+
+    <!-- Subject -->
+    <div>
+      {% component "input" id="ticketSubject" name="subject" label="Subject *" placeholder=" " icon="type" required=True class_="aria-invalid:border-red-100 aria-invalid:ring-1 aria-invalid:ring-red-100" attrs='maxlength="200" data-modal-autofocus aria-describedby="ticketSubjectError ticketSubjectCount"' / %}
+      <div class="mt-1.5 flex items-start justify-between gap-3 px-1 font-sans text-xs">
+        <p id="ticketSubjectError" class="flex items-center gap-1 text-red-100" hidden></p>
+        <span id="ticketSubjectCount" class="ml-auto shrink-0 tabular-nums text-neutral-800">0 / 200</span>
+      </div>
+    </div>
+
+    <!-- Priority -->
+    <fieldset>
+      <legend class="mb-2 font-sans text-sm font-semibold text-foreground">Priority</legend>
+      <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
+        {% for value, label, icon, icon_color, hint in priority_form_options %}
+        <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-neutral-400 bg-neutral-50 p-3 transition-all duration-200 hover:border-neutral-500 has-checked:border-secondary-700 has-checked:bg-secondary-50 has-checked:ring-2 has-checked:ring-secondary-700/20 has-focus-visible:ring-2 has-focus-visible:ring-primary-500 sm:flex-col sm:items-start sm:gap-1.5">
+          <input type="radio" name="priority" value="{{ value }}" class="sr-only" {% if value == default_priority %}checked data-default-checked{% endif %} />
+          <span class="flex items-center gap-2 font-sans text-sm font-semibold text-foreground">
+            <span class="{{ icon_color }}">{% lucide icon class="w-4 h-4" %}</span>
+            {{ label }}
+          </span>
+          <span class="font-sans text-xs text-neutral-800">{{ hint }}</span>
+        </label>
+        {% endfor %}
+      </div>
+    </fieldset>
+
+    <!-- Description -->
+    <div>
+      <label for="ticketDescription" class="mb-2 block font-sans text-sm font-semibold text-foreground">Description <span aria-hidden="true">*</span></label>
+      <textarea
+        id="ticketDescription"
+        name="description"
+        rows="5"
+        maxlength="5000"
+        required
+        placeholder="What happened? What did you expect? Include IDs, links or steps to reproduce if you have them."
+        aria-describedby="ticketDescriptionError ticketDescriptionCount"
+        class="max-h-72 min-h-32 w-full resize-none rounded-xl border border-neutral-400 bg-neutral-50 px-4 py-3 font-sans text-sm text-foreground transition-colors duration-200 placeholder:text-neutral-700 hover:border-primary-400 focus:border-secondary-600 focus:outline-none focus:ring-1 focus:ring-secondary-600 aria-invalid:border-red-100 aria-invalid:ring-1 aria-invalid:ring-red-100"
+      ></textarea>
+      <div class="mt-1.5 flex items-start justify-between gap-3 px-1 font-sans text-xs">
+        <p id="ticketDescriptionError" class="flex items-center gap-1 text-red-100" hidden></p>
+        <span id="ticketDescriptionCount" class="ml-auto shrink-0 tabular-nums text-neutral-800">0 / 5000</span>
+      </div>
+    </div>
+  </form>
+  {% endfill %}
+
+  {% fill "footer" %}
+  <span class="mr-auto hidden font-sans text-xs text-neutral-800 sm:inline">
+    <kbd class="rounded border border-neutral-500 bg-neutral-300 px-1.5 py-0.5 font-mono text-[0.6875rem]">Ctrl</kbd>
+    +
+    <kbd class="rounded border border-neutral-500 bg-neutral-300 px-1.5 py-0.5 font-mono text-[0.6875rem]">Enter</kbd>
+    to submit
+  </span>
+  {% component "button" text="Cancel" variant="neutral" attrs="data-modal-close" / %}
+  {% component "button" id="createTicketSubmit" type="submit" text="Create ticket" variant="secondary" icon_right="send-horizontal" attrs='form="createTicketForm"' / %}
+  {% endfill %}
+{% endcomponent %}
+{% endblock content %} {% block scripts %}
+<script type="module" src="{% static 'js/helpdesk/stats.js' %}" defer></script>
+<script type="module" src="{% static 'js/helpdesk/create_ticket.js' %}" defer></script>
+{% endblock scripts %}

@@ -17,7 +17,7 @@
         aria-expanded="false"
         class="dropdown-trigger w-full flex items-center justify-between px-4 py-3 bg-neutral-50 border border-neutral-400 rounded-xl font-sans text-b3 text-foreground shadow-sm transition-all duration-200 hover:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-500/50 cursor-pointer {{ class_ }}"
     >
-        <span class="dropdown-label truncate text-foreground/80">
+        <span class="dropdown-label truncate {% if not default_label %}text-foreground/80{% endif %}" data-placeholder="{{ placeholder|default:'Select an option...' }}">
             {{ default_label|default:placeholder|default:"Select an option..." }}
         </span>
         <span class="dropdown-arrow transition-transform duration-300 text-secondary-500">

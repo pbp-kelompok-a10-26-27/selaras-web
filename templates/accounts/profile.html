@@ -1,14 +1,390 @@
-{% extends "base.html" %} 
-{% block title %}
-    Profile | SELARAS
-{% endblock %} 
+{% extends base_template|default:"base.html" %}
+{% load static lucide component_tags %}
+
+{% block title %}{% if in_dashboard %}Profile{% else %}Profile | SELARAS{% endif %}{% endblock %}
+
 {% block content %}
-<main class="mx-auto max-w-xl px-4 py-12">
-  <h1>Your profile</h1>
-  <form method="post" novalidate>
-    {% csrf_token %} {{ form.as_p }}
-    <button type="submit">Save changes</button>
-  </form>
-  <p><a href="{% url 'accounts:password_change' %}">Change password</a></p>
-</main>
+{% with u=profile_user %}
+<div
+  id="profile"
+  data-profile
+  data-username="{{ u.username }}"
+  class="{% if not in_dashboard %}mx-auto w-full max-w-6xl px-4 pt-32 pb-20 sm:px-6 lg:px-8{% endif %}"
+>
+  {# Breadcrumb #}
+  <nav aria-label="Breadcrumb" class="mb-5 fade-in">
+    <ol class="flex flex-wrap items-center gap-1.5 font-sans text-sm">
+      <li>
+        <a
+          href="{% if in_dashboard %}{{ dashboard_home_url }}{% else %}{% url 'home' %}{% endif %}"
+          class="rounded-md px-1 py-0.5 text-neutral-800 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+        >{% if in_dashboard %}Dashboard{% else %}Home{% endif %}</a>
+      </li>
+      <li aria-hidden="true" class="text-neutral-700">{% lucide "chevron-right" class="w-4 h-4" %}</li>
+      <li><span aria-current="page" class="px-1 py-0.5 text-primary-800">Profile</span></li>
+    </ol>
+  </nav>
+
+  {# ============================ Hero ============================ #}
+  <section
+    data-profile-hero
+    aria-labelledby="profile-name"
+    class="slide-in-up relative overflow-hidden rounded-3xl border border-neutral-400 bg-neutral-50 shadow-[0_8px_30px_rgba(33,43,28,0.06)]"
+  >
+    {# Cover #}
+    <div class="relative h-36 overflow-hidden bg-gradient-to-br from-primary-200 via-primary-100 to-tertiary-200 sm:h-44" aria-hidden="true">
+      <div class="absolute -top-16 -left-10 h-56 w-56 rounded-full bg-primary-300/40 blur-3xl"></div>
+      <div class="absolute -right-12 -bottom-20 h-64 w-64 rounded-full bg-tertiary-300/60 blur-3xl"></div>
+      <div class="profile-glow absolute inset-0"></div>
+
+      <span class="animate-float absolute top-6 right-[12%] text-secondary-300/50">{% lucide "leaf" size=None class="size-10 sm:size-14" stroke_width=1.5 %}</span>
+      <span class="animate-float-reverse absolute top-16 right-[30%] text-tertiary-600/50">{% lucide "sprout" size=None class="size-7 sm:size-9" stroke_width=1.5 %}</span>
+      <span class="animate-float absolute bottom-5 left-[46%] hidden text-primary-600/40 sm:block">{% lucide "leaf" size=None class="size-8 -rotate-45" stroke_width=1.5 %}</span>
+      <span class="absolute top-5 right-[22%] h-2 w-2 rounded-full bg-secondary-500/60"></span>
+      <span class="absolute right-[8%] bottom-8 h-3 w-3 rounded-full bg-tertiary-500/60"></span>
+    </div>
+
+    <div class="relative px-5 pb-6 sm:px-8 sm:pb-8">
+      <div class="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-end">
+          {# Avatar with the completion ring around it #}
+          <div class="relative -mt-14 h-28 w-28 shrink-0 sm:-mt-16 sm:h-32 sm:w-32">
+            <svg class="absolute inset-0 h-full w-full -rotate-90" viewBox="0 0 120 120" aria-hidden="true">
+              <circle cx="60" cy="60" r="56" fill="none" stroke-width="5" class="stroke-neutral-50"></circle>
+              <circle cx="60" cy="60" r="56" fill="none" stroke-width="5" class="stroke-neutral-400"></circle>
+              <circle
+                cx="60" cy="60" r="56" fill="none" stroke-width="5" stroke-linecap="round" pathLength="100"
+                data-completion-ring
+                style="--progress: {{ completion.percent }}"
+                class="profile-ring-value stroke-primary-500"
+              ></circle>
+            </svg>
+            <div
+              data-preview-initials
+              class="absolute inset-[9px] flex items-center justify-center rounded-full bg-secondary-700 font-sans text-3xl font-semibold text-neutral-50 shadow-inner ring-4 ring-neutral-50 select-none sm:text-4xl"
+              aria-hidden="true"
+            >{% if u.first_name or u.last_name %}{{ u.first_name|first|upper }}{{ u.last_name|first|upper }}{% else %}{{ u.username|slice:":2"|upper }}{% endif %}</div>
+            <span
+              class="absolute -right-1 bottom-1 inline-flex items-center rounded-full border border-neutral-400 bg-neutral-50 px-2 py-0.5 font-sans text-xs font-semibold text-secondary-800 shadow-sm"
+            ><span data-completion-percent>{{ completion.percent }}</span>%<span class="sr-only"> profile complete</span></span>
+          </div>
+
+          <div class="min-w-0 sm:pb-1">
+            <div class="flex flex-wrap items-center gap-2">
+              <h1 id="profile-name" data-preview-name class="min-w-0 truncate text-h4 sm:text-h3">{{ u.get_full_name|default:u.username }}</h1>
+              {% if u.is_admin %}
+              <span class="inline-flex items-center gap-1.5 rounded-full border border-tertiary-400 bg-tertiary-200 px-2.5 py-1 font-sans text-xs font-semibold text-tertiary-900">
+                {% lucide "shield-check" class="w-3.5 h-3.5" aria_hidden="true" %} Admin
+              </span>
+              {% else %}
+              <span class="inline-flex items-center gap-1.5 rounded-full border border-primary-300 bg-primary-200 px-2.5 py-1 font-sans text-xs font-semibold text-primary-900">
+                {% lucide "leaf" class="w-3.5 h-3.5" aria_hidden="true" %} Member
+              </span>
+              {% endif %}
+            </div>
+
+            <div class="mt-1 flex items-center gap-1 font-sans text-sm text-neutral-800">
+              <span>@{{ u.username }}</span>
+              {% component "tooltip" text="Copy username" position="bottom" %}
+              <button
+                type="button"
+                data-copy="{{ u.username }}"
+                aria-label="Copy username"
+                class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-neutral-700 transition-colors hover:bg-secondary-50 hover:text-secondary-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+              >{% lucide "copy" class="w-4 h-4" aria_hidden="true" %}</button>
+              {% endcomponent %}
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap gap-2 md:pb-1">
+          {% component "button" text="Edit profile" variant="secondary" icon_left="pencil" class_="max-sm:flex-1" attrs='data-edit-profile' / %}
+          {% url 'accounts:password_change' as password_change_url %}
+          {% component "button" text="Password" href=password_change_url variant="neutral" icon_left="key-round" class_="max-sm:flex-1" / %}
+        </div>
+      </div>
+
+      <p
+        data-preview-bio
+        data-empty-text="No bio yet. Tell the community a little about your green habits."
+        class="mt-5 max-w-2xl font-sans text-sm leading-relaxed {% if u.bio %}text-secondary-700{% else %}italic text-neutral-700{% endif %}"
+      >{{ u.bio|default:"No bio yet. Tell the community a little about your green habits." }}</p>
+
+      <ul class="mt-5 flex flex-wrap gap-2 font-sans text-xs text-secondary-700">
+        <li class="inline-flex items-center gap-1.5 rounded-full border border-neutral-400 bg-neutral-300 px-3 py-1.5">
+          {% lucide "calendar-days" class="w-3.5 h-3.5 text-secondary-400" aria_hidden="true" %}
+          Joined {{ u.date_joined|date:"F Y" }}
+        </li>
+        <li class="inline-flex items-center gap-1.5 rounded-full border border-neutral-400 bg-neutral-300 px-3 py-1.5">
+          {% lucide "clock" class="w-3.5 h-3.5 text-secondary-400" aria_hidden="true" %}
+          {% if u.last_login %}Signed in {{ u.last_login|date:"j M, H:i" }}{% else %}First visit{% endif %}
+        </li>
+        <li class="inline-flex min-w-0 items-center gap-1.5 rounded-full border border-neutral-400 bg-neutral-300 px-3 py-1.5">
+          {% lucide "mail" class="w-3.5 h-3.5 shrink-0 text-secondary-400" aria_hidden="true" %}
+          <span class="truncate" data-preview-email>{{ u.email }}</span>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  {# ============================ Stats ============================ #}
+  <ul class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3" aria-label="{% if u.is_admin %}Your help desk work{% else %}Your help desk activity{% endif %}">
+    {% for stat in stats %}
+    <li class="scroll-reveal" style="transition-delay: {{ forloop.counter0 }}00ms">
+      <a
+        href="{{ stat.href }}"
+        data-spotlight
+        class="account-tile group flex h-full items-center gap-4 p-5"
+      >
+        <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary-200 text-secondary-700 transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110">
+          {% lucide stat.icon class="w-6 h-6" aria_hidden="true" %}
+        </span>
+        <span class="min-w-0 flex-1">
+          <span class="block font-sans text-3xl font-semibold leading-none text-secondary-900 tabular-nums" data-count-to="{{ stat.value }}">{{ stat.value }}</span>
+          <span class="mt-1.5 block font-sans text-sm font-semibold text-secondary-800">{{ stat.label }}</span>
+          <span class="block truncate font-sans text-xs text-neutral-800">{{ stat.hint }}</span>
+        </span>
+        <span class="shrink-0 text-neutral-700 transition-all duration-200 group-hover:translate-x-1 group-hover:text-secondary-700" aria-hidden="true">{% lucide "arrow-right" class="w-4 h-4" %}</span>
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+
+  <div class="mt-6 grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
+    {# ============================ Tabs ============================ #}
+    <section class="scroll-reveal rounded-3xl border border-neutral-400 bg-neutral-50 lg:col-span-8" data-tabs>
+      <div role="tablist" aria-label="Profile settings" class="relative flex gap-1 overflow-x-auto border-b border-neutral-400 px-3 pt-3 sm:px-6">
+        <button
+          type="button" role="tab" id="tab-details" aria-controls="panel-details" aria-selected="true" data-tab="details"
+          class="profile-tab"
+        >{% lucide "user-round" class="w-4 h-4" aria_hidden="true" %} Personal info</button>
+        <button
+          type="button" role="tab" id="tab-security" aria-controls="panel-security" aria-selected="false" tabindex="-1" data-tab="security"
+          class="profile-tab"
+        >{% lucide "shield-check" class="w-4 h-4" aria_hidden="true" %} Security</button>
+        <span data-tab-indicator aria-hidden="true" class="absolute bottom-0 left-0 h-0.5 w-0 rounded-full bg-secondary-700 transition-[translate,width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"></span>
+      </div>
+
+      {# ---------- Personal info ---------- #}
+      <div role="tabpanel" id="panel-details" aria-labelledby="tab-details" tabindex="0" class="outline-none">
+        <form method="post" novalidate data-profile-form data-has-errors="{% if form.errors %}true{% else %}false{% endif %}" class="p-5 sm:p-8">
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+          <div class="mb-6 space-y-1 rounded-xl border border-tertiary-300 bg-tertiary-200 p-3.5 text-xs text-tertiary-800" role="alert">
+            {% for error in form.non_field_errors %}
+            <p class="flex items-center gap-2"><span class="h-1.5 w-1.5 rounded-full bg-tertiary-600"></span>{{ error }}</p>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          <div class="mb-7">
+            <h2 class="text-h5">Personal information</h2>
+            <p class="mt-1 font-sans text-sm text-neutral-800">This is how other members see you across SELARAS.</p>
+          </div>
+
+          <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            {% component "input" id="id_first_name" name="first_name" label="First name" placeholder=" " icon="user" value=form.first_name.value errors=form.first_name.errors autocomplete="given-name" attrs='maxlength="150" data-field="first_name"' / %}
+            {% component "input" id="id_last_name" name="last_name" label="Last name" placeholder=" " icon="user-round" value=form.last_name.value errors=form.last_name.errors autocomplete="family-name" attrs='maxlength="150" data-field="last_name"' / %}
+
+            <div class="sm:col-span-2" data-email-wrapper>
+              {% component "input" type="email" id="id_email" name="email" label="Email address" placeholder=" " icon="mail" value=form.email.value errors=form.email.errors autocomplete="email" required=True attrs='data-field="email"' / %}
+              <p data-email-error class="hidden pt-1 pl-1 font-sans text-xs text-tertiary-600" aria-live="polite">Enter a valid email address, like name@example.com.</p>
+            </div>
+
+            <div class="space-y-1 sm:col-span-2">
+              <div class="relative">
+                <span class="pointer-events-none absolute top-3.5 left-3.5 z-20 text-secondary-300">{% lucide "pencil" class="w-5 h-5" aria_hidden="true" %}</span>
+                <textarea
+                  id="id_bio"
+                  name="bio"
+                  rows="4"
+                  maxlength="200"
+                  placeholder=" "
+                  data-field="bio"
+                  aria-describedby="bio-hint bio-count"
+                  class="floating-input peer block w-full resize-none rounded-xl border border-neutral-400 bg-neutral-50 py-3.5 pr-4 pl-11 font-sans text-sm text-secondary-900 outline-none transition-all duration-200 focus:border-secondary-600 focus:ring-1 focus:ring-secondary-600"
+                >{{ form.bio.value|default_if_none:"" }}</textarea>
+                <label for="id_bio" class="floating-label pointer-events-none absolute top-3.5 left-11 z-10 origin-left font-sans text-sm text-neutral-700 transition-all duration-200 ease-out">Bio</label>
+              </div>
+              <div class="flex items-start justify-between gap-3 px-1 font-sans text-xs">
+                {% if form.bio.errors %}
+                <span id="bio-hint" class="text-tertiary-600">{{ form.bio.errors.0 }}</span>
+                {% else %}
+                <span id="bio-hint" class="text-neutral-800">A sentence or two about you and the habits you're building.</span>
+                {% endif %}
+                <span id="bio-count" data-bio-count aria-live="polite" class="shrink-0 tabular-nums text-neutral-800">0/200</span>
+              </div>
+            </div>
+          </div>
+
+          {# Save bar: sticks to the bottom of the screen while there are unsaved changes (input.css) #}
+          <div
+            data-save-bar
+            class="relative z-10 mt-8 flex flex-col gap-3 rounded-2xl border border-neutral-400 bg-neutral-50/95 p-3 shadow-[0_8px_30px_rgba(33,43,28,0.08)] backdrop-blur sm:flex-row sm:items-center sm:justify-between sm:pl-5"
+          >
+            <p class="flex items-center gap-2 font-sans text-sm text-neutral-800" aria-live="polite">
+              <span data-save-dot class="h-2 w-2 rounded-full bg-primary-500 transition-colors"></span>
+              <span data-save-status>All changes saved</span>
+            </p>
+            <div class="flex gap-2">
+              {# type="reset" puts every field back to its saved value, even without JS #}
+              {% component "button" id="profileDiscard" type="reset" text="Discard" variant="neutral" size="sm" icon_left="rotate-ccw" class_="max-sm:flex-1" attrs='data-discard' / %}
+              {% component "button" id="profileSave" type="submit" text="Save changes" variant="secondary" size="sm" icon_left="save" class_="max-sm:flex-1" / %}
+            </div>
+          </div>
+        </form>
+      </div>
+
+      {# ---------- Security ---------- #}
+      <div role="tabpanel" id="panel-security" aria-labelledby="tab-security" tabindex="0" hidden class="p-5 outline-none sm:p-8">
+        <div class="mb-6">
+          <h2 class="text-h5">Security</h2>
+          <p class="mt-1 font-sans text-sm text-neutral-800">Keep your account safe and in your hands.</p>
+        </div>
+
+        <ul class="divide-y divide-neutral-400 rounded-2xl border border-neutral-400">
+          <li class="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:p-5">
+            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-200 text-secondary-700">{% lucide "key-round" class="w-5 h-5" aria_hidden="true" %}</span>
+            <div class="min-w-0 flex-1">
+              <h3 class="font-sans text-sm font-semibold text-secondary-900">Password</h3>
+              <p class="font-sans text-sm text-neutral-800">Use a long passphrase you don't use anywhere else.</p>
+            </div>
+            {% component "button" text="Change password" href=password_change_url variant="secondary" size="sm" icon_right="arrow-right" / %}
+          </li>
+
+          <li class="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:p-5">
+            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-tertiary-200 text-tertiary-800">{% lucide "mail-check" class="w-5 h-5" aria_hidden="true" %}</span>
+            <div class="min-w-0 flex-1">
+              <h3 class="font-sans text-sm font-semibold text-secondary-900">Reset by email</h3>
+              <p class="font-sans text-sm text-neutral-800">Forgot your current password? We'll send a secure link to <span class="font-semibold text-secondary-800">{{ u.email }}</span>.</p>
+            </div>
+            <form method="post" action="{% url 'accounts:password_reset' %}" data-confirm-reset>
+              {% csrf_token %}
+              <input type="hidden" name="email" value="{{ u.email }}" />
+              {% component "button" type="submit" text="Send link" variant="neutral" size="sm" icon_left="send" class_="max-sm:w-full" / %}
+            </form>
+          </li>
+
+          <li class="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:p-5">
+            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-secondary-100 text-secondary-600">{% lucide "monitor-smartphone" class="w-5 h-5" aria_hidden="true" %}</span>
+            <div class="min-w-0 flex-1">
+              <h3 class="font-sans text-sm font-semibold text-secondary-900">This session</h3>
+              <p class="font-sans text-sm text-neutral-800">
+                {% if u.last_login %}Signed in {{ u.last_login|date:"j M Y, H:i" }}.{% else %}Signed in now.{% endif %}
+                Log out when you're on a shared device.
+              </p>
+            </div>
+            <form method="post" action="{% url 'accounts:logout' %}">
+              {% csrf_token %}
+              {% component "button" type="submit" text="Log out" variant="danger-ghost" size="sm" icon_left="log-out" class_="max-sm:w-full" / %}
+            </form>
+          </li>
+
+          {% if u.is_admin %}
+          <li class="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:p-5">
+            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-tertiary-200 text-tertiary-800">{% lucide "shield-check" class="w-5 h-5" aria_hidden="true" %}</span>
+            <div class="min-w-0 flex-1">
+              <h3 class="font-sans text-sm font-semibold text-secondary-900">Admin access</h3>
+              <p class="font-sans text-sm text-neutral-800">You can manage users, content and support tickets. Roles can only be changed by another admin.</p>
+            </div>
+            {% url 'dashboard:home' as dashboard_url %}
+            {% component "button" text="Dashboard" href=dashboard_url variant="neutral" size="sm" icon_left="layout-dashboard" / %}
+          </li>
+          {% endif %}
+        </ul>
+      </div>
+    </section>
+
+    {# ============================ Side ============================ #}
+    <aside class="flex flex-col gap-6 lg:col-span-4">
+      {# Profile strength #}
+      <section class="scroll-reveal rounded-3xl border border-neutral-400 bg-neutral-50 p-5 sm:p-6" aria-labelledby="completion-title">
+        <div class="flex items-center justify-between gap-3">
+          <h2 id="completion-title" class="text-h6">Profile strength</h2>
+          <span class="font-sans text-sm font-semibold text-secondary-800 tabular-nums"><span data-completion-percent>{{ completion.percent }}</span>%</span>
+        </div>
+        <div class="mt-3 h-2 overflow-hidden rounded-full bg-neutral-400" role="progressbar" aria-label="Profile completion" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ completion.percent }}" data-completion-bar>
+          <div class="h-full rounded-full bg-gradient-to-r from-primary-300 to-secondary-500 transition-[width] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none" style="width: {{ completion.percent }}%" data-completion-fill></div>
+        </div>
+        <p class="mt-3 font-sans text-xs text-neutral-800" data-completion-message>
+          {% if completion.percent == 100 %}Your profile is complete. Nicely done!{% else %}A complete profile helps others recognise you.{% endif %}
+        </p>
+        <ul class="mt-4 space-y-1">
+          {% for step in completion.steps %}
+          <li>
+            <button
+              type="button"
+              data-step="{{ step.field }}"
+              data-done="{% if step.done %}true{% else %}false{% endif %}"
+              class="profile-step group flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-xl px-2 text-left font-sans text-sm outline-none transition-colors hover:bg-primary-100 focus-visible:ring-2 focus-visible:ring-primary-500"
+            >
+              <span class="profile-step-icon flex h-6 w-6 shrink-0 items-center justify-center rounded-full border transition-all duration-300">{% lucide "check" class="w-3.5 h-3.5" stroke_width=3 aria_hidden="true" %}</span>
+              <span class="profile-step-label flex-1">{{ step.label }}</span>
+              <span class="text-neutral-700 opacity-0 transition-opacity group-hover:opacity-100" aria-hidden="true">{% lucide "chevron-right" class="w-4 h-4" %}</span>
+            </button>
+          </li>
+          {% endfor %}
+        </ul>
+      </section>
+
+      {# Account details #}
+      <section class="scroll-reveal rounded-3xl border border-neutral-400 bg-neutral-50 p-5 sm:p-6" aria-labelledby="account-title">
+        <h2 id="account-title" class="text-h6">Account</h2>
+        <dl class="mt-4 space-y-3 font-sans text-sm">
+          <div class="flex items-center justify-between gap-3">
+            <dt class="text-neutral-800">Username</dt>
+            <dd class="truncate font-semibold text-secondary-900">@{{ u.username }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-3">
+            <dt class="text-neutral-800">Role</dt>
+            <dd class="font-semibold text-secondary-900">{{ u.get_role_display }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-3">
+            <dt class="text-neutral-800">Member since</dt>
+            <dd class="font-semibold text-secondary-900">{{ u.date_joined|date:"j M Y" }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-3">
+            <dt class="text-neutral-800">Account ID</dt>
+            <dd class="flex items-center gap-1">
+              <code class="rounded-md bg-neutral-300 px-1.5 py-0.5 font-mono text-xs text-secondary-800" title="{{ u.id }}">{{ u.id|stringformat:"s"|slice:":8" }}…</code>
+              {% component "tooltip" text="Copy ID" position="left" %}
+              <button
+                type="button"
+                data-copy="{{ u.id }}"
+                aria-label="Copy account ID"
+                class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-neutral-700 transition-colors hover:bg-secondary-50 hover:text-secondary-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+              >{% lucide "copy" class="w-4 h-4" aria_hidden="true" %}</button>
+              {% endcomponent %}
+            </dd>
+          </div>
+        </dl>
+      </section>
+
+      {# Shortcuts #}
+      <section class="scroll-reveal rounded-3xl border border-neutral-400 bg-neutral-50 p-5 sm:p-6" aria-labelledby="shortcuts-title">
+        <h2 id="shortcuts-title" class="text-h6">Shortcuts</h2>
+        <ul class="mt-3 space-y-1">
+          {% if u.is_admin %}
+          <li><a href="{% url 'dashboard:home' %}" class="profile-shortcut group">{% lucide "layout-dashboard" class="w-5 h-5 text-secondary-400" aria_hidden="true" %}<span class="flex-1">Dashboard overview</span>{% lucide "chevron-right" class="w-4 h-4 text-neutral-700 transition-transform group-hover:translate-x-0.5" aria_hidden="true" %}</a></li>
+          <li><a href="{% url 'dashboard:admin_ticket_list' %}" class="profile-shortcut group">{% lucide "life-buoy" class="w-5 h-5 text-secondary-400" aria_hidden="true" %}<span class="flex-1">Manage tickets</span>{% lucide "chevron-right" class="w-4 h-4 text-neutral-700 transition-transform group-hover:translate-x-0.5" aria_hidden="true" %}</a></li>
+          <li><a href="{% url 'home' %}" class="profile-shortcut group">{% lucide "external-link" class="w-5 h-5 text-secondary-400" aria_hidden="true" %}<span class="flex-1">View site</span>{% lucide "chevron-right" class="w-4 h-4 text-neutral-700 transition-transform group-hover:translate-x-0.5" aria_hidden="true" %}</a></li>
+          {% else %}
+          <li><a href="{% url 'helpdesk:ticket_list' %}" class="profile-shortcut group">{% lucide "life-buoy" class="w-5 h-5 text-secondary-400" aria_hidden="true" %}<span class="flex-1">Help desk</span>{% lucide "chevron-right" class="w-4 h-4 text-neutral-700 transition-transform group-hover:translate-x-0.5" aria_hidden="true" %}</a></li>
+          <li><a href="/challenges/" class="profile-shortcut group">{% lucide "trophy" class="w-5 h-5 text-secondary-400" aria_hidden="true" %}<span class="flex-1">Challenges</span>{% lucide "chevron-right" class="w-4 h-4 text-neutral-700 transition-transform group-hover:translate-x-0.5" aria_hidden="true" %}</a></li>
+          <li><a href="/feed/" class="profile-shortcut group">{% lucide "rss" class="w-5 h-5 text-secondary-400" aria_hidden="true" %}<span class="flex-1">Feed</span>{% lucide "chevron-right" class="w-4 h-4 text-neutral-700 transition-transform group-hover:translate-x-0.5" aria_hidden="true" %}</a></li>
+          <li><a href="/donations/" class="profile-shortcut group">{% lucide "hand-heart" class="w-5 h-5 text-secondary-400" aria_hidden="true" %}<span class="flex-1">Donations</span>{% lucide "chevron-right" class="w-4 h-4 text-neutral-700 transition-transform group-hover:translate-x-0.5" aria_hidden="true" %}</a></li>
+          {% endif %}
+        </ul>
+      </section>
+    </aside>
+  </div>
+</div>
+{% endwith %}
+
+{% include "accounts/_messages.html" %}
+{% endblock %}
+
+{% block scripts %}
+<script type="module" src="{% static 'js/accounts/profile.js' %}"></script>
 {% endblock %}
