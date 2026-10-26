@@ -141,13 +141,19 @@
     </a>
 
     {% if user_name %}
-    <div class="mt-1 flex items-center gap-3 rounded-xl bg-neutral-300 p-2.5 lg:sidebar-collapsed:justify-center lg:sidebar-collapsed:bg-transparent lg:sidebar-collapsed:p-1" title="{{ user_name }}">
+    <a
+      href="{{ profile_url }}"
+      {% if profile_active %}aria-current="page"{% endif %}
+      class="group/link relative mt-1 flex items-center gap-3 rounded-xl p-2.5 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-primary-500 lg:sidebar-collapsed:justify-center lg:sidebar-collapsed:bg-transparent lg:sidebar-collapsed:p-1 {% if profile_active %}bg-primary-200 ring-1 ring-primary-300{% else %}bg-neutral-300 hover:bg-primary-100{% endif %}"
+      title="{{ user_name }} · Your profile"
+    >
       <span aria-hidden="true" class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-200 font-sans text-xs font-semibold text-primary-900">{{ user_initials }}</span>
       <span class="flex min-w-0 flex-col lg:sidebar-collapsed:sr-only">
         <span class="truncate font-sans text-sm font-semibold text-foreground">{{ user_name }}</span>
-        <span class="truncate font-sans text-xs text-neutral-800">{{ user_role }}</span>
+        <span class="truncate font-sans text-xs text-neutral-800">{{ user_role }} · View profile</span>
       </span>
-    </div>
+      <span aria-hidden="true" class="ml-auto shrink-0 text-secondary-500 transition-transform duration-200 group-hover/link:translate-x-0.5 lg:sidebar-collapsed:hidden">{% lucide "chevron-right" class="w-4 h-4" %}</span>
+    </a>
     {% endif %}
 
     <form method="post" action="{{ logout_url }}">

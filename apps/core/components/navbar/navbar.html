@@ -27,17 +27,13 @@
     class="flex min-h-[4.75rem] items-center justify-between gap-4 px-4 py-2.5 transition-[min-height,padding] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] sm:px-5 lg:px-6"
   >
     <!-- Logo -->
+
+    <img src="{% static 'assets/images/logo.svg' %}" class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-none font-display text-lg text-secondary-900 shadow-sm transition-all duration-300 group-hover:rotate-[-4deg] group-hover:scale-105 group-hover:bg-primary-400" />
     <a
       href="{{ logo_url }}"
       class="group flex shrink-0 items-center gap-3 rounded-xl outline-none transition-transform duration-200 hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
       aria-label="{{ logo_text }} home"
     >
-      <span
-        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-500 font-display text-lg text-secondary-900 shadow-sm transition-all duration-300 group-hover:rotate-[-4deg] group-hover:scale-105 group-hover:bg-primary-400"
-      >
-        S
-      </span>
-
       <span
         class="font-display text-xl leading-none text-secondary-900 transition-colors duration-200 group-hover:text-secondary-600 sm:text-2xl"
       >

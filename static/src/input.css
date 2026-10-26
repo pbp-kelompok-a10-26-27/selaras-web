@@ -856,3 +856,248 @@ html:has(#landing) {
   }
 }
 /* ================================================================== */
+
+/* ============================ ACCOUNTS ============================ */
+/* templates/accounts/ (profile, password change, password reset) with static/js/accounts/ */
+
+/* Soft light on the profile cover that follows the pointer (profile.js sets --glow-x / --glow-y) */
+.profile-glow {
+  background: radial-gradient(
+    22rem circle at var(--glow-x, 75%) var(--glow-y, 25%),
+    color-mix(in srgb, var(--color-neutral-50) 70%, transparent),
+    transparent 70%
+  );
+}
+
+/* Completion ring around the avatar. The circle has pathLength="100", so
+   --progress (0-100) is exactly how much of it is drawn */
+.profile-ring-value {
+  stroke-dasharray: 100;
+  stroke-dashoffset: calc(100 - var(--progress, 0));
+  transition: stroke-dashoffset 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Tabs; the sliding underline is [data-tab-indicator], moved by profile.js */
+.profile-tab {
+  display: inline-flex;
+  min-height: 2.75rem;
+  flex-shrink: 0;
+  cursor: pointer;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 0.75rem 0.75rem 0 0;
+  padding: 0 1rem;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-neutral-800);
+  outline: none;
+  transition:
+    color 0.2s,
+    background-color 0.2s;
+}
+
+.profile-tab:hover {
+  color: var(--color-secondary-800);
+  background-color: var(--color-secondary-50);
+}
+
+.profile-tab[aria-selected="true"] {
+  color: var(--color-secondary-900);
+}
+
+.profile-tab:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--color-primary-500);
+}
+
+/* Stat tile with a light that follows the pointer (profile.js sets --spot-x / --spot-y) */
+.account-tile {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 1.5rem;
+  border: 1px solid var(--color-neutral-400);
+  background: var(--color-neutral-50);
+  outline: none;
+  transition:
+    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.3s,
+    box-shadow 0.4s;
+}
+
+.account-tile::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0;
+  background: radial-gradient(
+    14rem circle at var(--spot-x, 50%) var(--spot-y, 50%),
+    var(--color-primary-100),
+    transparent 70%
+  );
+  transition: opacity 0.3s;
+}
+
+.account-tile:hover,
+.account-tile:focus-visible {
+  transform: translateY(-3px);
+  border-color: var(--color-secondary-200);
+  box-shadow: 0 20px 40px -28px rgb(33 43 28 / 0.45);
+}
+
+.account-tile:hover::before,
+.account-tile:focus-visible::before {
+  opacity: 1;
+}
+
+.account-tile:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-primary-500);
+}
+
+/* Profile strength checklist */
+.profile-step-icon {
+  border-color: var(--color-neutral-500);
+  color: transparent;
+}
+
+.profile-step-label {
+  color: var(--color-secondary-800);
+}
+
+.profile-step[data-done="true"] .profile-step-icon {
+  border-color: var(--color-primary-500);
+  background: var(--color-primary-500);
+  color: var(--color-neutral-50);
+  transform: scale(1.05);
+}
+
+.profile-step[data-done="true"] .profile-step-label {
+  color: var(--color-neutral-700);
+  text-decoration: line-through;
+}
+
+/* Shortcut links in the profile side column */
+.profile-shortcut {
+  display: flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: 0.75rem;
+  padding: 0 0.5rem;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-secondary-800);
+  outline: none;
+  transition: background-color 0.2s;
+}
+
+.profile-shortcut:hover {
+  background-color: var(--color-primary-100);
+}
+
+.profile-shortcut:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-primary-500);
+}
+
+/* Unsaved-changes save bar (profile.js sets data-dirty on the form) */
+[data-profile-form][data-dirty="true"] [data-save-bar] {
+  position: sticky;
+  bottom: 1rem;
+  border-color: var(--color-secondary-300);
+  animation: account-nudge 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+[data-profile-form][data-dirty="true"] [data-save-dot] {
+  background-color: var(--color-orange-100);
+}
+
+/* Password strength bars (password.js sets data-level 1-4 on each lit bar) */
+.password-bar {
+  height: 0.375rem;
+  border-radius: 999px;
+  background: var(--color-neutral-400);
+  transition:
+    background-color 0.3s,
+    transform 0.3s;
+}
+
+.password-bar[data-level="1"] {
+  background: var(--color-tertiary-600);
+}
+
+.password-bar[data-level="2"] {
+  background: var(--color-orange-100);
+}
+
+.password-bar[data-level="3"] {
+  background: var(--color-primary-300);
+}
+
+.password-bar[data-level="4"] {
+  background: var(--color-secondary-500);
+}
+
+.password-bar[data-level] {
+  transform: scaleY(1.25);
+}
+
+/* Password requirement checklist */
+.password-rule {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-neutral-800);
+  transition: color 0.2s;
+}
+
+.password-rule-icon {
+  display: flex;
+  height: 1.125rem;
+  width: 1.125rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid var(--color-neutral-500);
+  color: transparent;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.password-rule[data-met="true"] {
+  color: var(--color-secondary-800);
+}
+
+.password-rule[data-met="true"] .password-rule-icon {
+  border-color: var(--color-primary-500);
+  background: var(--color-primary-500);
+  color: var(--color-neutral-50);
+  transform: scale(1.1);
+}
+
+@keyframes account-nudge {
+  0% {
+    transform: translateY(6px);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .profile-ring-value,
+  .account-tile,
+  .account-tile:hover,
+  .account-tile:focus-visible,
+  .password-bar,
+  .password-rule-icon {
+    transform: none;
+    transition: none;
+  }
+
+  [data-profile-form][data-dirty="true"] [data-save-bar] {
+    animation: none;
+  }
+}
+/* ================================================================== */

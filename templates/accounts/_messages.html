@@ -1,0 +1,4 @@
+{# Django messages for static/js/accounts/messages.js, which shows each one as a toast #}
+<script type="application/json" id="account-messages">
+  [{% for message in messages %}{"level": "{{ message.tags|escapejs }}", "text": "{{ message|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}]
+</script>

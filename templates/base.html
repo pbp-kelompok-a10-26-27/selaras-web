@@ -1,4 +1,4 @@
-{% load static %}
+{% load lucide static component_tags %}
 
 <!doctype html>
 <html lang="en">
@@ -21,10 +21,15 @@
     <link rel="stylesheet" href="{% static 'css/output.css' %}" />
   </head>
 
-  <body class="min-h-screen bg-gray-50">
-    {% include "components/navbar.html" %}
+  <body class="min-h-screen">
+    {% component "navbar" authenticated=user.is_authenticated / %}
     {% block content %} 
     {% endblock %}
-    {% include "components/footer.html" %}
+    {% component "footer" / %}
   </body>
 </html>
+
+<script type="module" src="{% static 'js/main.js' %}" defer></script>
+<script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+{% block scripts %}
+{% endblock %}

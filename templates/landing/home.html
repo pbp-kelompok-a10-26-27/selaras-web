@@ -1,4 +1,4 @@
-{% extends "base-2.html" %}
+{% extends "base.html" %}
 {% load static lucide component_tags %}
 
 {% block title %}SELARAS - Untuk Bumi{% endblock %}
@@ -462,22 +462,6 @@
       {% endif %}
     </div>
   </section>
-
-  <footer class="border-t border-secondary-800 bg-secondary-900 text-secondary-200">
-    <div class="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-8 font-sans text-sm sm:flex-row sm:items-center sm:justify-between sm:px-8 lg:px-12">
-      <p class="flex items-center gap-3"><span class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-500 font-display text-base text-secondary-900">S</span><span class="font-display text-lg text-neutral-50">SELARAS</span></p>
-      <nav aria-label="Tautan footer">
-        <ul class="flex flex-wrap gap-x-5 gap-y-2">
-          {% if urls.articles %}<li><a class="hover:text-neutral-50 hover:underline" href="{{ urls.articles }}">Artikel</a></li>{% endif %}
-          {% if urls.challenges %}<li><a class="hover:text-neutral-50 hover:underline" href="{{ urls.challenges }}">Tantangan</a></li>{% endif %}
-          {% if urls.feed %}<li><a class="hover:text-neutral-50 hover:underline" href="{{ urls.feed }}">Feed</a></li>{% endif %}
-          {% if urls.donations %}<li><a class="hover:text-neutral-50 hover:underline" href="{{ urls.donations }}">Donasi</a></li>{% endif %}
-          {% if urls.helpdesk %}<li><a class="hover:text-neutral-50 hover:underline" href="{{ urls.helpdesk }}">Helpdesk</a></li>{% endif %}
-        </ul>
-      </nav>
-      <p>© {% now "Y" %} SELARAS · Selaras untuk Bumi</p>
-    </div>
-  </footer>
 </main>
 
 

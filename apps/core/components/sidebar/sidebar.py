@@ -43,6 +43,9 @@ class Sidebar(component.Component):
             "home_url": kwargs.get("home_url", "/dashboard/"),
             "site_url": kwargs.get("site_url", "/"),
             "logout_url": kwargs.get("logout_url", "/accounts/logout/"),
+            "profile_url": kwargs.get("profile_url", "/accounts/profile/"),
+            # Profile and password pages all live under /accounts/
+            "profile_active": path.startswith("/accounts/"),
             "sections": sections,
             "user_name": name,
             "user_initials": initials,
