@@ -34,3 +34,8 @@ def article_update(request, slug):
 def article_delete(request, slug):
     """Placeholder for admin article deletion."""
     return HttpResponse("Article deletion is not implemented yet.", status=501)
+
+
+def api_article_list(request):
+    """Return a JSON response for the article list."""
+    return JsonResponse({"message": "Article API is ready."})
