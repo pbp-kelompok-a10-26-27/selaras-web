@@ -1,21 +1,56 @@
+from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404, render
 
 from apps.core.decorators import admin_required, login_required
+from apps.core.permissions import is_admin
 from apps.core.utils import get_query_params
+
+from .models import Campaign
+from .services import (
+    campaign_accepts_donations,
+    campaign_progress_percent,
+    campaigns_visible_to,
+)
 
 
 def campaign_list(request):
-    """Placeholder for searching and filtering environmental campaigns."""
-    query_params = get_query_params(request, ("search", "status"))
-    return JsonResponse(
-        {"message": "Campaign search is not implemented yet.", **query_params},
-        status=501,
+    """Show published campaigns publicly and all campaigns to admins."""
+    campaigns = campaigns_visible_to(request.user)
+    search = request.GET.get("search", "").strip()[:100]
+    status = request.GET.get("status", "").strip()
+
+    if search:
+        campaigns = campaigns.filter(
+            Q(title__icontains=search) | Q(description__icontains=search)
+        )
+    if is_admin(request.user) and status in Campaign.Status.values:
+        campaigns = campaigns.filter(status=status)
+
+    for campaign in campaigns:
+        campaign.progress_percent = campaign_progress_percent(campaign)
+        campaign.accepts_donations = campaign_accepts_donations(campaign)
+
+    return render(
+        request,
+        "donations/donations.html",
+        {
+            "campaigns": campaigns,
+            "search": search,
+            "status_filter": status if is_admin(request.user) else "",
+            "status_choices": Campaign.Status.choices if is_admin(request.user) else (),
+            "is_admin": is_admin(request.user),
+        },
     )
 
 
 def campaign_detail(request, slug):
-    """Placeholder for displaying campaign details and progress."""
-    return HttpResponse("Campaign detail is not implemented yet.", status=501)
+    """Show campaign details without exposing unpublished campaigns publicly."""
+    campaign = get_object_or_404(campaigns_visible_to(request.user), slug=slug)
+    campaign.progress_percent = campaign_progress_percent(campaign)
+    campaign.accepts_donations = campaign_accepts_donations(campaign)
+
+    return render(request, "donations/campaign_detail.html", {"campaign": campaign})
 
 
 @admin_required
