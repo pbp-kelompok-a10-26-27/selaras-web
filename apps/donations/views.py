@@ -1,11 +1,14 @@
+from django.contrib import messages
 from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_http_methods
 
 from apps.core.decorators import admin_required, login_required
 from apps.core.permissions import is_admin
 from apps.core.utils import get_query_params
 
+from .forms import DonationForm
 from .models import Campaign
 from .services import (
     campaign_accepts_donations,
@@ -66,9 +69,41 @@ def campaign_update(request, slug):
 
 
 @login_required
+@require_http_methods(["GET", "POST"])
 def donation_create(request, slug):
-    """Placeholder for submitting a manual donation record."""
-    return HttpResponse("Donation creation is not implemented yet.", status=501)
+    """Record a manual donation for an available campaign."""
+    campaign = get_object_or_404(campaigns_visible_to(request.user), slug=slug)
+
+    # Recheck availability for both GET and POST. In particular, never save a
+    # donation if the campaign closed while the donor's form was open.
+    if not campaign_accepts_donations(campaign):
+        messages.warning(
+            request,
+            "Kampanye ini sedang tidak menerima donasi. Silakan pilih kampanye lain.",
+        )
+        return redirect("donations:campaign_detail", slug=campaign.slug)
+
+    form = DonationForm(
+        request.POST or None,
+        request.FILES or None,
+    )
+    if request.method == "POST" and form.is_valid():
+        donation = form.save(commit=False)
+        donation.campaign = campaign
+        donation.donor = request.user
+        # Do not assign status: the Donation model's PENDING default applies.
+        donation.save()
+        messages.success(
+            request,
+            "Donasi berhasil dicatat dan sedang menunggu verifikasi admin.",
+        )
+        return redirect("donations:campaign_detail", slug=campaign.slug)
+
+    return render(
+        request,
+        "donations/donation_form.html",
+        {"form": form, "campaign": campaign},
+    )
 
 
 @login_required
