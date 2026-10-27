@@ -1,0 +1,94 @@
+{% extends "dashboard/base.html" %}
+{% load static lucide component_tags %}
+
+{% block title %}{% if is_edit %}Edit challenge{% else %}New challenge{% endif %}{% endblock %}
+
+{% block content %}
+<div class="flex max-w-4xl flex-col gap-6">
+  <!-- Header -->
+  <header class="flex flex-col gap-3">
+    <nav aria-label="Breadcrumb">
+      <ol class="flex flex-wrap items-center gap-1.5 font-sans text-sm">
+        <li><a href="{{ dashboard_home_url }}" class="rounded-md px-1 py-0.5 text-neutral-800 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">Dashboard</a></li>
+        <li aria-hidden="true" class="text-neutral-700">{% lucide "chevron-right" class="w-4 h-4" %}</li>
+        <li><a href="{{ back_url }}" class="rounded-md px-1 py-0.5 text-neutral-800 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">Challenges</a></li>
+        <li aria-hidden="true" class="text-neutral-700">{% lucide "chevron-right" class="w-4 h-4" %}</li>
+        <li><span aria-current="page" class="px-1 font-semibold text-primary-800">{% if is_edit %}Edit{% else %}New{% endif %}</span></li>
+      </ol>
+    </nav>
+    <div class="flex flex-col gap-1">
+      <h1 class="font-display text-h3 leading-tight text-foreground sm:text-h2">{{ title }}</h1>
+      <p class="max-w-2xl font-sans text-b3 text-neutral-900">Set clear start and end dates and describe the daily action so participants know what to do.</p>
+    </div>
+  </header>
+
+  {% if form.non_field_errors %}
+  <div class="flex flex-col gap-1 rounded-2xl border border-tertiary-700 bg-tertiary-50 p-4 font-sans text-sm text-tertiary-900" role="alert">
+    {% for error in form.non_field_errors %}
+    <p class="flex items-center gap-2">{% lucide "circle-alert" class="w-4 h-4 text-tertiary-700 shrink-0" %}<span>{{ error }}</span></p>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <form
+    id="challengeForm"
+    method="POST"
+    class="flex flex-col gap-6"
+    data-published-label="Published"
+  >
+    {% csrf_token %}
+
+    <section class="flex flex-col gap-6 rounded-2xl border border-neutral-400 bg-neutral-50 p-5 sm:p-8" aria-label="Challenge details">
+      <div class="flex flex-col gap-1.5">
+        <label for="{{ form.title.id_for_label }}" class="font-sans text-sm font-semibold text-foreground">{{ form.title.label }} <span class="text-tertiary-700" aria-hidden="true">*</span></label>
+        {{ form.title }}
+        {% if form.title.errors %}<p class="font-sans text-xs font-medium text-tertiary-700">{{ form.title.errors.0 }}</p>{% endif %}
+      </div>
+
+      <div class="flex flex-col gap-1.5">
+        <label for="{{ form.description.id_for_label }}" class="font-sans text-sm font-semibold text-foreground">{{ form.description.label }} <span class="text-tertiary-700" aria-hidden="true">*</span></label>
+        {{ form.description }}
+        {% if form.description.errors %}<p class="font-sans text-xs font-medium text-tertiary-700">{{ form.description.errors.0 }}</p>{% endif %}
+      </div>
+
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6">
+        <div class="flex flex-col gap-1.5">
+          <label for="{{ form.start_date.id_for_label }}" class="font-sans text-sm font-semibold text-foreground">{{ form.start_date.label }} <span class="text-tertiary-700" aria-hidden="true">*</span></label>
+          {{ form.start_date }}
+          {% if form.start_date.errors %}<p class="font-sans text-xs font-medium text-tertiary-700">{{ form.start_date.errors.0 }}</p>{% endif %}
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label for="{{ form.end_date.id_for_label }}" class="font-sans text-sm font-semibold text-foreground">{{ form.end_date.label }} <span class="text-tertiary-700" aria-hidden="true">*</span></label>
+          {{ form.end_date }}
+          {% if form.end_date.errors %}<p class="font-sans text-xs font-medium text-tertiary-700">{{ form.end_date.errors.0 }}</p>{% endif %}
+        </div>
+      </div>
+    </section>
+
+    <section class="flex flex-col gap-4 rounded-2xl border border-neutral-400 bg-neutral-50 p-5 sm:p-8" aria-label="Visibility">
+      <div class="flex items-start gap-3.5">
+        <div class="pt-0.5">{{ form.is_published }}</div>
+        <div class="flex flex-col gap-0.5">
+          <label for="{{ form.is_published.id_for_label }}" class="cursor-pointer font-sans text-sm font-semibold text-foreground">{{ form.is_published.label }}</label>
+          <p class="font-sans text-xs text-neutral-800">{{ form.is_published.help_text }}</p>
+        </div>
+      </div>
+      <p class="flex items-center gap-2 border-t border-neutral-300 pt-4 font-sans text-sm text-neutral-900" role="status" aria-live="polite">
+        {% lucide "info" class="w-4 h-4 text-secondary-500" %}
+        <span>This challenge will show as <strong id="challengeStatusPreview" class="text-foreground">Draft</strong>.</span>
+      </p>
+    </section>
+
+    <div class="sticky bottom-0 z-10 -mx-4 flex flex-col-reverse gap-3 border-t border-neutral-400 bg-neutral-200/95 px-4 py-4 backdrop-blur sm:mx-0 sm:flex-row sm:items-center sm:justify-end sm:rounded-2xl sm:border">
+      {% component "button" text="Cancel" variant="neutral" size="md" href=back_url / %}
+      {% component "button" text="Save challenge" variant="primary" size="md" type="submit" icon_left="save" / %}
+    </div>
+  </form>
+</div>
+
+{% include "accounts/_messages.html" %}
+{% endblock %}
+
+{% block scripts %}
+<script type="module" src="{% static 'js/dashboard/admin_challenge_form.js' %}"></script>
+{% endblock %}
