@@ -1,10 +1,14 @@
+import json
+
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
+from django.utils.text import slugify
 
-from apps.articles.models import Article
-from apps.core.decorators import admin_required, login_required
+from apps.articles.models import Article, ArticleCategory
+from apps.core.decorators import admin_required
 from apps.core.utils import get_query_params
 
 
@@ -120,10 +124,157 @@ def article_detail(request, slug):
     return JsonResponse(result)
 
 
-@login_required
+@admin_required
 def article_create(request):
-    """Placeholder for authenticated article creation."""
-    return HttpResponse("Article creation is not implemented yet.", status=501)
+    """Create a new article."""
+    if request.method != "POST":
+        return JsonResponse(
+            {"error": "Method not allowed."},
+            status=405,
+        )
+
+    try:
+        data = json.loads(request.body)
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return JsonResponse(
+            {
+                "error": {
+                    "code": "INVALID_JSON",
+                    "message": "Request body harus berupa JSON yang valid.",
+                }
+            },
+            status=400,
+        )
+
+    if not isinstance(data, dict):
+        return JsonResponse(
+            {
+                "error": {
+                    "code": "INVALID_JSON",
+                    "message": "Request body harus berupa objek JSON.",
+                }
+            },
+            status=400,
+        )
+
+    title = data.get("title")
+    if not isinstance(title, str) or not title.strip():
+        return JsonResponse(
+            {
+                "error": {
+                    "code": "VALIDATION_ERROR",
+                    "message": "Judul artikel wajib diisi.",
+                    "details": {"title": ["Judul wajib diisi"]},
+                }
+            },
+            status=400,
+        )
+
+    content = data.get("content")
+    if not isinstance(content, str) or not content.strip():
+        return JsonResponse(
+            {
+                "error": {
+                    "code": "VALIDATION_ERROR",
+                    "message": "Isi artikel wajib diisi",
+                    "details": {"content": ["Isi artikel wajib diisi"]},
+                }
+            },
+            status=400,
+        )
+
+    category_id = data.get("category_id")
+    if not isinstance(category_id, int) or isinstance(category_id, bool):
+        return JsonResponse(
+            {
+                "error": {
+                    "code": "VALIDATION_ERROR",
+                    "message": "Kategori artikel wajib dipilih.",
+                    "details": {
+                        "category_id": ["ID kategori harus berupa bilangan bulat."]
+                    },
+                }
+            },
+            status=400,
+        )
+
+    category = ArticleCategory.objects.filter(id=category_id).first()
+    if category is None:
+        return JsonResponse(
+            {
+                "error": {
+                    "code": "VALIDATION_ERROR",
+                    "message": "Kategori artikel tidak ditemukan.",
+                    "details": {"category_id": ["Pilih kategori yang tersedia."]},
+                }
+            },
+            status=400,
+        )
+
+    status = data.get("status", Article.Status.DRAFT)
+    if status not in (
+        Article.Status.DRAFT,
+        Article.Status.PUBLISHED,
+    ):
+        return JsonResponse(
+            {
+                "error": {
+                    "code": "VALIDATION_ERROR",
+                    "message": "Status artikel tidak valid.",
+                    "details": {"status": ["Status harus DRAFT atau PUBLISHED."]},
+                }
+            },
+            status=400,
+        )
+
+    summary = data.get("summary", "")
+    if summary is None:
+        summary = ""
+    if not isinstance(summary, str):
+        return JsonResponse(
+            {
+                "error": {
+                    "code": "VALIDATION_ERROR",
+                    "message": "Ringkasan artikel harus berupa teks.",
+                    "details": {"summary": ["Ringkasan harus berupa teks."]},
+                }
+            },
+            status=400,
+        )
+
+    summary = summary.strip()
+
+    base_slug = slugify(title)
+    slug = base_slug
+    counter = 2
+
+    while Article.objects.filter(slug=slug).exists():
+        slug = f"{base_slug}-{counter}"
+        counter += 1
+
+    article = Article.objects.create(
+        title=title.strip(),
+        content=content.strip(),
+        category=category,
+        author=request.user,
+        status=status,
+        summary=summary,
+        slug=slug,
+        published_at=(timezone.now() if status == Article.Status.PUBLISHED else None),
+    )
+
+    return JsonResponse(
+        {
+            "message": "Artikel berhasil dibuat.",
+            "article": {
+                "id": article.id,
+                "title": article.title,
+                "slug": article.slug,
+                "status": article.status,
+            },
+        },
+        status=201,
+    )
 
 
 @admin_required
