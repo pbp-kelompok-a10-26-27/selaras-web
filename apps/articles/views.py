@@ -1,5 +1,6 @@
 from django.http import HttpResponse, JsonResponse
 
+from apps.articles.models import Article
 from apps.core.decorators import admin_required, login_required
 from apps.core.utils import get_query_params
 
@@ -37,5 +38,24 @@ def article_delete(request, slug):
 
 
 def api_article_list(request):
-    """Return a JSON response for the article list."""
-    return JsonResponse({"message": "Article API is ready."})
+    articles = (
+        Article.objects.filter(status=Article.Status.PUBLISHED)
+        .select_related("category", "author")
+        .order_by("-published_at", "-id")
+    )
+
+    results = [
+        {
+            "title": article.title,
+            "slug": article.slug,
+            "summary": article.summary,
+            "category": article.category.name,
+            "author": article.author.username,
+            "published_at": (
+                article.published_at.isoformat() if article.published_at else None
+            ),
+        }
+        for article in articles
+    ]
+
+    return JsonResponse({"results": results})
