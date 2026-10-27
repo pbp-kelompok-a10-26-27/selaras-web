@@ -62,9 +62,26 @@ class CampaignForm(forms.ModelForm):
         )
         widgets = {
             "description": forms.Textarea(attrs={"rows": 5}),
-            "starts_at": forms.DateTimeInput(attrs={"type": "datetime-local"}),
-            "ends_at": forms.DateTimeInput(attrs={"type": "datetime-local"}),
+            "starts_at": forms.DateTimeInput(
+                attrs={"type": "datetime-local"}, format="%Y-%m-%dT%H:%M"
+            ),
+            "ends_at": forms.DateTimeInput(
+                attrs={"type": "datetime-local"}, format="%Y-%m-%dT%H:%M"
+            ),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs.setdefault(
+                "class",
+                "min-h-11 w-full rounded-xl border border-neutral-400 bg-white "
+                "px-4 text-sm outline-none focus:border-primary-500 "
+                "focus:ring-2 focus:ring-primary-200",
+            )
+        self.fields["target_amount"].widget.attrs.update(
+            {"min": "0.01", "step": "0.01"}
+        )
 
     def clean_target_amount(self):
         target_amount = self.cleaned_data["target_amount"]

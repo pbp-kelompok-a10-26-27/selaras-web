@@ -1,7 +1,7 @@
 from django.contrib import messages
 from django.core.exceptions import SuspiciousFileOperation
 from django.db.models import Q
-from django.http import FileResponse, Http404, HttpResponse
+from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_GET, require_http_methods
 
@@ -9,12 +9,13 @@ from apps.core.decorators import admin_required, login_required
 from apps.core.permissions import is_admin
 from apps.dashboard.views import render_dashboard
 
-from .forms import DonationForm
+from .forms import CampaignForm, DonationForm
 from .models import Campaign, Donation
 from .services import (
     campaign_accepts_donations,
     campaign_progress_percent,
     campaigns_visible_to,
+    create_campaign_with_unique_slug,
     verify_pending_donation,
 )
 
@@ -59,15 +60,44 @@ def campaign_detail(request, slug):
 
 
 @admin_required
+@require_http_methods(["GET", "POST"])
 def campaign_create(request):
-    """Placeholder for admin campaign creation."""
-    return HttpResponse("Campaign creation is not implemented yet.", status=501)
+    """Allow admins to create a validated campaign."""
+    form = CampaignForm(
+        request.POST if request.method == "POST" else None,
+    )
+    if request.method == "POST" and form.is_valid():
+        campaign = form.save(commit=False)
+        create_campaign_with_unique_slug(campaign)
+        messages.success(request, "Campaign created successfully.")
+        return redirect("donations:campaign_detail", slug=campaign.slug)
+
+    return render_dashboard(
+        request,
+        "donations/admin/campaign_form.html",
+        {"form": form, "is_create": True},
+    )
 
 
 @admin_required
+@require_http_methods(["GET", "POST"])
 def campaign_update(request, slug):
-    """Placeholder for admin campaign editing and publication."""
-    return HttpResponse("Campaign update is not implemented yet.", status=501)
+    """Allow admins to edit a campaign while keeping its existing URL slug."""
+    campaign = get_object_or_404(Campaign, slug=slug)
+    form = CampaignForm(
+        request.POST if request.method == "POST" else None,
+        instance=campaign,
+    )
+    if request.method == "POST" and form.is_valid():
+        campaign = form.save()
+        messages.success(request, "Campaign updated successfully.")
+        return redirect("donations:campaign_detail", slug=campaign.slug)
+
+    return render_dashboard(
+        request,
+        "donations/admin/campaign_form.html",
+        {"form": form, "campaign": campaign, "is_create": False},
+    )
 
 
 @login_required

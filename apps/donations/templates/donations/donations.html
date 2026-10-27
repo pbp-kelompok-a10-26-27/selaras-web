@@ -12,7 +12,8 @@
       Pilih kampanye lingkungan dan bantu mewujudkan langkah kecil yang berdampak.
     </p>
     {% if is_admin %}
-    <div class="mt-5">
+    <div class="mt-5 flex flex-wrap justify-center gap-3">
+      {% component "button" href="{% url 'donations:campaign_create' %}" text="Buat kampanye" variant="primary" size="sm" icon_left="plus" / %}
       {% component "button" href="{% url 'donations:verification_queue' %}" text="Tinjau donasi" variant="neutral" size="sm" icon_left="clipboard-check" / %}
     </div>
     {% endif %}
