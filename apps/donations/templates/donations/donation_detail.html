@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load component_tags %}
+
+{% block title %}Detail Donasi · SELARAS{% endblock %}
+
+{% block content %}
+<main class="mx-auto w-full max-w-4xl px-4 py-12 text-secondary-900 sm:px-6 lg:px-10 lg:py-16">
+  <a href="{% url 'donations:history' %}" class="inline-flex items-center gap-2 rounded-sm text-sm font-semibold text-secondary-700 outline-none hover:text-secondary-900 focus-visible:ring-2 focus-visible:ring-primary-500">← Kembali ke riwayat</a>
+
+  <article class="mt-6 overflow-hidden rounded-3xl border border-neutral-400 bg-neutral-50 shadow-sm">
+    <header class="bg-primary-100 px-6 py-8 sm:px-9">
+      <p class="text-xs font-semibold uppercase tracking-[0.18em] text-secondary-600">Detail donasi</p>
+      <div class="mt-3 flex flex-wrap items-center justify-between gap-3">
+        <h1 class="font-display text-3xl leading-tight sm:text-4xl">{{ donation.campaign.title }}</h1>
+        <span class="rounded-full bg-neutral-50 px-3 py-1.5 text-xs font-bold tracking-wide text-secondary-800">{{ donation.status }}</span>
+      </div>
+    </header>
+
+    <dl class="grid gap-5 p-6 sm:grid-cols-2 sm:p-9">
+      <div class="rounded-2xl border border-neutral-400 bg-white p-5">
+        <dt class="text-xs font-semibold uppercase tracking-wide text-neutral-700">Nominal donasi</dt>
+        <dd class="mt-2 font-display text-2xl text-secondary-900">Rp {{ donation.amount|floatformat:2 }}</dd>
+      </div>
+      <div class="rounded-2xl border border-neutral-400 bg-white p-5">
+        <dt class="text-xs font-semibold uppercase tracking-wide text-neutral-700">Tanggal pengajuan</dt>
+        <dd class="mt-2 text-sm font-semibold text-secondary-900">{% if donation.created_at %}{{ donation.created_at|date:"j M Y, H:i" }}{% else %}Tidak tersedia{% endif %}</dd>
+      </div>
+      <div class="rounded-2xl border border-neutral-400 bg-white p-5 sm:col-span-2">
+        <dt class="text-xs font-semibold uppercase tracking-wide text-neutral-700">Bukti transfer</dt>
+        <dd class="mt-3">
+          {% if proof_available %}
+          {% component "button" href="{% url 'donations:proof' donation.pk %}" text="Unduh bukti" variant="neutral" size="sm" icon_left="file-down" / %}
+          {% else %}
+          <span class="text-sm text-neutral-700">Bukti tidak tersedia.</span>
+          {% endif %}
+        </dd>
+      </div>
+    </dl>
+  </article>
+</main>
+{% endblock %}

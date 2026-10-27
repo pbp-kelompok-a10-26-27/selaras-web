@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load component_tags %}
+
+{% block title %}Riwayat Donasi · SELARAS{% endblock %}
+
+{% block content %}
+<main class="mx-auto w-full max-w-6xl px-4 py-12 text-secondary-900 sm:px-6 lg:px-10 lg:py-16">
+  <header class="mx-auto max-w-3xl">
+    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-secondary-600">Aktivitas Anda</p>
+    <h1 class="mt-3 font-display text-4xl leading-tight sm:text-5xl">Riwayat donasi</h1>
+    <p class="mt-4 text-sm leading-6 text-neutral-800">Lihat donasi yang Anda catat dan status verifikasinya.</p>
+  </header>
+
+  <form method="get" class="mt-8 flex max-w-3xl flex-col gap-3 rounded-2xl border border-neutral-400 bg-neutral-50 p-4 sm:flex-row sm:items-end">
+    <label for="donation-status" class="text-sm font-semibold text-secondary-800">Filter status</label>
+    <select id="donation-status" name="status" class="min-h-11 flex-1 rounded-xl border border-neutral-400 bg-white px-4 text-sm font-normal outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-200 sm:max-w-xs">
+      <option value="">Semua status</option>
+      {% for value, label in status_choices %}
+      <option value="{{ value }}" {% if status == value %}selected{% endif %}>{{ value }}</option>
+      {% endfor %}
+    </select>
+    {% component "button" text="Terapkan" type="submit" variant="secondary" size="sm" / %}
+  </form>
+
+  {% if donations %}
+  <section aria-label="Donasi Anda" class="mt-8 space-y-4">
+    {% for donation in donations %}
+    <article class="flex flex-col gap-5 rounded-3xl border border-neutral-400 bg-neutral-50 p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-6">
+      <div class="min-w-0">
+        <div class="flex flex-wrap items-center gap-3">
+          <h2 class="font-display text-xl text-secondary-900">{{ donation.campaign.title }}</h2>
+          <span class="rounded-full bg-primary-100 px-3 py-1 text-xs font-bold tracking-wide text-secondary-800">{{ donation.status }}</span>
+        </div>
+        <p class="mt-2 text-sm text-neutral-700">Dikirim {{ donation.created_at|date:"j M Y, H:i" }}</p>
+      </div>
+      <div class="flex flex-wrap items-center gap-4 sm:justify-end">
+        <p class="font-semibold text-secondary-900">Rp {{ donation.amount|floatformat:2 }}</p>
+        {% component "button" href="{% url 'donations:detail' donation.pk %}" text="Lihat detail" variant="neutral" size="sm" / %}
+      </div>
+    </article>
+    {% endfor %}
+  </section>
+  {% else %}
+  <section class="mt-8 rounded-3xl border border-dashed border-secondary-200 bg-primary-50 px-6 py-14 text-center">
+    <h2 class="font-display text-2xl text-secondary-900">Belum ada donasi untuk ditampilkan.</h2>
+    <p class="mt-3 text-sm leading-6 text-neutral-800">Donasi yang Anda catat akan muncul di sini.</p>
+    {% component "button" href="{% url 'donations:campaign_list' %}" text="Jelajahi kampanye" variant="primary" size="sm" class_="mt-6" / %}
+  </section>
+  {% endif %}
+</main>
+{% endblock %}
