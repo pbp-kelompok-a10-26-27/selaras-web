@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.core.exceptions import SuspiciousFileOperation
+from django.db import transaction
 from django.db.models import Q
 from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
@@ -9,7 +10,7 @@ from apps.core.decorators import admin_required, login_required
 from apps.core.permissions import is_admin
 from apps.dashboard.views import render_dashboard
 
-from .forms import CampaignForm, DonationForm
+from .forms import CampaignForm, DonationForm, DonationUpdateForm
 from .models import Campaign, Donation
 from .services import (
     campaign_accepts_donations,
@@ -135,6 +136,59 @@ def donation_create(request, slug):
         request,
         "donations/donation_form.html",
         {"form": form, "campaign": campaign},
+    )
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def donation_update(request, donation_id):
+    """Let a donor update only their own still-pending donation."""
+    owned_donations = Donation.objects.filter(donor=request.user).select_related(
+        "campaign"
+    )
+
+    if request.method == "POST":
+        # Lock and re-read the owned record on every POST so a stale form
+        # cannot change a donation after an admin has verified it.
+        with transaction.atomic():
+            donation = get_object_or_404(
+                owned_donations.select_for_update(), pk=donation_id
+            )
+            if donation.status != Donation.Status.PENDING:
+                messages.warning(
+                    request, "Donasi yang sudah diverifikasi tidak dapat diedit."
+                )
+                return redirect("donations:detail", donation_id=donation.pk)
+
+            form = DonationUpdateForm(
+                request.POST,
+                request.FILES,
+                instance=donation,
+            )
+            if form.is_valid():
+                updated_donation = form.save(commit=False)
+                updated_donation.save(
+                    update_fields=["amount", "proof", "updated_at"]
+                )
+                messages.success(request, "Donasi berhasil diperbarui.")
+                return redirect("donations:detail", donation_id=donation.pk)
+    else:
+        donation = get_object_or_404(owned_donations, pk=donation_id)
+        if donation.status != Donation.Status.PENDING:
+            messages.warning(
+                request, "Donasi yang sudah diverifikasi tidak dapat diedit."
+            )
+            return redirect("donations:detail", donation_id=donation.pk)
+        form = DonationUpdateForm(instance=donation)
+
+    return render(
+        request,
+        "donations/donation_edit_form.html",
+        {
+            "form": form,
+            "donation": donation,
+            "proof_available": _proof_exists(donation),
+        },
     )
 
 

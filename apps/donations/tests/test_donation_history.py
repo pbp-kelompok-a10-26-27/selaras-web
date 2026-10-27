@@ -89,6 +89,7 @@ class DonationHistoryAndDetailTests(TestCase):
         self.assertNotContains(
             response, reverse("donations:detail", args=[another.pk])
         )
+        self.assertContains(response, reverse("donations:edit", args=[own[0].pk]))
 
     def test_admin_general_history_is_still_limited_to_admins_own_donations(self):
         own = self.make_donation(self.admin)
@@ -144,6 +145,11 @@ class DonationHistoryAndDetailTests(TestCase):
                 self.assertContains(response, "Rp 125.50")
                 self.assertContains(response, donation.created_at.strftime("%Y"))
                 self.assertContains(response, status)
+                edit_url = reverse("donations:edit", args=[donation.pk])
+                if status == Donation.Status.PENDING:
+                    self.assertContains(response, edit_url)
+                else:
+                    self.assertNotContains(response, edit_url)
 
     def test_user_and_admin_cannot_open_another_donors_detail(self):
         donation = self.make_donation(self.other_user)

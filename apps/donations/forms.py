@@ -122,3 +122,17 @@ class DonationForm(forms.ModelForm):
         if proof:
             validate_proof_file(proof)
         return proof
+
+
+class DonationUpdateForm(DonationForm):
+    """Edit only a pending donation's amount and, optionally, its proof."""
+
+    class Meta(DonationForm.Meta):
+        fields = ("amount", "proof")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk and self.instance.proof:
+            # FileField uses the instance's current file as its initial value
+            # when no replacement is submitted, preserving the existing proof.
+            self.fields["proof"].required = False

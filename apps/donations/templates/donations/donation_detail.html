@@ -35,6 +35,11 @@
           {% endif %}
         </dd>
       </div>
+      {% if donation.status == "PENDING" %}
+      <div class="sm:col-span-2">
+        {% component "button" href="{% url 'donations:edit' donation.pk %}" text="Edit donasi" variant="secondary" size="sm" / %}
+      </div>
+      {% endif %}
     </dl>
   </article>
 </main>

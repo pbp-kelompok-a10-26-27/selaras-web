@@ -36,6 +36,7 @@
       <div class="flex flex-wrap items-center gap-4 sm:justify-end">
         <p class="font-semibold text-secondary-900">Rp {{ donation.amount|floatformat:2 }}</p>
         {% component "button" href="{% url 'donations:detail' donation.pk %}" text="Lihat detail" variant="neutral" size="sm" / %}
+        {% if donation.status == "PENDING" %}{% component "button" href="{% url 'donations:edit' donation.pk %}" text="Edit" variant="secondary" size="sm" / %}{% endif %}
       </div>
     </article>
     {% endfor %}
