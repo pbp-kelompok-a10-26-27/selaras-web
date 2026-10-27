@@ -50,3 +50,16 @@ def campaign_accepts_donations(campaign, now=None):
     if campaign.ends_at and now > campaign.ends_at:
         return False
     return True
+
+
+def verify_pending_donation(donation_id, status, now=None):
+    """Atomically verify a pending donation, leaving completed records untouched."""
+    allowed_statuses = (Donation.Status.APPROVED, Donation.Status.REJECTED)
+    if status not in allowed_statuses:
+        raise ValueError("Verification status must be APPROVED or REJECTED.")
+
+    now = now or timezone.now()
+    updated = Donation.objects.filter(
+        pk=donation_id, status=Donation.Status.PENDING
+    ).update(status=status, verified_at=now, updated_at=now)
+    return updated == 1

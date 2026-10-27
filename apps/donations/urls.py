@@ -12,6 +12,12 @@ urlpatterns = [
     path("campaigns/<slug:slug>/edit/", views.campaign_update, name="campaign_update"),
     path("campaigns/<slug:slug>/donate/", views.donation_create, name="donate"),
     path("history/", views.donation_history, name="history"),
+    path("verification/", views.donation_verification_queue, name="verification_queue"),
+    path(
+        "verification/<int:donation_id>/proof/",
+        views.admin_donation_proof,
+        name="admin_proof",
+    ),
     path("<int:donation_id>/proof/", views.donation_proof, name="proof"),
     path("<int:donation_id>/", views.donation_detail, name="detail"),
     path("<int:donation_id>/verify/", views.donation_verify, name="verify"),

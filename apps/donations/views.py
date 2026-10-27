@@ -3,10 +3,11 @@ from django.core.exceptions import SuspiciousFileOperation
 from django.db.models import Q
 from django.http import FileResponse, Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_GET, require_http_methods
 
 from apps.core.decorators import admin_required, login_required
 from apps.core.permissions import is_admin
+from apps.dashboard.views import render_dashboard
 
 from .forms import DonationForm
 from .models import Campaign, Donation
@@ -14,6 +15,7 @@ from .services import (
     campaign_accepts_donations,
     campaign_progress_percent,
     campaigns_visible_to,
+    verify_pending_donation,
 )
 
 
@@ -144,6 +146,7 @@ def donation_history(request):
 
 
 @login_required
+@require_GET
 def donation_proof(request, donation_id):
     """Download proof only after verifying the current user owns the donation."""
     donation = get_object_or_404(
@@ -172,6 +175,72 @@ def _proof_exists(donation):
 
 
 @admin_required
+def donation_verification_queue(request):
+    """Show all donations to admins, with an optional allowlisted status filter."""
+    status = request.GET.get("status", "").strip()
+    if status not in Donation.Status.values:
+        status = ""
+
+    donations = Donation.objects.select_related("campaign", "donor")
+    if status:
+        donations = donations.filter(status=status)
+
+    return render_dashboard(
+        request,
+        "donations/admin/donation_list.html",
+        {
+            "donations": donations.order_by("-created_at", "-pk"),
+            "status": status,
+            "status_choices": Donation.Status.choices,
+        },
+    )
+
+
+@admin_required
+@require_http_methods(["GET", "POST"])
 def donation_verify(request, donation_id):
-    """Placeholder for approving or rejecting a donation."""
-    return HttpResponse("Donation verification is not implemented yet.", status=501)
+    """Review a donation and accept one decision while it remains pending."""
+    donation = get_object_or_404(
+        Donation.objects.select_related("campaign", "donor"), pk=donation_id
+    )
+
+    if request.method == "POST":
+        status = request.POST.get("status", "")
+        if status not in (Donation.Status.APPROVED, Donation.Status.REJECTED):
+            messages.error(request, "Pilih keputusan approve atau reject yang valid.")
+        elif verify_pending_donation(donation.pk, status):
+            messages.success(request, f"Donasi berhasil ditandai {status}.")
+        else:
+            messages.warning(
+                request,
+                "Donasi ini sudah diverifikasi. Status dan waktu verifikasinya "
+                "tidak diubah.",
+            )
+        return redirect("donations:verify", donation_id=donation.pk)
+
+    return render_dashboard(
+        request,
+        "donations/admin/donation_verify.html",
+        {"donation": donation, "proof_available": _proof_exists(donation)},
+    )
+
+
+@admin_required
+@require_GET
+def admin_donation_proof(request, donation_id):
+    """Download a donor's proof from the separately protected admin flow."""
+    donation = get_object_or_404(Donation, pk=donation_id)
+    return _proof_response(donation)
+
+
+def _proof_response(donation):
+    if not donation.proof:
+        raise Http404("Donation proof was not found.")
+
+    try:
+        proof_file = donation.proof.open("rb")
+    except (OSError, ValueError, SuspiciousFileOperation) as exc:
+        raise Http404("Donation proof was not found.") from exc
+
+    filename = donation.proof.name.rsplit("/", 1)[-1]
+    return FileResponse(proof_file, as_attachment=True, filename=filename)
