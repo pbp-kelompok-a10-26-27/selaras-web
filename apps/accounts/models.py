@@ -26,6 +26,7 @@ class User(AbstractUser, TimeStamp):
     )
     email = models.EmailField(_("email"), unique=True)
     bio = models.CharField(_("bio"), max_length=200, blank=True, null=True)  # noqa: DJ001
+    avatar = models.FileField(_("avatar"), upload_to="avatars/", blank=True)
 
     objects = UserManager()
 
@@ -40,6 +41,10 @@ class User(AbstractUser, TimeStamp):
         if self.email:
             self.email = self.email.strip().lower()
         super().save(*args, **kwargs)
+
+    @property
+    def avatar_url(self) -> str:
+        return self.avatar.url if self.avatar else ""
 
     @property
     def is_admin(self) -> bool:

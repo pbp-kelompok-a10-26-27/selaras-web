@@ -137,6 +137,7 @@
     method="post"
     action="{% url 'helpdesk:ticket_create' %}"
     data-api-url="{% url 'helpdesk:ticket_create_api' %}"
+    enctype="multipart/form-data"
     novalidate
     class="flex flex-col gap-6"
   >
@@ -189,6 +190,68 @@
         <span id="ticketDescriptionCount" class="ml-auto shrink-0 tabular-nums text-neutral-800">0 / 5000</span>
       </div>
     </div>
+
+    <!-- Attachments: uploads and image links, both optional (helpdesk/attachments.js).
+         The inputs are named so the plain form still sends them if the script fails. -->
+    <fieldset data-attachments data-max="5" data-max-mb="5" data-has-items="false" class="group/attach">
+      <legend class="mb-2 flex w-full items-center justify-between gap-3 font-sans text-sm font-semibold text-foreground">
+        <span>Screenshots <span class="font-normal text-neutral-800">(optional)</span></span>
+        <span data-attach-count class="font-normal tabular-nums text-neutral-800">0 / 5</span>
+      </legend>
+
+      <label
+        data-attach-drop
+        for="ticketAttachmentFile"
+        class="group flex cursor-pointer flex-col items-center gap-2 rounded-2xl border-2 border-dashed border-neutral-500 bg-neutral-300 px-4 py-6 text-center transition-all duration-300 hover:border-primary-500 hover:bg-primary-100 has-focus-visible:ring-2 has-focus-visible:ring-primary-500 data-[dragging=true]:scale-[1.01] data-[dragging=true]:border-secondary-600 data-[dragging=true]:bg-primary-200 data-[full=true]:pointer-events-none data-[full=true]:opacity-50 group-data-[has-items=true]/attach:flex-row group-data-[has-items=true]/attach:justify-center group-data-[has-items=true]/attach:gap-3 group-data-[has-items=true]/attach:py-3"
+      >
+        <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary-200 text-secondary-700 transition-all duration-300 group-hover:-translate-y-0.5 group-data-[dragging=true]:-translate-y-1.5 group-data-[dragging=true]:scale-110 group-data-[has-items=true]/attach:h-9 group-data-[has-items=true]/attach:w-9">
+          {% lucide "images" class="w-5 h-5" aria_hidden="true" %}
+        </span>
+        <span class="font-sans text-sm font-semibold text-secondary-900">
+          <span class="group-data-[has-items=true]/attach:hidden">Drop images here, paste, or <span class="text-primary-700 underline decoration-primary-400 underline-offset-4">browse</span></span>
+          <span class="hidden group-data-[has-items=true]/attach:inline">Add more images <span class="font-normal text-neutral-800">(drop, paste or browse)</span></span>
+        </span>
+        <span class="font-sans text-xs text-neutral-800 group-data-[has-items=true]/attach:hidden">JPG, PNG, WebP or GIF, up to 5 MB each</span>
+        <input id="ticketAttachmentFile" name="attachments" data-attach-file type="file" multiple accept="image/jpeg,image/png,image/webp,image/gif" class="sr-only" />
+      </label>
+
+      {# What's attached so far: right under the drop zone so it's seen straight away #}
+      <p data-attach-status hidden role="status" class="mt-3 flex items-center gap-2 rounded-xl border border-primary-300 bg-primary-100 px-3 py-2 font-sans text-sm font-semibold text-primary-900">
+        <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary-500 text-neutral-50">{% lucide "check" class="w-3.5 h-3.5" stroke_width=3 aria_hidden="true" %}</span>
+        <span data-attach-status-text class="min-w-0 flex-1"></span>
+      </p>
+      <ul data-attach-list class="mt-3 grid grid-cols-2 gap-3 empty:hidden sm:grid-cols-3" aria-label="Attached images"></ul>
+
+      <div class="mt-3 flex items-start gap-2">
+        <div class="min-w-0 flex-1">
+          {% component "input" id="ticketImageLink" name="image_links" type="url" label="Or paste an image link" placeholder=" " icon="link" attrs='data-attach-link maxlength="500" inputmode="url" autocapitalize="off" spellcheck="false" aria-describedby="ticketLinkPreview"' / %}
+        </div>
+        {% component "button" text="Add" variant="neutral" size="lg" icon_left="plus" attrs='data-attach-link-add aria-label="Add image link"' / %}
+      </div>
+
+      {# Live preview of the link being typed, before it's added #}
+      <div
+        id="ticketLinkPreview"
+        data-link-preview
+        data-state="idle"
+        hidden
+        aria-live="polite"
+        class="link-preview mt-2 flex items-center gap-3 rounded-2xl border border-neutral-400 bg-neutral-50 p-2 pr-3 transition-colors data-[state=ok]:border-primary-400 data-[state=ok]:bg-primary-50 data-[state=error]:border-tertiary-400 data-[state=error]:bg-tertiary-100"
+      >
+        <span class="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-neutral-400">
+          <img data-link-preview-image alt="" referrerpolicy="no-referrer" class="hidden h-full w-full object-cover" />
+          <span data-link-preview-spinner class="h-5 w-5 animate-spin rounded-full border-2 border-secondary-300 border-t-transparent"></span>
+          <span data-link-preview-broken hidden class="text-neutral-800">{% lucide "image-off" class="w-6 h-6" aria_hidden="true" %}</span>
+        </span>
+        <span class="flex min-w-0 flex-1 flex-col">
+          <span data-link-preview-host class="truncate font-sans text-sm font-semibold text-secondary-900"></span>
+          <span data-link-preview-text class="font-sans text-xs text-neutral-800"></span>
+        </span>
+        <span class="hidden shrink-0 font-sans text-xs font-semibold text-primary-800 sm:inline" data-link-preview-hint>Press Enter to add</span>
+      </div>
+
+      <p data-attach-error hidden role="alert" class="mt-2 flex items-center gap-1 px-1 font-sans text-xs text-red-100"></p>
+    </fieldset>
   </form>
   {% endfill %}
 

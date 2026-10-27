@@ -49,6 +49,7 @@ class Sidebar(component.Component):
             "sections": sections,
             "user_name": name,
             "user_initials": initials,
+            "user_avatar_url": getattr(user, "avatar_url", "") if user else "",
             "user_role": user.get_role_display()
             if user and hasattr(user, "get_role_display")
             else "",

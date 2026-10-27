@@ -20,6 +20,7 @@ from apps.helpdesk.views import (
     paginate,
     parse_page,
     parse_ticket_query,
+    serialize_attachment,
     serialize_ticket_message,
     serialize_ticket_summary,
 )
@@ -368,6 +369,9 @@ def serialize_admin_ticket_detail(ticket, admin):
     return {
         **serialize_admin_ticket(ticket, admin),
         "closed_at": ticket.closed_at.isoformat() if ticket.closed_at else None,
+        "attachments": [
+            serialize_attachment(attachment) for attachment in ticket.attachments.all()
+        ],
         "can_update_status": can_manage_ticket(admin, ticket),
     }
 

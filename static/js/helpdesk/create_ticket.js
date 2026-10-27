@@ -1,10 +1,12 @@
 import "./../components/toast/toast.js";
-import { setButtonLoading } from "./shared.js";
+import { createAttachmentPicker } from "./attachments.js";
+import { setButtonLoading, setButtonText } from "./shared.js";
 
 const MODAL_ID = "createTicketModal";
 
 const form = document.getElementById("createTicketForm");
 const submitButton = document.getElementById("createTicketSubmit");
+const attachments = form ? createAttachmentPicker(form.querySelector("[data-attachments]")) : null;
 
 // Each validated field, with where its error and character count go
 const FIELDS = {
@@ -78,9 +80,11 @@ function showServerErrors(errors) {
     }
   });
 
+  if (errors.attachments?.length) attachments.setError(errors.attachments.join(" "));
+
   // Errors on fields without an inline slot (e.g. priority) go to a toast
   const otherErrors = Object.entries(errors)
-    .filter(([field]) => !FIELDS[field])
+    .filter(([field]) => !FIELDS[field] && field !== "attachments")
     .map(([, messages]) => messages[0]);
   if (otherErrors.length) {
     window.showToast?.({
@@ -95,9 +99,33 @@ function showServerErrors(errors) {
 
 function resetForm() {
   form.reset();
+  attachments.reset();
   clearFieldErrors();
   Object.keys(FIELDS).forEach(updateCount);
   FIELDS.description.input.style.height = "";
+}
+
+// fetch() can't report upload progress, so screenshots go through XHR. Resolves with
+// what the caller needs from the response; rejects only on network failure.
+function postWithProgress(url, body, onProgress) {
+  return new Promise((resolve, reject) => {
+    const request = new XMLHttpRequest();
+    request.open("POST", url);
+    request.setRequestHeader("Accept", "application/json");
+    request.upload.addEventListener("progress", (event) => {
+      if (event.lengthComputable) onProgress(event.loaded / event.total);
+    });
+    request.addEventListener("load", () =>
+      resolve({
+        ok: request.status >= 200 && request.status < 300,
+        status: request.status,
+        contentType: request.getResponseHeader("content-type") || "",
+        json: () => JSON.parse(request.responseText),
+      }),
+    );
+    request.addEventListener("error", () => reject(new Error("Network error. Check your connection and try again.")));
+    request.send(body);
+  });
 }
 
 async function submitTicket(event) {
@@ -108,20 +136,21 @@ async function submitTicket(event) {
 
   // aria-busy (checked above) blocks double submits; not `disabled`, which
   // would dim the button and make it look broken while it's working
-  setButtonLoading(submitButton, true, "Creating…");
+  setButtonLoading(submitButton, true, attachments.count ? "Uploading…" : "Creating…");
 
   try {
-    const response = await fetch(form.dataset.apiUrl, {
-      method: "POST",
-      headers: { Accept: "application/json" },
-      // FormData includes the csrfmiddlewaretoken from {% csrf_token %}
-      body: new FormData(form),
+    // FormData includes the csrfmiddlewaretoken from {% csrf_token %}
+    const body = new FormData(form);
+    attachments.appendTo(body);
+    const response = await postWithProgress(form.dataset.apiUrl, body, (fraction) => {
+      if (!attachments.hasFiles) return;
+      attachments.setUploadProgress(fraction);
+      setButtonText(submitButton, `Uploading ${Math.round(fraction * 100)}%`);
     });
 
-    const contentType = response.headers.get("content-type") || "";
-    if (!contentType.includes("application/json"))
+    if (!response.contentType.includes("application/json"))
       throw new Error("Server did not return JSON. Your session may be expired");
-    const data = await response.json();
+    const data = response.json();
 
     if (response.status === 400 && data.errors) {
       showServerErrors(data.errors);
@@ -151,6 +180,7 @@ async function submitTicket(event) {
       message: error.message,
     });
   } finally {
+    attachments.setUploadProgress(null);
     setButtonLoading(submitButton, false);
   }
 }

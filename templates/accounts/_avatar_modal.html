@@ -1,0 +1,97 @@
+{% load lucide component_tags %}
+{% comment %}
+  Profile picture dialog (profile.html). Two steps, switched by avatar.js through
+  [data-avatar-step]: "pick" (drop zone) and "edit" (square crop with zoom + previews).
+  The crop is made in the browser and sent to the server as a 512x512 image.
+{% endcomment %}
+
+{% component "modal" id="avatarModal" title="Profile picture" size="md" %}
+  {% fill "content" %}
+  <div
+    data-avatar-root
+    data-upload-url="{% url 'accounts:avatar_upload' %}"
+    data-remove-url="{% url 'accounts:avatar_remove' %}"
+    data-has-avatar="{% if u.avatar %}true{% else %}false{% endif %}"
+    data-max-source-mb="15"
+  >
+    {# Step 1: choose a photo #}
+    <div data-avatar-step="pick">
+      <label
+        data-avatar-drop
+        for="avatarFile"
+        class="group flex cursor-pointer flex-col items-center gap-3 rounded-2xl border-2 border-dashed border-neutral-500 bg-neutral-300 px-6 py-10 text-center transition-all duration-200 hover:border-primary-500 hover:bg-primary-100 has-focus-visible:ring-2 has-focus-visible:ring-primary-500 data-[dragging=true]:scale-[1.01] data-[dragging=true]:border-secondary-600 data-[dragging=true]:bg-primary-200"
+      >
+        <span class="flex h-16 w-16 items-center justify-center rounded-full bg-primary-200 text-secondary-700 transition-transform duration-300 group-hover:-translate-y-1 group-data-[dragging=true]:-translate-y-2 group-data-[dragging=true]:scale-110">
+          {% lucide "image-up" class="w-8 h-8" aria_hidden="true" %}
+        </span>
+        <span class="font-sans text-base font-semibold text-secondary-900">
+          <span data-drop-idle>Drop a photo here, or <span class="text-primary-700 underline decoration-primary-400 underline-offset-4">browse</span></span>
+          <span data-drop-active hidden>Release to use this photo</span>
+        </span>
+        <span class="font-sans text-xs text-neutral-800">JPG, PNG, WebP or GIF. You can also paste an image with <kbd class="rounded border border-neutral-500 bg-neutral-50 px-1.5 py-0.5 font-mono text-[0.6875rem]">Ctrl</kbd> + <kbd class="rounded border border-neutral-500 bg-neutral-50 px-1.5 py-0.5 font-mono text-[0.6875rem]">V</kbd>.</span>
+        <input id="avatarFile" data-avatar-file type="file" accept="image/jpeg,image/png,image/webp,image/gif" class="sr-only" />
+      </label>
+
+      <div
+        data-avatar-current
+        class="mt-4 flex items-center gap-3 rounded-2xl border border-neutral-400 bg-neutral-50 p-3 {% if not u.avatar %}hidden{% endif %}"
+      >
+        <img data-avatar-current-image src="{{ u.avatar_url }}" alt="" class="h-12 w-12 rounded-full object-cover ring-2 ring-neutral-400" />
+        <p class="min-w-0 flex-1 font-sans text-sm text-neutral-900">This is your current picture.</p>
+        {% component "button" text="Remove" variant="danger-ghost" size="sm" icon_left="trash-2" attrs='data-avatar-remove' / %}
+      </div>
+    </div>
+
+    {# Step 2: position the crop #}
+    <div data-avatar-step="edit" hidden>
+      <div class="flex flex-col items-center gap-5 sm:flex-row sm:items-start">
+        <div class="w-full max-w-72 shrink-0">
+          <div
+            data-avatar-stage
+            tabindex="0"
+            role="application"
+            aria-label="Crop area. Drag or use the arrow keys to move the photo, plus and minus to zoom."
+            class="relative aspect-square w-full touch-none cursor-grab overflow-hidden rounded-2xl bg-neutral-900 outline-none select-none focus-visible:ring-2 focus-visible:ring-primary-500 active:cursor-grabbing"
+          >
+            <img data-avatar-source alt="" draggable="false" class="pointer-events-none absolute top-0 left-0 max-w-none origin-top-left will-change-transform" />
+            {# Dims everything outside the circle that becomes your avatar #}
+            <span aria-hidden="true" class="avatar-mask pointer-events-none absolute inset-3 rounded-full ring-2 ring-neutral-50/90"></span>
+          </div>
+
+          <div class="mt-4 flex items-center gap-3">
+            <button type="button" data-zoom-step="-1" aria-label="Zoom out" class="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg text-neutral-800 transition-colors hover:bg-neutral-300 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">{% lucide "zoom-out" class="w-5 h-5" aria_hidden="true" %}</button>
+            <input data-avatar-zoom type="range" min="1" max="3" step="0.01" value="1" aria-label="Zoom" class="h-2 min-w-0 flex-1 cursor-pointer appearance-none rounded-full bg-neutral-400 accent-secondary-700" />
+            <button type="button" data-zoom-step="1" aria-label="Zoom in" class="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg text-neutral-800 transition-colors hover:bg-neutral-300 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">{% lucide "zoom-in" class="w-5 h-5" aria_hidden="true" %}</button>
+          </div>
+        </div>
+
+        <div class="flex w-full flex-1 flex-col gap-4">
+          <div>
+            <h4 class="font-sans text-sm font-semibold text-secondary-900">Preview</h4>
+            <p class="font-sans text-xs text-neutral-800">How other members will see you.</p>
+          </div>
+          <div class="flex items-end gap-4" aria-hidden="true">
+            <canvas data-avatar-preview width="192" height="192" class="h-24 w-24 rounded-full bg-neutral-300 shadow-md ring-4 ring-neutral-50"></canvas>
+            <canvas data-avatar-preview width="96" height="96" class="h-12 w-12 rounded-full bg-neutral-300 shadow ring-2 ring-neutral-50"></canvas>
+            <canvas data-avatar-preview width="64" height="64" class="h-8 w-8 rounded-full bg-neutral-300 shadow-sm ring-2 ring-neutral-50"></canvas>
+          </div>
+          <div class="mt-auto flex flex-wrap gap-2">
+            {% component "button" text="Choose another" variant="neutral" size="sm" icon_left="image-up" attrs='data-avatar-back' / %}
+            {% component "button" text="Reset" variant="neutral" size="sm" icon_left="rotate-ccw" attrs='data-avatar-reset' / %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p data-avatar-error hidden role="alert" class="mt-4 flex items-start gap-2 rounded-xl border border-red-100/40 bg-red-100/5 p-3 font-sans text-sm text-red-100">
+      {% lucide "triangle-alert" class="w-4 h-4 mt-0.5 shrink-0" aria_hidden="true" %}
+      <span data-avatar-error-text></span>
+    </p>
+  </div>
+  {% endfill %}
+
+  {% fill "footer" %}
+  {% component "button" text="Cancel" variant="neutral" attrs="data-modal-close" / %}
+  {% component "button" id="avatarSave" text="Save photo" variant="secondary" icon_left="check" disabled=True attrs='data-avatar-save' / %}
+  {% endfill %}
+{% endcomponent %}

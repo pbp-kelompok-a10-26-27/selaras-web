@@ -29,6 +29,7 @@ class Navbar(component.Component):
             )
         ]
         profile_url = kwargs.get("profile_url", "/accounts/profile/")
+        user = getattr(request, "user", None)
 
         return {
             # Logout is a POST form: Django's LogoutView rejects GET, so a link to
@@ -44,6 +45,8 @@ class Navbar(component.Component):
             "logout_url": kwargs.get("logout_url", "/accounts/logout/"),
             "profile_url": profile_url,
             "profile_active": is_active(profile_url),
+            # Shown in place of the profile icon once the user has uploaded one
+            "avatar_url": getattr(user, "avatar_url", ""),
             "preview": kwargs.get("preview", False),
             "class_": kwargs.get("class_", ""),
         }

@@ -5,6 +5,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from apps.core.models import TimeStamp
+from apps.core.storage import private_storage
 
 
 class Ticket(TimeStamp):
@@ -76,3 +77,36 @@ class TicketMessage(TimeStamp):
             f"Message #{self.id} - Ticket #{self.ticket.id} - "
             f"Author: {self.author.username}"
         )
+
+
+class TicketAttachment(TimeStamp):
+    """A screenshot on a ticket: either an uploaded image or a link to one."""
+
+    MAX_PER_TICKET = 5
+
+    ticket = models.ForeignKey(
+        Ticket, on_delete=models.CASCADE, related_name="attachments"
+    )
+    file = models.FileField(
+        upload_to="ticket_attachments/", storage=private_storage, blank=True
+    )
+    url = models.URLField(max_length=500, blank=True)
+
+    class Meta:
+        ordering = ["created_at", "id"]
+        constraints = [
+            # Exactly one of the two: an upload, or a link
+            models.CheckConstraint(
+                condition=(
+                    models.Q(file="", url__gt="") | models.Q(url="", file__gt="")
+                ),
+                name="helpdesk_attachment_file_xor_url",
+            ),
+        ]
+
+    def __str__(self):
+        return f"Attachment #{self.pk} - Ticket #{self.ticket_id}"
+
+    @property
+    def is_link(self) -> bool:
+        return bool(self.url)

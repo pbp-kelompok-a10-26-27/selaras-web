@@ -1,6 +1,8 @@
+from django.contrib import messages as django_messages
 from django.core.paginator import Paginator
+from django.db import transaction
 from django.db.models import Case, Count, IntegerField, Q, When
-from django.http import HttpRequest, HttpResponse, JsonResponse
+from django.http import FileResponse, Http404, HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
@@ -8,7 +10,8 @@ from django.views.decorators.http import require_POST
 from apps.core.decorators import admin_required, login_required
 
 from .forms import AgentUpdateTicketForm, TicketForm, TicketMessageForm
-from .models import Ticket, TicketMessage
+from .models import Ticket, TicketAttachment, TicketMessage
+from .services import save_attachments, validate_attachments
 
 STATUS_ICONS = {
     Ticket.Status.OPEN: "circle-dot",
@@ -189,9 +192,21 @@ def ticket_create(request: HttpRequest):
     form = TicketForm(request.POST)
 
     if request.method == "POST" and form.is_valid():
-        ticket = form.save(commit=False)
-        ticket.requester = request.user
-        ticket.save()
+        # Same fields the create-ticket dialog sends, so screenshots are kept even
+        # when its script didn't run
+        files, links, attachment_errors = validate_attachments(
+            request.FILES.getlist("attachments"),
+            [link for link in request.POST.getlist("image_links") if link.strip()],
+        )
+        if attachment_errors:
+            django_messages.error(request, " ".join(attachment_errors))
+            return redirect("helpdesk:ticket_list")
+
+        with transaction.atomic():
+            ticket = form.save(commit=False)
+            ticket.requester = request.user
+            ticket.save()
+            save_attachments(ticket, files, links)
         return redirect(
             "helpdesk:ticket_list"
         )  # Redirect to the ticket list after creation
@@ -394,6 +409,17 @@ def serialize_ticket_summary(ticket):
     }
 
 
+def serialize_attachment(attachment):
+    """What the ticket page needs to show one screenshot: a link to the image itself,
+    or (for uploads) the permission-checked download URL."""
+    return {
+        "id": attachment.id,
+        "kind": "link" if attachment.is_link else "file",
+        "url": attachment.url
+        or reverse("helpdesk:attachment_file", args=[attachment.id]),
+    }
+
+
 # Helper function to serialize the requester / assignee of a ticket
 def serialize_ticket_user(user):
 
@@ -545,6 +571,10 @@ def ticket_detail_api(request: HttpRequest, ticket_id):
                 "priority_label": ticket.get_priority_display(),
                 "requester": serialize_ticket_user(ticket.requester),
                 "assignee": serialize_ticket_user(ticket.assigned_to),
+                "attachments": [
+                    serialize_attachment(attachment)
+                    for attachment in ticket.attachments.all()
+                ],
                 "can_reply": can_reply_to_ticket(ticket)
                 and can_post_message(request.user, ticket),
                 "created_at": ticket.created_at.isoformat()
@@ -605,11 +635,38 @@ def ticket_create_api(request: HttpRequest):
         }
         return JsonResponse({"errors": errors}, status=400)
 
-    ticket = form.save(commit=False)
-    ticket.requester = request.user
-    ticket.save()
+    files, links, attachment_errors = validate_attachments(
+        request.FILES.getlist("attachments"),
+        [link for link in request.POST.getlist("image_links") if link.strip()],
+    )
+    if attachment_errors:
+        return JsonResponse({"errors": {"attachments": attachment_errors}}, status=400)
+
+    with transaction.atomic():
+        ticket = form.save(commit=False)
+        ticket.requester = request.user
+        ticket.save()
+        save_attachments(ticket, files, links)
 
     # A brand-new ticket has no replies; set it instead of querying for it
     ticket.messages_count = 0
 
     return JsonResponse({"ticket": serialize_ticket_summary(ticket)}, status=201)
+
+
+@login_required
+def attachment_file(request: HttpRequest, attachment_id):
+    """Download an uploaded screenshot, only for people who may see its ticket."""
+
+    attachment = get_object_or_404(
+        TicketAttachment.objects.select_related("ticket"), id=attachment_id
+    )
+    if not can_view_ticket(request.user, attachment.ticket) or not attachment.file:
+        raise Http404
+
+    response = FileResponse(attachment.file.open("rb"))
+    # Browsers must not guess a different type from the bytes, and the page that
+    # shows it is the only intended consumer
+    response["X-Content-Type-Options"] = "nosniff"
+    response["Cache-Control"] = "private, max-age=3600"
+    return response

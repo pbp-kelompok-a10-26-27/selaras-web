@@ -7,6 +7,8 @@ from .views import (
     UserLoginView,
     UserPasswordChangeDoneView,
     UserPasswordChangeView,
+    avatar_remove,
+    avatar_upload,
 )
 
 app_name = "accounts"
@@ -16,6 +18,8 @@ urlpatterns = [
     path("login/", UserLoginView.as_view(), name="login"),
     path("logout/", auth_views.LogoutView.as_view(), name="logout"),
     path("profile/", ProfileView.as_view(), name="profile"),
+    path("avatar/", avatar_upload, name="avatar_upload"),
+    path("avatar/remove/", avatar_remove, name="avatar_remove"),
     path("password/change/", UserPasswordChangeView.as_view(), name="password_change"),
     path(
         "password/change/done/",

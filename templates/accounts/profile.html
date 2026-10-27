@@ -59,11 +59,30 @@
                 class="profile-ring-value stroke-primary-500"
               ></circle>
             </svg>
-            <div
-              data-preview-initials
-              class="absolute inset-2.25 flex items-center justify-center rounded-full bg-secondary-700 font-sans text-3xl font-semibold text-neutral-50 shadow-inner ring-4 ring-neutral-50 select-none sm:text-4xl"
-              aria-hidden="true"
-            >{% if u.first_name or u.last_name %}{{ u.first_name|first|upper }}{{ u.last_name|first|upper }}{% else %}{{ u.username|slice:":2"|upper }}{% endif %}</div>
+            <div class="absolute inset-2.25 overflow-hidden rounded-full bg-secondary-700 shadow-inner ring-4 ring-neutral-50">
+              <img
+                data-avatar-image
+                src="{{ u.avatar_url }}"
+                alt="Your profile picture"
+                class="absolute inset-0 h-full w-full object-cover {% if not u.avatar %}hidden{% endif %}"
+              />
+              <div
+                data-preview-initials
+                class="absolute inset-0 flex items-center justify-center font-sans text-3xl font-semibold text-neutral-50 select-none sm:text-4xl {% if u.avatar %}hidden{% endif %}"
+                aria-hidden="true"
+              >{% if u.first_name or u.last_name %}{{ u.first_name|first|upper }}{{ u.last_name|first|upper }}{% else %}{{ u.username|slice:":2"|upper }}{% endif %}</div>
+              {# Appears on hover/focus (always visible on touch) #}
+              <button
+                type="button"
+                data-avatar-open
+                data-modal-open="avatarModal"
+                aria-haspopup="dialog"
+                aria-label="Change profile picture"
+                class="avatar-edit group absolute inset-0 flex cursor-pointer items-center justify-center rounded-full bg-secondary-900/55 text-neutral-50 opacity-0 backdrop-blur-[1px] transition-opacity duration-200 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary-500 [@media(hover:none)]:opacity-100 [@media(hover:none)]:bg-transparent"
+              >
+                <span class="flex h-9 w-9 items-center justify-center rounded-full bg-secondary-900/70 transition-transform duration-200 group-hover:scale-110 [@media(hover:none)]:absolute [@media(hover:none)]:left-0 [@media(hover:none)]:bottom-0 [@media(hover:none)]:h-8 [@media(hover:none)]:w-8 [@media(hover:none)]:scale-100">{% lucide "camera" class="w-5 h-5" aria_hidden="true" %}</span>
+              </button>
+            </div>
             <span
               class="absolute -right-1 bottom-1 inline-flex items-center rounded-full border border-neutral-400 bg-neutral-50 px-2 py-0.5 font-sans text-xs font-semibold text-secondary-800 shadow-sm"
             ><span data-completion-percent>{{ completion.percent }}</span>%<span class="sr-only"> profile complete</span></span>
@@ -367,6 +386,7 @@
     </aside>
   </div>
 </div>
+{% include "accounts/_avatar_modal.html" %}
 {% endwith %}
 
 {% include "accounts/_messages.html" %}
@@ -374,4 +394,5 @@
 
 {% block scripts %}
 <script type="module" src="{% static 'js/accounts/profile.js' %}"></script>
+<script type="module" src="{% static 'js/accounts/avatar.js' %}"></script>
 {% endblock %}

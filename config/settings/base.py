@@ -157,6 +157,8 @@ STATICFILES_FINDERS = [
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+# Files only a permitted user may download (served by a view, never by MEDIA_URL)
+PRIVATE_MEDIA_ROOT = BASE_DIR / "private_media"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

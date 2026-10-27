@@ -20,6 +20,11 @@ urlpatterns = [
         views.ticket_message_api,
         name="ticket_message_api",
     ),
+    path(
+        "attachments/<int:attachment_id>/",
+        views.attachment_file,
+        name="attachment_file",
+    ),
     path("tickets/<uuid:ticket_id>/", views.ticket_detail, name="ticket_detail"),
     path(
         "tickets/<uuid:ticket_id>/messages/create/",

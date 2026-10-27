@@ -65,28 +65,19 @@
     <!-- Desktop Actions -->
      {% if not authenticated %}
     <div class="hidden shrink-0 items-center gap-2 lg:flex">
-      <a
-        href="{{ login_url }}"
-        class="rounded-xl px-4 py-2.5 font-sans text-sm font-semibold text-secondary-800 transition-all duration-200 hover:bg-secondary-50 hover:text-secondary-900 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
-      >
-        Log in
-      </a>
-
-      <a
-        href="{{ register_url }}"
-        class="rounded-xl border border-primary-500 bg-primary-500 px-5 py-3 font-sans text-sm font-semibold text-secondary-900 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary-400 hover:bg-primary-400 hover:shadow-md active:translate-y-0 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
-      >
-        Get Started
-      </a>
+      {% component "button" variant="primary-ghost" size="md" text="Log In" href="{{ login_url }}" / %}
+      {% component "button" variant="secondary" size="md" text="Get Started" icon_right="mouse-pointer-click" href="{{ register_url }}" / %}
     </div>
     {% else %}
     <div class="hidden shrink-0 items-center gap-2 lg:flex">
       <a
         href="{{ profile_url }}"
-        class="rounded-xl flex flex-row px-4 py-2.5 font-sans text-sm font-semibold transition-all duration-200 hover:bg-secondary-50 hover:text-secondary-900 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 {% if profile_active %}bg-secondary-50 text-secondary-900{% else %}text-secondary-800{% endif %}"
+        class="rounded-xl flex flex-row items-center px-4 py-2.5 font-sans text-sm font-semibold transition-all duration-200 hover:bg-secondary-50 hover:text-secondary-900 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 {% if profile_active %}bg-secondary-50 text-secondary-900{% else %}text-secondary-800{% endif %}"
         {% if profile_active %}aria-current="page"{% endif %}
       >
-        {% lucide "circle-user-round" class="w-5 h-5 mr-1.5" %}
+        {# Both are rendered so the profile page can swap them after an upload #}
+        <img src="{{ avatar_url }}" alt="" data-nav-avatar class="mr-1.5 h-5 w-5 shrink-0 rounded-full object-cover ring-1 ring-secondary-300 {% if not avatar_url %}hidden{% endif %}" />
+        <span data-nav-avatar-icon class="mr-1.5 {% if avatar_url %}hidden{% endif %}">{% lucide "circle-user-round" class="w-5 h-5" %}</span>
         Profile
       </a>
 

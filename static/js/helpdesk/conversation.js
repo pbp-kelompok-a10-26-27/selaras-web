@@ -1,5 +1,6 @@
 // Ticket card, conversation and reply composer, shared by the user ticket page
 // (helpdesk/ticket_detail.js) and the admin ticket page (dashboard/admin_ticket_detail.js).
+import { createAttachmentGallery } from "./attachments.js";
 import {
   TICKET_PRIORITY_CONFIG,
   TICKET_STATUS_CONFIG,
@@ -205,6 +206,8 @@ export function createTicketDetailComponent(ticket, { animate = true } = {}) {
   );
 
   card.append(header, people, description);
+  const gallery = createAttachmentGallery(ticket.attachments);
+  if (gallery) card.append(gallery);
   return card;
 }
 

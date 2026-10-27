@@ -15,6 +15,8 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
+from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
@@ -35,6 +37,10 @@ urlpatterns = [
     # Landing page (templates/landing/home.html) with live numbers from each app
     path("", home, name="home"),
 ]
+
+# Uploaded avatars. Outside DEBUG the web server is expected to serve MEDIA_ROOT.
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # Custom error pages (templates/errors/), used when DEBUG is False
 handler404 = "apps.core.views.page_not_found"

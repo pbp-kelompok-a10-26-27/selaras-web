@@ -22,3 +22,5 @@ node_modules/
 
 # Tailwind build
 # Keep generated CSS if your team wants it committed.
+# Private uploads (ticket attachments)
+private_media/

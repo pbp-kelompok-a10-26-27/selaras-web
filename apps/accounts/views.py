@@ -3,12 +3,17 @@ from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.views import LoginView
+from django.core.exceptions import ValidationError
+from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.urls import reverse, reverse_lazy
+from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, UpdateView
 
+from apps.core.decorators import login_required
 from apps.core.mixins import AuthenticatedRequiredMixin
 from apps.core.permissions import is_admin
+from apps.core.validators import IMAGE_TYPES_LABEL, clean_image_upload
 from apps.dashboard.navigation import get_sidebar_sections
 
 from .forms import ProfileForm, RegistrationForm
@@ -100,3 +105,45 @@ class UserPasswordChangeDoneView(
     AuthenticatedRequiredMixin, AccountLayoutMixin, auth_views.PasswordChangeDoneView
 ):
     template_name = "accounts/password_change_done.html"
+
+
+AVATAR_MAX_BYTES = 2 * 1024 * 1024
+
+
+@login_required
+@require_POST
+def avatar_upload(request):
+    """Replace the signed-in user's profile picture (the page crops it to a square
+    before sending, so this only checks that it's a real, small image)."""
+
+    file = request.FILES.get("avatar")
+    if file is None:
+        return JsonResponse(
+            {"error": f"Choose a {IMAGE_TYPES_LABEL} image first."}, status=400
+        )
+
+    try:
+        file = clean_image_upload(file, AVATAR_MAX_BYTES)
+    except ValidationError as error:
+        return JsonResponse({"error": error.messages[0]}, status=400)
+
+    user = request.user
+    previous = user.avatar.name
+    user.avatar = file
+    user.save(update_fields=["avatar", "updated_at"])
+    if previous:
+        user.avatar.storage.delete(previous)
+
+    return JsonResponse({"avatar_url": user.avatar_url})
+
+
+@login_required
+@require_POST
+def avatar_remove(request):
+    user = request.user
+    previous = user.avatar.name
+    if previous:
+        user.avatar = ""
+        user.save(update_fields=["avatar", "updated_at"])
+        user.avatar.storage.delete(previous)
+    return JsonResponse({"avatar_url": ""})
