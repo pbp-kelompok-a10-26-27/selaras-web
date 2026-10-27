@@ -37,7 +37,7 @@ class ChallengeForm(forms.ModelForm):
         widgets = {
             "title": forms.TextInput(
                 attrs={
-                    "placeholder": "Contoh: 7 Hari Bebas Sampah Plastik Sekali Pakai",
+                    "placeholder": "e.g. 7 days without single-use plastic",
                     "class": INPUT_CLASSES,
                 }
             ),
@@ -45,8 +45,8 @@ class ChallengeForm(forms.ModelForm):
                 attrs={
                     "rows": 4,
                     "placeholder": (
-                        "Jelaskan tujuan, latar belakang, dan aksi nyata apa yang "
-                        "diharapkan dari peserta..."
+                        "Explain the goal, the background and which actions "
+                        "participants are expected to take."
                     ),
                     "class": TEXTAREA_CLASSES,
                 }
@@ -70,16 +70,16 @@ class ChallengeForm(forms.ModelForm):
             ),
         }
         labels = {
-            "title": "Judul Program Tantangan",
-            "description": "Deskripsi & Panduan Tantangan",
-            "start_date": "Tanggal Mulai",
-            "end_date": "Tanggal Selesai",
-            "is_published": "Publikasikan Tantangan Sekarang",
+            "title": "Title",
+            "description": "Description",
+            "start_date": "Start date",
+            "end_date": "End date",
+            "is_published": "Publish this challenge",
         }
         help_texts = {
             "is_published": (
-                "Centang agar tantangan dapat dilihat dan diikuti oleh "
-                "seluruh pengguna di aplikasi."
+                "Published challenges are visible to everyone and can be "
+                "joined. Leave unchecked to keep it as a draft."
             ),
         }
 
@@ -92,7 +92,7 @@ class ChallengeForm(forms.ModelForm):
             if end_date < start_date:
                 self.add_error(
                     "end_date",
-                    "Tanggal selesai tidak boleh lebih awal dari tanggal mulai.",
+                    "The end date cannot be before the start date.",
                 )
 
         return cleaned_data

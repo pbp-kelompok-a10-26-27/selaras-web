@@ -1,443 +1,185 @@
+{% extends "base.html" %}
 {% load static component_tags lucide %}
 
-<!doctype html>
+{% block title %}My challenges · Challenges{% endblock %}
 
-<html lang="id">
-  <head>
-    <meta charset="UTF-8" />
+{% block content %}
+<main class="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 pb-20 pt-36 sm:px-6 sm:pt-40 lg:px-8">
+  <!-- Header -->
+  <header class="mb-8 flex flex-col gap-4 border-b border-neutral-400/60 pb-8 sm:flex-row sm:items-end sm:justify-between">
+    <div class="flex flex-col gap-1">
+      <h1 class="font-display text-h3 leading-tight text-foreground sm:text-h2">My challenges</h1>
+      <p class="max-w-2xl font-sans text-b3 text-neutral-900">Follow your progress, revisit your check-ins and collect badges.</p>
+    </div>
+    {% url 'challenges:list' as list_url %}
+    {% component "button" text="Browse challenges" variant="primary" size="md" icon_right="arrow-right" href=list_url class_="max-sm:w-full" / %}
+  </header>
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Stats -->
+  <section aria-label="Your challenge stats" class="mb-10">
+    <dl class="grid grid-cols-2 gap-3 lg:grid-cols-4 sm:gap-4">
+      <div class="flex items-center gap-4 rounded-2xl border border-neutral-400 bg-neutral-50 p-4 sm:p-5">
+        <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-100 text-primary-700">{% lucide "compass" class="w-5 h-5" %}</span>
+        <div class="flex flex-col">
+          <dt class="font-sans text-sm font-semibold text-neutral-900">Joined</dt>
+          <dd class="font-sans text-2xl font-bold tabular-nums text-foreground">{{ total_joined }}</dd>
+          <dd class="font-sans text-xs text-neutral-800">challenges</dd>
+        </div>
+      </div>
+      <div class="flex items-center gap-4 rounded-2xl border border-neutral-400 bg-neutral-50 p-4 sm:p-5">
+        <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-orange-100/50 bg-orange-100/15 text-orange-100">{% lucide "flame" class="w-5 h-5" %}</span>
+        <div class="flex flex-col">
+          <dt class="font-sans text-sm font-semibold text-neutral-900">In progress</dt>
+          <dd class="font-sans text-2xl font-bold tabular-nums text-foreground">{{ total_ongoing }}</dd>
+          <dd class="font-sans text-xs text-neutral-800">keep going</dd>
+        </div>
+      </div>
+      <div class="flex items-center gap-4 rounded-2xl border border-neutral-400 bg-neutral-50 p-4 sm:p-5">
+        <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-blue-100/40 bg-blue-100/10 text-blue-200">{% lucide "award" class="w-5 h-5" %}</span>
+        <div class="flex flex-col">
+          <dt class="font-sans text-sm font-semibold text-neutral-900">Completed</dt>
+          <dd class="font-sans text-2xl font-bold tabular-nums text-foreground">{{ total_completed }}</dd>
+          <dd class="font-sans text-xs text-neutral-800">100% finished</dd>
+        </div>
+      </div>
+      <div class="flex items-center gap-4 rounded-2xl border border-neutral-400 bg-neutral-50 p-4 sm:p-5">
+        <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-100 text-primary-700">{% lucide "calendar-check" class="w-5 h-5" %}</span>
+        <div class="flex flex-col">
+          <dt class="font-sans text-sm font-semibold text-neutral-900">Check-ins</dt>
+          <dd class="font-sans text-2xl font-bold tabular-nums text-foreground">{{ total_checkins }}</dd>
+          <dd class="font-sans text-xs text-neutral-800">days logged</dd>
+        </div>
+      </div>
+    </dl>
+  </section>
 
-    <link
-      rel="icon"
-      type="image/svg+xml"
-      href="{% static 'assets/images/logo.svg' %}"
-    />
+  <!-- Badges -->
+  <section class="mb-10 flex flex-col gap-4" aria-labelledby="badgesTitle">
+    <div class="flex flex-wrap items-end justify-between gap-2">
+      <div class="flex flex-col">
+        <h2 id="badgesTitle" class="flex items-center gap-2 font-sans text-lg font-semibold text-foreground">
+          <span class="text-secondary-500">{% lucide "award" class="w-5 h-5" %}</span>
+          My badges
+          <span class="rounded-full bg-neutral-300 px-2 py-0.5 font-sans text-xs font-bold tabular-nums text-secondary-900">{{ user_badges|length }}</span>
+        </h2>
+        <p class="font-sans text-xs text-neutral-800">Earned by completing every day of a challenge.</p>
+      </div>
+    </div>
 
-    <title>Riwayat & Pencapaian Tantangan | SELARAS</title>
+    {% if user_badges %}
+    <ul class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 sm:gap-4">
+      {% for ub in user_badges %}
+      <li class="flex items-center gap-4 rounded-2xl border border-neutral-400 bg-neutral-50 p-4">
+        <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-secondary-700 text-primary-300">{% lucide "award" class="w-5 h-5" %}</span>
+        <div class="min-w-0">
+          <p class="truncate font-sans text-base font-semibold text-foreground">{{ ub.badge.name }}</p>
+          <p class="truncate font-sans text-xs text-neutral-800">{{ ub.badge.description }}</p>
+          <p class="font-sans text-xs text-neutral-800">Earned {{ ub.awarded_at|date:"M j, Y" }}</p>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <div class="rounded-2xl border border-dashed border-neutral-500 bg-neutral-50/60 p-6 text-center">
+      <span class="mx-auto mb-2 flex h-11 w-11 items-center justify-center rounded-xl bg-neutral-300 text-neutral-800">{% lucide "award" class="w-5 h-5" %}</span>
+      <p class="font-sans text-sm font-semibold text-foreground">No badges yet</p>
+      <p class="mx-auto mt-0.5 max-w-md font-sans text-xs text-neutral-800">Complete every day of a challenge to earn your first badge.</p>
+    </div>
+    {% endif %}
+  </section>
 
-    <!-- Google Fonts & Fonts CDN -->
+  <!-- Filter tabs -->
+  <nav aria-label="Filter your challenges" class="mb-6">
+    <ul class="no-scrollbar -mx-4 flex flex-nowrap items-center gap-2 overflow-x-auto px-4 py-1 sm:mx-0 sm:flex-wrap sm:px-0">
+      <li>
+        <a href="{% url 'challenges:history' %}?tab=all" {% if active_tab == 'all' or not active_tab %}aria-current="page"{% endif %}>
+          {% if active_tab == 'all' or not active_tab %}{% component "chips" text="All" variant="primary" selected=True / %}{% else %}{% component "chips" text="All" variant="neutral" selected=False / %}{% endif %}
+        </a>
+      </li>
+      <li>
+        <a href="{% url 'challenges:history' %}?tab=ongoing" {% if active_tab == 'ongoing' %}aria-current="page"{% endif %}>
+          {% if active_tab == 'ongoing' %}{% component "chips" text="In progress" variant="primary" selected=True / %}{% else %}{% component "chips" text="In progress" variant="neutral" selected=False / %}{% endif %}
+        </a>
+      </li>
+      <li>
+        <a href="{% url 'challenges:history' %}?tab=completed" {% if active_tab == 'completed' %}aria-current="page"{% endif %}>
+          {% if active_tab == 'completed' %}{% component "chips" text="Completed" variant="primary" selected=True / %}{% else %}{% component "chips" text="Completed" variant="neutral" selected=False / %}{% endif %}
+        </a>
+      </li>
+    </ul>
+  </nav>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-
-    <link
-      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-
-    <link href="https://fonts.cdnfonts.com/css/transcity" rel="stylesheet" />
-
-    <!-- Tailwind Compiled Output CSS -->
-
-    <link rel="stylesheet" href="{% static 'css/output.css' %}" />
-  </head>
-
-  <body
-    class="min-h-screen flex flex-col bg-neutral-100 font-sans text-foreground antialiased selection:bg-primary-300 selection:text-secondary-900"
-  >
-    <!-- Navbar dari Design System -->
-
-    {% component "navbar" / %}
-
-    <!-- Main Content Container -->
-
-    <main
-      class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-36 sm:pt-40 pb-20"
-    >
-      <!-- Header Section -->
-
-      <header
-        class="mb-10 text-center sm:text-left flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 border-b border-neutral-400/60 pb-8"
-      >
+  <!-- Participations -->
+  <section aria-label="Your challenges">
+    {% if participations %}
+    <ul class="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
+      {% for p in participations %}
+      {% url 'challenges:detail' p.challenge.slug as detail_url %}
+      <li class="flex flex-col justify-between rounded-2xl border border-neutral-400 bg-neutral-50 p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-neutral-500 hover:shadow-lg motion-reduce:transition-none motion-reduce:hover:translate-y-0 sm:p-6">
         <div>
-          <h1
-            class="font-display text-3xl sm:text-4xl lg:text-5xl text-secondary-900 leading-tight"
-          >
-            Riwayat Tantangan Saya
-          </h1>
-
-          <p class="mt-2 text-sm sm:text-base text-neutral-800 max-w-2xl">
-            Pantau rekam jejak konsistensimu dalam menjaga bumi, lihat progres
-            harian, dan kumpulkan lencana apresiasi.
-          </p>
-        </div>
-
-        <div class="shrink-0">
-          {% url 'challenges:list' as list_url %} {% component "button"
-          text="Jelajahi Tantangan Lain" variant="primary" size="md"
-          icon_right="arrow-right" href=list_url / %}
-        </div>
-      </header>
-
-      <!-- Stat Cards: Ringkasan Metrik Pengguna -->
-
-      <section
-        class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-10 sm:mb-12"
-      >
-        <!-- Card 1: Total Diikuti -->
-
-        <div
-          class="rounded-3xl border border-neutral-400 bg-neutral-50 p-4 sm:p-6 shadow-sm"
-        >
-          <div class="flex items-center justify-between mb-2 sm:mb-3">
-            <span class="text-xs font-semibold text-neutral-600"
-              >Total Diikuti</span
-            >
-
-            <span
-              class="flex h-9 w-9 items-center justify-center rounded-xl bg-neutral-200 text-secondary-700"
-            >
-              {% lucide "compass" class="w-4 h-4" %}
+          <div class="mb-3 flex items-center justify-between gap-2">
+            {% if p.is_completed %}
+            <span class="inline-flex items-center gap-1.5 rounded-full bg-secondary-700 px-3 py-1 font-sans text-b4 font-semibold text-neutral-50">
+              {% lucide "award" class="w-3.5 h-3.5 text-primary-400" %}
+              Completed
             </span>
-          </div>
-
-          <span
-            class="font-display text-2xl sm:text-3xl lg:text-4xl text-secondary-900"
-            >{{ total_joined }}</span
-          >
-
-          <p class="text-xs text-neutral-600 mt-1">Program tantangan</p>
-        </div>
-
-        <!-- Card 2: Sedang Berjalan -->
-
-        <div
-          class="rounded-3xl border border-neutral-400 bg-neutral-50 p-4 sm:p-6 shadow-sm"
-        >
-          <div class="flex items-center justify-between mb-2 sm:mb-3">
-            <span class="text-xs font-semibold text-neutral-600"
-              >Sedang Berjalan</span
-            >
-
-            <span
-              class="flex h-9 w-9 items-center justify-center rounded-xl bg-primary-100 text-primary-700"
-            >
-              {% lucide "flame" class="w-4 h-4" %}
+            {% else %}
+            <span class="inline-flex items-center gap-1.5 rounded-full border border-primary-300 bg-primary-100 px-3 py-1 font-sans text-b4 font-semibold text-secondary-900">
+              {% lucide "activity" class="w-3.5 h-3.5 text-secondary-700" %}
+              In progress
             </span>
+            {% endif %}
+            <span class="font-sans text-b4 font-medium text-neutral-800">{{ p.duration_days }} day{{ p.duration_days|pluralize }}</span>
           </div>
 
-          <span
-            class="font-display text-2xl sm:text-3xl lg:text-4xl text-primary-700"
-            >{{ total_ongoing }}</span
-          >
-
-          <p class="text-xs text-neutral-600 mt-1">Perlu dilanjutkan</p>
-        </div>
-
-        <!-- Card 3: Tantangan Selesai -->
-
-        <div
-          class="rounded-3xl border border-neutral-400 bg-neutral-50 p-4 sm:p-6 shadow-sm"
-        >
-          <div class="flex items-center justify-between mb-2 sm:mb-3">
-            <span class="text-xs font-semibold text-neutral-600"
-              >Tuntas 100%</span
-            >
-
-            <span
-              class="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary-100 text-secondary-700"
-            >
-              {% lucide "award" class="w-4 h-4" %}
-            </span>
-          </div>
-
-          <span
-            class="font-display text-2xl sm:text-3xl lg:text-4xl text-secondary-700"
-            >{{ total_completed }}</span
-          >
-
-          <p class="text-xs text-neutral-600 mt-1">Tantangan selesai</p>
-        </div>
-
-        <!-- Card 4: Total Check-in -->
-
-        <div
-          class="rounded-3xl border border-neutral-400 bg-neutral-50 p-4 sm:p-6 shadow-sm"
-        >
-          <div class="flex items-center justify-between mb-2 sm:mb-3">
-            <span class="text-xs font-semibold text-neutral-600"
-              >Total Check-in</span
-            >
-
-            <span
-              class="flex h-9 w-9 items-center justify-center rounded-xl bg-primary-100 text-secondary-800"
-            >
-              {% lucide "calendar-check" class="w-4 h-4 text-primary-600" %}
-            </span>
-          </div>
-
-          <span
-            class="font-display text-2xl sm:text-3xl lg:text-4xl text-secondary-900"
-            >{{ total_checkins }}</span
-          >
-
-          <p class="text-xs text-neutral-600 mt-1">Hari aksi tercatat</p>
-        </div>
-      </section>
-
-      <!-- Koleksi Lencana (Badges Showcase) -->
-
-      <section
-        class="mb-12 rounded-3xl border border-secondary-300/60 bg-gradient-to-r from-secondary-50 via-primary-50 to-neutral-50 p-6 sm:p-8 shadow-sm"
-      >
-        <div
-          class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6"
-        >
-          <div>
-            <h2
-              class="font-display text-2xl text-secondary-900 flex items-center gap-2"
-            >
-              {% lucide "award" class="w-6 h-6 text-primary-600" %} Lencana
-              Pencapaian Saya
-            </h2>
-
-            <p class="text-xs sm:text-sm text-neutral-700 mt-1">
-              Koleksi penghargaan atas konsistensi dan kontribusi nyatamu
-              menjaga bumi.
-            </p>
-          </div>
-
-          <span
-            class="text-xs font-semibold text-secondary-800 bg-neutral-50/80 px-3 py-1.5 rounded-full border border-neutral-300 w-fit"
-          >
-            {{ user_badges|length }} Lencana Diraih
-          </span>
-        </div>
-
-        {% if user_badges %}
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {% for ub in user_badges %}
-
-          <div
-            class="flex items-center gap-4 p-4 rounded-2xl bg-neutral-50 border border-neutral-300 shadow-sm"
-          >
-            <div
-              class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-secondary-700 text-primary-300 shadow-inner"
-            >
-              {% lucide "award" class="w-6 h-6" %}
-            </div>
-
-            <div class="min-w-0">
-              <h4 class="font-display text-base text-secondary-900 truncate">
-                {{ ub.badge.name }}
-              </h4>
-
-              <p class="text-xs text-neutral-600 mt-0.5 truncate">
-                {{ ub.badge.description }}
-              </p>
-
-              <span class="text-[10px] text-neutral-500 font-medium"
-                >Diraih pada {{ ub.awarded_at|date:"d M Y" }}</span
-              >
-            </div>
-          </div>
-
-          {% endfor %}
-        </div>
-
-        {% else %}
-
-        <div
-          class="text-center py-6 px-4 bg-neutral-50/60 rounded-2xl border border-neutral-300/60"
-        >
-          <div
-            class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-100 text-secondary-700 mb-2"
-          >
-            {% lucide "award" class="w-6 h-6 text-primary-600 opacity-60" %}
-          </div>
-
-          <p class="text-sm font-semibold text-secondary-900">
-            Belum Ada Lencana yang Diraih
-          </p>
-
-          <p class="text-xs text-neutral-600 mt-0.5 max-w-md mx-auto">
-            Selesaikan 100% hari dari salah satu tantangan aktifmu untuk membuka
-            lencana pertamamu di sini!
-          </p>
-        </div>
-
-        {% endif %}
-      </section>
-
-      <!-- Filter Tabs Partisipasi (Menggunakan Component Chips) -->
-
-      <section class="mb-8">
-        <div
-          class="flex flex-nowrap sm:flex-wrap items-center gap-2 overflow-x-auto no-scrollbar py-1 -mx-4 px-4 sm:mx-0 sm:px-0"
-        >
-          <a href="{% url 'challenges:history' %}?tab=all">
-            {% if active_tab == 'all' or not active_tab %} {% component "chips"
-            text="Semua Tantangan" variant="primary" selected=True / %} {% else
-            %} {% component "chips" text="Semua Tantangan" variant="neutral"
-            selected=False / %} {% endif %}
-          </a>
-
-          <a href="{% url 'challenges:history' %}?tab=ongoing">
-            {% if active_tab == 'ongoing' %} {% component "chips" text="Sedang
-            Berjalan" variant="primary" selected=True / %} {% else %} {%
-            component "chips" text="Sedang Berjalan" variant="neutral"
-            selected=False / %} {% endif %}
-          </a>
-
-          <a href="{% url 'challenges:history' %}?tab=completed">
-            {% if active_tab == 'completed' %} {% component "chips" text="Telah
-            Selesai" variant="secondary" selected=True / %} {% else %} {%
-            component "chips" text="Telah Selesai" variant="neutral"
-            selected=False / %} {% endif %}
-          </a>
-        </div>
-      </section>
-
-      <!-- List Kartu Partisipasi -->
-
-      <section>
-        {% if participations %}
-
-        <div
-          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6"
-        >
-          {% for p in participations %} {% url 'challenges:detail'
-          p.challenge.slug as detail_url %}
-
-          <article
-            class="flex flex-col justify-between rounded-3xl border border-neutral-400 bg-neutral-50 p-5 sm:p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
-          >
-            <div>
-              <!-- Header Card: Status & Tanggal -->
-
-              <div class="flex items-center justify-between gap-2 mb-3">
-                {% if p.is_completed %}
-
-                <span
-                  class="inline-flex items-center gap-1.5 rounded-full bg-secondary-700 px-3 py-1 text-xs font-semibold text-neutral-50"
-                >
-                  {% lucide "award" class="w-3.5 h-3.5 text-primary-400" %}
-                  Tuntas 🎉
-                </span>
-
-                {% else %}
-
-                <span
-                  class="inline-flex items-center gap-1.5 rounded-full bg-primary-100 border border-primary-300 px-3 py-1 text-xs font-semibold text-secondary-900"
-                >
-                  {% lucide "activity" class="w-3.5 h-3.5 text-primary-600" %}
-                  Berjalan
-                </span>
-
-                {% endif %}
-
-                <span class="text-xs font-medium text-neutral-600">
-                  Target: {{ p.duration_days }} Hari
-                </span>
-              </div>
-
-              <!-- Judul Tantangan -->
-
-              <h3 class="font-display text-xl text-secondary-900 leading-snug">
-                <a
-                  href="{{ detail_url }}"
-                  class="hover:text-secondary-600 transition-colors"
-                >
-                  {{ p.challenge.title }}
-                </a>
-              </h3>
-
-              <!-- Progress Bar -->
-
-              <div class="mt-4 pt-3 border-t border-neutral-400/50">
-                <div class="flex items-center justify-between text-xs mb-1.5">
-                  <span class="font-semibold text-secondary-800"
-                    >Capaian Progres</span
-                  >
-
-                  <span class="font-bold text-secondary-700"
-                    >{{ p.progress_percentage }}%</span
-                  >
-                </div>
-
-                <div
-                  class="h-2.5 w-full rounded-full bg-neutral-200 overflow-hidden border border-neutral-300"
-                >
-                  <div
-                    class="h-full rounded-full bg-primary-500 transition-all duration-500 ease-out"
-                    style="width: {{ p.progress_percentage }}%;"
-                  ></div>
-                </div>
-
-                <div
-                  class="mt-2 flex items-center justify-between text-[11px] text-neutral-600"
-                >
-                  <span
-                    ><strong>{{ p.days_completed }}</strong> dari {{
-                    p.duration_days }} hari</span
-                  >
-
-                  <span>Bergabung: {{ p.created_at|date:"d M Y" }}</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Footer Card Action Button -->
-
-            <div
-              class="mt-6 pt-4 border-t border-neutral-400/60 flex items-center justify-end"
-            >
-              {% if p.is_completed %} {% component "button" text="Lihat
-              Refleksi" variant="secondary-ghost" size="sm"
-              icon_left="circle-check" href=detail_url / %} {% else %} {%
-              component "button" text="Lanjut Check-in" variant="primary"
-              size="sm" icon_right="arrow-right" href=detail_url / %} {% endif
-              %}
-            </div>
-          </article>
-
-          {% endfor %}
-        </div>
-
-        {% else %}
-
-        <!-- Empty State -->
-
-        <div
-          class="rounded-3xl border border-neutral-400 bg-neutral-50 p-12 text-center max-w-xl mx-auto shadow-sm my-8"
-        >
-          <div
-            class="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-primary-100 text-secondary-700 mb-4"
-          >
-            {% lucide "clipboard-list" class="w-8 h-8 text-primary-600" %}
-          </div>
-
-          <h3 class="font-display text-2xl text-secondary-900">
-            Belum Ada Catatan Tantangan
+          <h3 class="font-display text-h5 leading-snug text-foreground">
+            <a href="{{ detail_url }}" class="transition-colors hover:text-secondary-600">{{ p.challenge.title }}</a>
           </h3>
 
-          <p
-            class="mt-2 text-sm text-neutral-700 leading-relaxed max-w-md mx-auto"
-          >
-            {% if active_tab == 'ongoing' %} Kamu tidak memiliki tantangan yang
-            sedang aktif. Ayo ambil tantangan baru hari ini! {% elif active_tab
-            == 'completed' %} Belum ada tantangan yang diselesaikan. Tetap
-            semangat menyelesaikan check-in harianmu! {% else %} Kamu belum
-            mengikuti program tantangan apa pun. Mulai perjalanan hidup sadar
-            lingkunganmu sekarang! {% endif %}
-          </p>
-
-          <div class="mt-6">
-            {% url 'challenges:list' as browse_url %} {% component "button"
-            text="Temukan Tantangan Pertamamu" variant="primary" size="md"
-            icon_right="arrow-right" href=browse_url / %}
+          <div class="mt-4 border-t border-neutral-400/50 pt-3">
+            <div class="mb-1.5 flex items-center justify-between font-sans text-b4">
+              <span class="font-semibold text-secondary-800">Progress</span>
+              <span class="font-bold text-secondary-700">{{ p.progress_percentage }}%</span>
+            </div>
+            <div class="h-2.5 w-full overflow-hidden rounded-full border border-neutral-300 bg-neutral-200" role="progressbar" aria-valuenow="{{ p.progress_percentage }}" aria-valuemin="0" aria-valuemax="100" aria-label="Progress for {{ p.challenge.title }}">
+              <div class="h-full rounded-full bg-primary-500 transition-all duration-500 ease-out" style="width: {{ p.progress_percentage }}%;"></div>
+            </div>
+            <div class="mt-2 flex items-center justify-between font-sans text-b4 text-neutral-800">
+              <span><strong>{{ p.days_completed }}</strong> of {{ p.duration_days }} days</span>
+              <span>Joined {{ p.created_at|date:"M j, Y" }}</span>
+            </div>
           </div>
         </div>
 
-        {% endif %}
-      </section>
-    </main>
+        <div class="mt-6 flex items-center justify-end border-t border-neutral-400/60 pt-4">
+          {% if p.is_completed %}
+          {% component "button" text="View reflections" variant="secondary-ghost" size="sm" icon_left="circle-check" href=detail_url / %}
+          {% else %}
+          {% component "button" text="Continue" variant="primary" size="sm" icon_right="arrow-right" href=detail_url / %}
+          {% endif %}
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <div class="mx-auto my-8 max-w-xl rounded-2xl border border-neutral-400 bg-neutral-50 p-12 text-center">
+      <span class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-neutral-200 text-neutral-700">{% lucide "clipboard-list" class="w-7 h-7" %}</span>
+      <h3 class="font-display text-h5 text-foreground">No challenges here yet</h3>
+      <p class="mx-auto mt-1 mb-6 max-w-md font-sans text-sm text-neutral-900">
+        {% if active_tab == 'ongoing' %}You have no challenges in progress. Pick a new one today.
+        {% elif active_tab == 'completed' %}You have not completed a challenge yet. Keep logging your daily check-ins.
+        {% else %}You have not joined any challenges yet. Start your first one now.{% endif %}
+      </p>
+      {% url 'challenges:list' as browse_url %}
+      {% component "button" text="Find a challenge" variant="primary" size="md" icon_right="arrow-right" href=browse_url / %}
+    </div>
+    {% endif %}
+  </section>
+</main>
 
-    <!-- Footer Template Include -->
+{% include "accounts/_messages.html" %}
+{% endblock %}
 
-    {% include "components/footer.html" %}
-  </body>
-</html>
+{% block scripts %}
+<script type="module" src="{% static 'js/challenges/messages.js' %}"></script>
+{% endblock %}

@@ -15,49 +15,43 @@ DEFAULT_LONGITUDE = 106.8456
 
 
 def _interpret_weather_code(code: int, temp: float) -> dict:
-    """Interpret WMO Weather codes into Indonesian text & icons."""
+    """Interpret WMO weather codes into English text and icons."""
     if code == 0:
-        condition = "Cerah"
+        condition = "Clear"
         icon = "sun"
         is_outdoor = True
         suggestion = (
-            "Cuaca sangat cerah! Waktu sempurna untuk tantangan outdoor "
-            "seperti bersepeda atau jalan kaki."
+            "Clear skies today. A great time for outdoor challenges "
+            "like cycling or walking."
         )
     elif code in (1, 2, 3):
-        condition = "Cerah Berawan"
+        condition = "Partly cloudy"
         icon = "cloud-sun"
         is_outdoor = True
-        suggestion = (
-            "Cuaca bersahabat dan sejuk. Sangat cocok untuk aktivitas ramah "
-            "lingkungan di luar ruangan!"
-        )
+        suggestion = "Mild and pleasant. Perfect for eco-friendly activities outdoors."
     elif code in (45, 48):
-        condition = "Berkabut / Berawan Tebal"
+        condition = "Foggy or overcast"
         icon = "cloud"
         is_outdoor = True
-        suggestion = "Udara teduh hari ini. Yuk selesaikan target tantangan harianmu."
+        suggestion = "A calm, shaded day. Good for finishing your daily challenge goal."
     elif code in (51, 53, 55, 61, 63, 65, 80, 81, 82):
-        condition = "Hujan Ringan / Hujan"
+        condition = "Rain"
         icon = "cloud-rain"
         is_outdoor = False
         suggestion = (
-            "Sedang turun hujan. Waktu yang pas untuk aksi ramah lingkungan "
-            "indoor seperti memilah sampah dapur atau hemat listrik."
+            "It is raining. A good time for indoor actions like sorting "
+            "kitchen waste or saving electricity."
         )
     elif code in (95, 96, 99):
-        condition = "Hujan Badai"
+        condition = "Thunderstorm"
         icon = "cloud-lightning"
         is_outdoor = False
-        suggestion = (
-            "Cuaca kurang bersahabat. Tetap aman di dalam ruangan dan lakukan "
-            "aksi hemat energi!"
-        )
+        suggestion = "Rough weather. Stay safe indoors and focus on saving energy."
     else:
-        condition = "Berawan"
+        condition = "Cloudy"
         icon = "cloud"
         is_outdoor = True
-        suggestion = "Hari yang baik untuk berkontribusi menjaga kelestarian bumi!"
+        suggestion = "A good day to do something for the planet."
 
     return {
         "temperature": round(temp),
@@ -77,7 +71,7 @@ def get_current_weather_suggestion(lat=None, lon=None) -> dict:
     target_lat = DEFAULT_LATITUDE
     target_lon = DEFAULT_LONGITUDE
     is_custom_location = False
-    location_label = "Jabodetabek (Default)"
+    location_label = "Greater Jakarta (default)"
 
     if lat is not None and lon is not None:
         try:
@@ -87,7 +81,7 @@ def get_current_weather_suggestion(lat=None, lon=None) -> dict:
                 target_lat = round(parsed_lat, 4)
                 target_lon = round(parsed_lon, 4)
                 is_custom_location = True
-                location_label = "Lokasi Perangkat"
+                location_label = "Your location"
             else:
                 logger.warning("Coordinates out of range: lat=%s, lon=%s", lat, lon)
         except (ValueError, TypeError):
@@ -128,12 +122,12 @@ def get_current_weather_suggestion(lat=None, lon=None) -> dict:
     # Graceful fallback (will never crash the page)
     return {
         "temperature": 28,
-        "condition": "Cerah Berawan",
+        "condition": "Partly cloudy",
         "icon": "cloud-sun",
         "is_outdoor_friendly": True,
         "suggestion": (
-            "Cuaca hari ini mendukung untuk aktivitas ramah lingkungan. "
-            "Yuk ambil tantangan hari ini!"
+            "Today's weather suits eco-friendly activities. "
+            "Pick a challenge and get started."
         ),
         "location_label": location_label,
         "is_custom_location": is_custom_location,

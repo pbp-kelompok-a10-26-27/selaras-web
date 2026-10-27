@@ -1,5 +1,5 @@
 from django.contrib import messages
-from django.db.models import Q
+from django.db.models import Count, Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
@@ -7,7 +7,6 @@ from django.utils import timezone
 
 from apps.core.decorators import admin_required, login_required
 
-from .forms import ChallengeForm
 from .models import (
     Badge,
     Challenge,
@@ -27,7 +26,11 @@ def challenge_list(request):
 
     today = timezone.localdate()
 
-    challenges = Challenge.objects.filter(is_published=True).order_by("-created_at")
+    challenges = (
+        Challenge.objects.filter(is_published=True)
+        .annotate(participants_count=Count("participations"))
+        .order_by("-created_at")
+    )
 
     if search_query:
         challenges = challenges.filter(
@@ -67,25 +70,30 @@ def challenge_list(request):
         request.session["user_lon"] = weather["longitude"]
 
     status_options = {
-        "Semua Tantangan": ["all", "layers"],
-        "Sedang Aktif": ["active", "flame"],
-        "Akan Datang": ["upcoming", "calendar"],
+        "All challenges": ["all", "layers"],
+        "Active": ["active", "flame"],
+        "Upcoming": ["upcoming", "calendar"],
     }
 
     if is_authenticated:
-        status_options["Tantangan Saya"] = ["my", "user-check"]
+        status_options["My challenges"] = ["my", "user-check"]
 
-    status_options["Tantangan Selesai"] = ["ended", "award"]
+    status_options["Ended"] = ["ended", "award"]
 
     label_map = {
-        "all": "Semua Tantangan",
-        "active": "Sedang Aktif",
-        "upcoming": "Akan Datang",
-        "my": "Tantangan Saya",
-        "ended": "Tantangan Selesai",
+        "all": "All challenges",
+        "active": "Active",
+        "upcoming": "Upcoming",
+        "my": "My challenges",
+        "ended": "Ended",
     }
 
-    status_label = label_map.get(status_filter, "Semua Tantangan")
+    if status_filter not in label_map or (
+        status_filter == "my" and not is_authenticated
+    ):
+        status_filter = "all"
+
+    status_label = label_map[status_filter]
 
     context = {
         "challenges": challenges,
@@ -96,6 +104,7 @@ def challenge_list(request):
         "status_label": status_label,
         "joined_challenge_ids": joined_challenge_ids,
         "today": today,
+        "result_count": challenges.count(),
     }
 
     if (
@@ -125,7 +134,7 @@ def challenge_list(request):
                 "start_date": c.start_date.isoformat(),
                 "end_date": c.end_date.isoformat(),
                 "is_active": c.start_date <= today <= c.end_date,
-                "participants_count": c.participations.count(),
+                "participants_count": c.participants_count,
                 "is_joined": c.id in joined_challenge_ids,
             }
             for c in challenges
@@ -214,7 +223,7 @@ def join_challenge(request, slug):
 
     if challenge.end_date < today:
         messages.warning(
-            request, "Tantangan ini sudah berakhir dan tidak dapat diikuti lagi."
+            request, "This challenge has ended and can no longer be joined."
         )
 
         return redirect("challenges:detail", slug=slug)
@@ -226,11 +235,11 @@ def join_challenge(request, slug):
     if created:
         messages.success(
             request,
-            f"Selamat! Kamu berhasil bergabung dengan tantangan '{challenge.title}'.",
+            f"You joined “{challenge.title}”.",
         )
 
     else:
-        messages.info(request, "Kamu sudah terdaftar dalam tantangan ini.")
+        messages.info(request, "You already joined this challenge.")
 
     return redirect("challenges:detail", slug=slug)
 
@@ -251,12 +260,11 @@ def leave_challenge(request, slug):
 
             messages.success(
                 request,
-                f"Kamu telah membatalkan keikutsertaan pada "
-                f"tantangan '{challenge.title}'.",
+                f"You left “{challenge.title}”.",
             )
 
         else:
-            messages.warning(request, "Kamu belum bergabung dengan tantangan ini.")
+            messages.warning(request, "You have not joined this challenge.")
 
     next_url = request.POST.get("next")
 
@@ -300,7 +308,7 @@ def record_progress(request, slug):
 
             progress.save()
 
-            messages.success(request, "Catatan progres hari ini berhasil diperbarui.")
+            messages.success(request, "Today’s progress note was updated.")
 
         else:
             if days_completed >= duration_days and not participation.completed_at:
@@ -312,8 +320,8 @@ def record_progress(request, slug):
                     name="Eco-Warrior Champion",
                     defaults={
                         "description": (
-                            "Lencana apresiasi atas komitmen penuh menyelesaikan "
-                            "seluruh target tantangan lingkungan di SELARAS."
+                            "Awarded for completing every day of a challenge "
+                            "on SELARAS."
                         )
                     },
                 )
@@ -323,18 +331,15 @@ def record_progress(request, slug):
                 messages.success(
                     request,
                     (
-                        "Luar biasa! Kamu telah menyelesaikan seluruh target "
-                        "tantangan ini dan mendapatkan Lencana Eco-Warrior! 🎉"
+                        "You completed the whole challenge and earned the "
+                        "Eco-Warrior Champion badge."
                     ),
                 )
 
             else:
                 messages.success(
                     request,
-                    (
-                        f"Progres hari ini ({today.strftime('%d %B %Y')}) "
-                        "berhasil dicatat!"
-                    ),
+                    (f"Progress for {today.strftime('%B %d, %Y')} was saved."),
                 )
 
     return redirect("challenges:detail", slug=slug)
@@ -417,91 +422,20 @@ def challenge_history(request):
 
 @admin_required
 def challenge_create(request):
-    """Handle creation of a new challenge by administrator."""
-
-    if request.method == "POST":
-        form = ChallengeForm(request.POST)
-
-        if form.is_valid():
-            challenge = form.save()
-
-            messages.success(request, f"Tantangan '{challenge.title}' berhasil dibuat!")
-
-            return redirect("challenges:detail", slug=challenge.slug)
-
-    else:
-        form = ChallengeForm()
-
-    context = {
-        "form": form,
-        "is_edit": False,
-        "title": "Buat Tantangan Baru",
-    }
-
-    return render(request, "challenges/challenge_form.html", context)
+    """Redirect to the unified admin dashboard challenge creation view."""
+    return redirect("dashboard:admin_challenge_create")
 
 
 @admin_required
 def challenge_update(request, slug):
-    """Handle editing of an existing challenge by administrator."""
-
-    challenge = get_object_or_404(Challenge, slug=slug)
-
-    if request.method == "POST":
-        form = ChallengeForm(request.POST, instance=challenge)
-
-        if form.is_valid():
-            challenge = form.save()
-
-            messages.success(
-                request, f"Tantangan '{challenge.title}' berhasil diperbarui!"
-            )
-
-            return redirect("challenges:detail", slug=challenge.slug)
-
-    else:
-        form = ChallengeForm(instance=challenge)
-
-    context = {
-        "form": form,
-        "challenge": challenge,
-        "is_edit": True,
-        "title": f"Edit Tantangan: {challenge.title}",
-    }
-
-    return render(request, "challenges/challenge_form.html", context)
+    """Redirect to the unified admin dashboard challenge update view."""
+    return redirect("dashboard:admin_challenge_update", slug=slug)
 
 
 @admin_required
 def challenge_delete(request, slug):
-    """Handle safe deletion of an unparticipated challenge by administrator."""
-
-    challenge = get_object_or_404(Challenge, slug=slug)
-
-    if request.method == "POST":
-        participants_count = challenge.participations.count()
-
-        if participants_count > 0:
-            messages.error(
-                request,
-                (
-                    f"Tantangan '{challenge.title}' tidak dapat dihapus "
-                    f"karena sudah memiliki {participants_count} peserta. "
-                    "Nonaktifkan status publikasinya jika program ingin dihentikan."
-                ),
-            )
-
-            return redirect("challenges:detail", slug=challenge.slug)
-
-        challenge_title = challenge.title
-
-        challenge.delete()
-
-        messages.success(request, f"Tantangan '{challenge_title}' berhasil dihapus.")
-
-        return redirect("challenges:list")
-
-    return redirect("challenges:detail", slug=challenge.slug)
+    """Redirect to the unified admin dashboard challenge list view."""
+    return redirect("dashboard:admin_challenge_list")
 
 
 def weather_api(request):
