@@ -1,16 +1,23 @@
 import json
+import logging
+from functools import wraps
+from pathlib import Path
 
 from django.core.paginator import Paginator
+from django.db import transaction
 from django.db.models import Q
 from django.db.models.deletion import ProtectedError
 from django.http import HttpResponse, JsonResponse
+from django.http.multipartparser import MultiPartParser, MultiPartParserError
 from django.utils import timezone
-from django.utils.text import slugify
+from django.views.csrf import csrf_failure as django_csrf_failure
+from PIL import Image, UnidentifiedImageError
 
-from apps.articles.models import Article, ArticleCategory
-from apps.core.decorators import admin_required
+from apps.articles.models import Article, ArticleCategory, Tag
 from apps.core.permissions import is_admin
 from apps.core.utils import get_query_params
+
+logger = logging.getLogger(__name__)
 
 
 def _error_response(code, message, status, details=None):
@@ -20,38 +27,54 @@ def _error_response(code, message, status, details=None):
     return JsonResponse({"error": error}, status=status)
 
 
+def csrf_failure(request, reason=""):
+    is_articles_api = request.path_info.startswith("/api/") or (
+        request.path_info.startswith("/articles/")
+        and request.path_info.endswith(("/create/", "/edit/", "/delete/"))
+    )
+    if is_articles_api:
+        return _error_response(
+            "PERMISSION_DENIED", "Permintaan gagal pemeriksaan CSRF.", 403
+        )
+    return django_csrf_failure(request, reason=reason)
+
+
+def _json_api(view_func):
+    @wraps(view_func)
+    def wrapped(request, *args, **kwargs):
+        try:
+            return view_func(request, *args, **kwargs)
+        except Exception:
+            logger.exception(
+                "Unhandled error in Articles API view %s", view_func.__name__
+            )
+            return _error_response(
+                "INTERNAL_ERROR", "Terjadi kesalahan internal server.", 500
+            )
+
+    return wrapped
+
+
+def _admin_json_required(view_func):
+    @wraps(view_func)
+    def wrapped(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return _error_response("AUTHENTICATION_REQUIRED", "Login diperlukan.", 401)
+        if not is_admin(request.user):
+            return _error_response(
+                "PERMISSION_DENIED", "Hanya admin yang boleh mengelola konten.", 403
+            )
+        return view_func(request, *args, **kwargs)
+
+    return wrapped
+
+
 def _method_not_allowed(allowed):
     response = _error_response(
         "METHOD_NOT_ALLOWED", "Metode HTTP tidak diizinkan.", 405
     )
     response["Allow"] = ", ".join(allowed)
     return response
-
-
-def _unique_article_slug(title, current_article=None):
-    base_slug = slugify(title) or "article"
-    slug = base_slug
-    counter = 2
-    matches = Article.objects.all()
-    if current_article is not None:
-        matches = matches.exclude(pk=current_article.pk)
-    while matches.filter(slug=slug).exists():
-        slug = f"{base_slug}-{counter}"
-        counter += 1
-    return slug
-
-
-def _unique_category_slug(name, current_category=None):
-    base_slug = slugify(name) or "category"
-    slug = base_slug
-    counter = 2
-    matches = ArticleCategory.objects.all()
-    if current_category is not None:
-        matches = matches.exclude(pk=current_category.pk)
-    while matches.filter(slug=slug).exists():
-        slug = f"{base_slug}-{counter}"
-        counter += 1
-    return slug
 
 
 def _request_json_object(request):
@@ -68,6 +91,211 @@ def _request_json_object(request):
     return data, None
 
 
+def _request_article_payload(request):
+    if request.content_type.startswith("multipart/form-data"):
+        if request.method == "POST":
+            form_data, files = request.POST, request.FILES
+        else:
+            try:
+                form_data, files = MultiPartParser(
+                    request.META, request, request.upload_handlers, request.encoding
+                ).parse()
+            except MultiPartParserError:
+                return (
+                    None,
+                    None,
+                    _error_response(
+                        "INVALID_MULTIPART",
+                        "Request body multipart tidak valid.",
+                        400,
+                    ),
+                )
+        data = form_data.dict()
+        if "category_id" in data:
+            try:
+                data["category_id"] = int(data["category_id"])
+            except ValueError:
+                pass
+        for field in ("tags", "new_tags"):
+            if field in data:
+                try:
+                    data[field] = json.loads(data[field])
+                except json.JSONDecodeError:
+                    return (
+                        None,
+                        None,
+                        _error_response(
+                            "VALIDATION_ERROR",
+                            f"Field {field} harus berupa JSON array.",
+                            400,
+                            {field: ["Kirim array JSON yang valid."]},
+                        ),
+                    )
+        return data, None, files
+    data, error = _request_json_object(request)
+    return data, error, request.FILES
+
+
+def _validate_tag_inputs(data, article=None):
+    tag_slugs = data.get("tags", [])
+    new_tag_names = data.get("new_tags", [])
+
+    for field, value in (("tags", tag_slugs), ("new_tags", new_tag_names)):
+        if not isinstance(value, list) or any(
+            not isinstance(item, str) for item in value
+        ):
+            return (
+                None,
+                None,
+                _error_response(
+                    "VALIDATION_ERROR",
+                    f"Field {field} harus berupa array string.",
+                    400,
+                    {field: ["Kirim array string yang valid."]},
+                ),
+            )
+
+    tag_slugs = [value.strip() for value in tag_slugs]
+    if any(not value for value in tag_slugs) or len(set(tag_slugs)) != len(tag_slugs):
+        return (
+            None,
+            None,
+            _error_response(
+                "VALIDATION_ERROR",
+                "Daftar tag berisi slug kosong atau duplikat.",
+                400,
+                {"tags": ["Gunakan slug unik yang tidak kosong."]},
+            ),
+        )
+
+    existing_tags = list(Tag.objects.filter(slug__in=tag_slugs))
+    found_slugs = {tag.slug for tag in existing_tags}
+    unknown_slugs = sorted(set(tag_slugs) - found_slugs)
+    if unknown_slugs:
+        return (
+            None,
+            None,
+            _error_response(
+                "VALIDATION_ERROR",
+                "Satu atau lebih tag tidak ditemukan.",
+                400,
+                {
+                    "tags": [
+                        f"Slug tag tidak dikenal: {slug}." for slug in unknown_slugs
+                    ]
+                },
+            ),
+        )
+
+    new_tag_names = [name.strip() for name in new_tag_names]
+    if any(not name or len(name) > 100 for name in new_tag_names):
+        return (
+            None,
+            None,
+            _error_response(
+                "VALIDATION_ERROR",
+                "Nama tag harus berisi 1 sampai 100 karakter.",
+                400,
+                {"new_tags": ["Nama tag tidak valid."]},
+            ),
+        )
+
+    if len({name.casefold() for name in new_tag_names}) != len(new_tag_names):
+        return (
+            None,
+            None,
+            _error_response(
+                "VALIDATION_ERROR",
+                "Nama tag baru tidak boleh duplikat.",
+                400,
+                {"new_tags": ["Hapus nama tag duplikat."]},
+            ),
+        )
+
+    if article is not None and "tags" not in data:
+        existing_tags = list(article.tags.all())
+    return existing_tags, new_tag_names, None
+
+
+def _create_or_get_tags(names):
+    tags = []
+    for name in names:
+        tag = Tag.objects.filter(name__iexact=name).first()
+        if tag is None:
+            tag = Tag.objects.create(name=name)
+        if tag not in tags:
+            tags.append(tag)
+    return tags
+
+
+def _validate_image_upload(upload):
+    if upload is None:
+        return None
+
+    if upload.size > 5 * 1024 * 1024:
+        return _error_response(
+            "VALIDATION_ERROR",
+            "Ukuran gambar maksimal 5 MB.",
+            400,
+            {"image": ["Ukuran file melebihi 5 MB."]},
+        )
+
+    extension = Path(upload.name).suffix.lower()
+    allowed_extensions = {
+        "JPEG": {".jpg", ".jpeg"},
+        "PNG": {".png"},
+        "WEBP": {".webp"},
+        "GIF": {".gif"},
+    }
+    try:
+        upload.seek(0)
+        with Image.open(upload) as image:
+            image_format = image.format
+            width, height = image.size
+            image.verify()
+    except (UnidentifiedImageError, OSError, ValueError, Image.DecompressionBombError):
+        return _error_response(
+            "VALIDATION_ERROR",
+            "File yang diunggah bukan gambar yang valid.",
+            400,
+            {"image": ["Unggah JPEG, PNG, WEBP, atau GIF yang valid."]},
+        )
+    finally:
+        upload.seek(0)
+
+    if (
+        image_format not in allowed_extensions
+        or extension not in allowed_extensions[image_format]
+        or width * height > 20_000_000
+    ):
+        return _error_response(
+            "VALIDATION_ERROR",
+            "Format atau dimensi gambar tidak diizinkan.",
+            400,
+            {"image": ["Gunakan JPEG, PNG, WEBP, atau GIF maksimal 20 megapiksel."]},
+        )
+    return None
+
+
+def _image_url(request, article):
+    return request.build_absolute_uri(article.image.url) if article.image else None
+
+
+def _delete_stored_file(file_field):
+    if not file_field:
+        return
+    try:
+        file_field.delete(save=False)
+    except Exception:
+        logger.exception("Failed to remove article image %s", file_field.name)
+
+
+def _serialize_tags(article):
+    tags = sorted(article.tags.all(), key=lambda tag: (tag.name.casefold(), tag.pk))
+    return [{"name": tag.name, "slug": tag.slug} for tag in tags]
+
+
+@_json_api
 def article_api_collection(request):
     """Dispatch the collection API while keeping HTML routes separate."""
     if request.method == "GET":
@@ -83,6 +311,7 @@ def article_api_collection(request):
     return _method_not_allowed(("GET", "POST"))
 
 
+@_json_api
 def article_api_detail(request, slug):
     """Dispatch detail and mutation API methods with JSON access errors."""
     if request.method == "GET":
@@ -100,6 +329,7 @@ def article_api_detail(request, slug):
     return _method_not_allowed(("GET", "PATCH", "PUT", "DELETE"))
 
 
+@_json_api
 def category_api_collection(request):
     """List categories for authenticated readers and create them as admin."""
     if request.method == "GET":
@@ -143,7 +373,6 @@ def category_api_collection(request):
             )
         category = ArticleCategory.objects.create(
             name=name,
-            slug=_unique_category_slug(name),
         )
         return JsonResponse(
             {
@@ -157,6 +386,7 @@ def category_api_collection(request):
     return _method_not_allowed(("GET", "POST"))
 
 
+@_json_api
 def category_api_detail(request, slug):
     """Rename or delete a category, protecting categories used by articles."""
     if request.method not in ("PATCH", "DELETE"):
@@ -205,7 +435,6 @@ def category_api_detail(request, slug):
             )
         if name != category.name:
             category.name = name
-            category.slug = _unique_category_slug(name, current_category=category)
             category.save()
         return JsonResponse(
             {"id": category.id, "name": category.name, "slug": category.slug}
@@ -228,16 +457,19 @@ def category_api_detail(request, slug):
     return HttpResponse(status=204)
 
 
+@_json_api
 def article_list(request):
     """Return a searchable and paginated article list."""
     if request.method != "GET":
         return _method_not_allowed(("GET",))
 
-    query_params = get_query_params(request, ("search", "category", "status"))
+    query_params = get_query_params(request, ("search", "category", "tag", "status"))
     filters = query_params["filters"]
     pagination = query_params["pagination"]
 
-    articles = Article.objects.select_related("category", "author")
+    articles = Article.objects.select_related("category", "author").prefetch_related(
+        "tags"
+    )
 
     if request.user.is_authenticated and request.user.is_admin:
         status = filters.get("status", Article.Status.PUBLISHED)
@@ -268,6 +500,17 @@ def article_list(request):
             Q(category__slug__iexact=category) | Q(category__name__iexact=category)
         )
 
+    tag_slug = filters.get("tag")
+    if tag_slug:
+        if not Tag.objects.filter(slug=tag_slug).exists():
+            return _error_response(
+                "INVALID_QUERY_PARAMETER",
+                "Tag tidak ditemukan.",
+                400,
+                {"tag": [f"Slug tag tidak dikenal: {tag_slug}."]},
+            )
+        articles = articles.filter(tags__slug=tag_slug)
+
     articles = articles.order_by("-published_at", "-id")
 
     paginator = Paginator(articles, pagination["page_size"])
@@ -279,6 +522,8 @@ def article_list(request):
             "title": article.title,
             "slug": article.slug,
             "summary": article.summary,
+            "image": _image_url(request, article),
+            "tags": _serialize_tags(article),
             "category": {
                 "name": article.category.name,
                 "slug": article.category.slug,
@@ -308,12 +553,15 @@ def article_list(request):
     )
 
 
+@_json_api
 def article_detail(request, slug):
     """Return a published article, or a draft to an administrator."""
     if request.method != "GET":
         return _method_not_allowed(("GET",))
 
-    articles = Article.objects.select_related("category", "author")
+    articles = Article.objects.select_related("category", "author").prefetch_related(
+        "tags"
+    )
 
     if not (request.user.is_authenticated and request.user.is_admin):
         articles = articles.filter(status=Article.Status.PUBLISHED)
@@ -327,6 +575,8 @@ def article_detail(request, slug):
         "title": article.title,
         "slug": article.slug,
         "summary": article.summary,
+        "image": _image_url(request, article),
+        "tags": _serialize_tags(article),
         "content": article.content,
         "category": {
             "name": article.category.name,
@@ -345,34 +595,22 @@ def article_detail(request, slug):
     return JsonResponse(result)
 
 
-@admin_required
+@_json_api
+@_admin_json_required
 def article_create(request):
     """Create a new article."""
     if request.method != "POST":
         return _method_not_allowed(("POST",))
 
-    try:
-        data = json.loads(request.body)
-    except (json.JSONDecodeError, UnicodeDecodeError):
-        return JsonResponse(
-            {
-                "error": {
-                    "code": "INVALID_JSON",
-                    "message": "Request body harus berupa JSON yang valid.",
-                }
-            },
-            status=400,
-        )
-
-    if not isinstance(data, dict):
-        return JsonResponse(
-            {
-                "error": {
-                    "code": "INVALID_JSON",
-                    "message": "Request body harus berupa objek JSON.",
-                }
-            },
-            status=400,
+    data, error, files = _request_article_payload(request)
+    if error:
+        return error
+    if "image" in data:
+        return _error_response(
+            "VALIDATION_ERROR",
+            "Gambar harus dikirim sebagai file multipart, bukan URL atau teks.",
+            400,
+            {"image": ["Gunakan upload file multipart/form-data."]},
         )
 
     title = data.get("title")
@@ -462,18 +700,29 @@ def article_create(request):
 
     summary = summary.strip()
 
-    slug = _unique_article_slug(title)
+    tags, new_tag_names, error = _validate_tag_inputs(data)
+    if error:
+        return error
+    image_upload = files.get("image")
+    error = _validate_image_upload(image_upload)
+    if error:
+        return error
 
-    article = Article.objects.create(
-        title=title.strip(),
-        content=content.strip(),
-        category=category,
-        author=request.user,
-        status=status,
-        summary=summary,
-        slug=slug,
-        published_at=(timezone.now() if status == Article.Status.PUBLISHED else None),
-    )
+    with transaction.atomic():
+        article = Article.objects.create(
+            title=title.strip(),
+            content=content.strip(),
+            image=image_upload,
+            category=category,
+            author=request.user,
+            status=status,
+            summary=summary,
+            published_at=(
+                timezone.now() if status == Article.Status.PUBLISHED else None
+            ),
+        )
+        created_tags = _create_or_get_tags(new_tag_names)
+        article.tags.set([*tags, *created_tags])
 
     return JsonResponse(
         {
@@ -483,13 +732,16 @@ def article_create(request):
                 "title": article.title,
                 "slug": article.slug,
                 "status": article.status,
+                "image": _image_url(request, article),
+                "tags": _serialize_tags(article),
             },
         },
         status=201,
     )
 
 
-@admin_required
+@_json_api
+@_admin_json_required
 def article_update(request, slug):
     """Placeholder for admin article editing and publication management."""
     if request.method not in ("PUT", "PATCH"):
@@ -498,28 +750,15 @@ def article_update(request, slug):
     article = Article.objects.filter(slug=slug).first()
     if article is None:
         return _error_response("ARTICLE_NOT_FOUND", "Artikel tidak ditemukan.", 404)
-    try:
-        data = json.loads(request.body)
-    except (json.JSONDecodeError, UnicodeDecodeError):
-        return JsonResponse(
-            {
-                "error": {
-                    "code": "INVALID_JSON",
-                    "message": "Request body harus berupa JSON yang valid.",
-                }
-            },
-            status=400,
-        )
-
-    if not isinstance(data, dict):
-        return JsonResponse(
-            {
-                "error": {
-                    "code": "INVALID_JSON",
-                    "message": "Request body harus berupa objek JSON.",
-                }
-            },
-            status=400,
+    data, error, files = _request_article_payload(request)
+    if error:
+        return error
+    if "image" in data:
+        return _error_response(
+            "VALIDATION_ERROR",
+            "Gambar harus dikirim sebagai file multipart, bukan URL atau teks.",
+            400,
+            {"image": ["Gunakan upload file multipart/form-data."]},
         )
 
     if request.method == "PUT":
@@ -533,6 +772,7 @@ def article_update(request, slug):
                 {field: ["Field ini wajib diisi."] for field in missing_fields},
             )
         data.setdefault("summary", "")
+        data.setdefault("tags", [])
 
     allowed_fields = {
         "title",
@@ -540,6 +780,8 @@ def article_update(request, slug):
         "content",
         "category_id",
         "status",
+        "tags",
+        "new_tags",
     }
 
     invalid_fields = set(data.keys()) - allowed_fields
@@ -556,6 +798,14 @@ def article_update(request, slug):
             },
             status=400,
         )
+
+    tags, new_tag_names, error = _validate_tag_inputs(data, article=article)
+    if error:
+        return error
+    image_upload = files.get("image")
+    error = _validate_image_upload(image_upload)
+    if error:
+        return error
 
     if "title" in data:
         if not isinstance(data["title"], str) or not data["title"].strip():
@@ -639,10 +889,7 @@ def article_update(request, slug):
             )
 
     if "title" in data:
-        new_title = data["title"].strip()
-        if new_title != article.title:
-            article.slug = _unique_article_slug(new_title, current_article=article)
-        article.title = new_title
+        article.title = data["title"].strip()
 
     if "summary" in data:
         article.summary = (data["summary"] or "").strip()
@@ -663,7 +910,18 @@ def article_update(request, slug):
     else:
         article.published_at = None
 
-    article.save()
+    old_image = article.image
+    if image_upload:
+        article.image = image_upload
+
+    with transaction.atomic():
+        article.save()
+        if "tags" in data or "new_tags" in data:
+            created_tags = _create_or_get_tags(new_tag_names)
+            article.tags.set([*tags, *created_tags])
+
+    if image_upload and old_image and old_image.name != article.image.name:
+        _delete_stored_file(old_image)
 
     return JsonResponse(
         {
@@ -676,12 +934,15 @@ def article_update(request, slug):
                 "published_at": (
                     article.published_at.isoformat() if article.published_at else None
                 ),
+                "image": _image_url(request, article),
+                "tags": _serialize_tags(article),
             },
         }
     )
 
 
-@admin_required
+@_json_api
+@_admin_json_required
 def article_delete(request, slug):
     """Delete an article by slug. Only administrators may call this endpoint."""
     if request.method != "DELETE":
@@ -691,14 +952,20 @@ def article_delete(request, slug):
     if article is None:
         return _error_response("ARTICLE_NOT_FOUND", "Artikel tidak ditemukan.", 404)
 
+    image = article.image
     article.delete()
+    _delete_stored_file(image)
     return HttpResponse(status=204)
 
 
+@_json_api
 def api_article_list(request):
+    if request.method != "GET":
+        return _method_not_allowed(("GET",))
     articles = (
         Article.objects.filter(status=Article.Status.PUBLISHED)
         .select_related("category", "author")
+        .prefetch_related("tags")
         .order_by("-published_at", "-id")
     )
 
@@ -707,6 +974,8 @@ def api_article_list(request):
             "title": article.title,
             "slug": article.slug,
             "summary": article.summary,
+            "image": _image_url(request, article),
+            "tags": _serialize_tags(article),
             "category": article.category.name,
             "author": article.author.username,
             "published_at": (
