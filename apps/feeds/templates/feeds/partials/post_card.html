@@ -1,0 +1,19 @@
+<article id="post-{{ post.id }}" class="rounded-xl bg-white p-5 shadow-sm">
+  <header class="mb-3">
+    <p class="font-semibold">
+      {{ post.author.get_full_name|default:post.author.username }}
+    </p>
+    <p class="text-sm text-slate-500">
+      {% if post.challenge %}{{ post.challenge.title }} · {% endif %}{{ post.created_at }}
+    </p>
+  </header>
+  <p class="whitespace-pre-wrap">{{ post.content }}</p>
+  {% if post.image %}
+    <img class="mt-4 max-h-96 rounded-lg object-cover" src="{{ post.image.url }}" alt="Foto postingan">
+  {% endif %}
+  <footer class="mt-4 flex gap-4 text-sm text-slate-600">
+    <span>{{ post.like_count|default:0 }} suka</span>
+    <span>{{ post.comment_count|default:0 }} komentar</span>
+    <a href="/feed/{{ post.id }}/" class="underline">Lihat detail</a>
+  </footer>
+</article>
