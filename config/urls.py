@@ -18,10 +18,15 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 
+from apps.articles.urls import api_urlpatterns
 from apps.core.views import design_system, home
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path(
+        "api/",
+        include((api_urlpatterns, "articles_api"), namespace="articles_api"),
+    ),
     path("accounts/", include("apps.accounts.urls")),
     path("articles/", include("apps.articles.urls")),
     path("challenges/", include("apps.challenges.urls")),
