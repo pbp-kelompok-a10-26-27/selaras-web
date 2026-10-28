@@ -228,6 +228,11 @@ def join_challenge(request, slug):
 
         return redirect("challenges:detail", slug=slug)
 
+    if challenge.start_date > today:
+        messages.warning(request, "This Challenge must start before ...")
+
+        return redirect("challenges:detail", slug=slug)
+
     participation, created = ChallengeParticipation.objects.get_or_create(
         challenge=challenge, user=request.user
     )

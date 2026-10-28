@@ -109,6 +109,8 @@
           <p class="mb-6 font-sans text-sm text-neutral-900">This challenge is free and open to everyone on SELARAS.</p>
           {% if is_ended %}
           <p class="rounded-xl border border-neutral-400 bg-neutral-200 p-3.5 text-center font-sans text-b4 font-semibold text-neutral-900">This challenge ended on {{ challenge.end_date|date:"M j, Y" }}.</p>
+          {% elif is_upcoming %}
+          <p class="rounded-xl border border-neutral-400 bg-neutral-200 p-3.5 text-center font-sans text-b4 font-semibold text-neutral-900">This challenge start on {{ challenge.end_date|date:"M j, Y" }}.</p>
           {% else %}
           <form method="POST" action="{% url 'challenges:join' challenge.slug %}">
             {% csrf_token %}
