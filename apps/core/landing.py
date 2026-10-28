@@ -62,7 +62,7 @@ def _learn():
                 "title": a.title,
                 "summary": a.summary,
                 "category": a.category.name if getattr(a, "category", None) else "",
-                "url": _url("articles:detail", a.slug),
+                "url": _url("articles:html-detail", a.slug),
             }
             for a in latest
         ],
@@ -288,7 +288,7 @@ def get_landing_context():
         # The closing section's faint log-end rings
         "cta_rings": list(range(40, 400, 26)),
         "urls": {
-            "articles": _url("articles:list"),
+            "articles": _url("articles:html-list"),
             "challenges": _url("challenges:list"),
             "feed": _url("feeds:list"),
             "donations": _url("donations:campaign_list"),

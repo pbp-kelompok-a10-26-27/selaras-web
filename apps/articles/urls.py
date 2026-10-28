@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import views
+from . import html_views, views
 
 app_name = "articles"
 
@@ -20,6 +20,19 @@ api_urlpatterns = [
 ]
 
 urlpatterns = [
+    path("browse/", html_views.article_html_list, name="html-list"),
+    path("read/<slug:slug>/", html_views.article_html_detail, name="html-detail"),
+    path("manage/new/", html_views.article_html_create, name="html-create"),
+    path(
+        "manage/<slug:slug>/edit/",
+        html_views.article_html_update,
+        name="html-update",
+    ),
+    path(
+        "manage/<slug:slug>/delete/",
+        html_views.article_html_delete,
+        name="html-delete",
+    ),
     path("api/articles/", views.api_article_list, name="api-article-list"),
     path("", views.article_list, name="list"),
     path("create/", views.article_create, name="create"),
