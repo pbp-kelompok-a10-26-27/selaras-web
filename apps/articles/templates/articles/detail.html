@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% load static lucide %}
+
+{% block meta %}
+    <title>{{ article.title }} - SELARAS</title>
+{% endblock meta %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'css/articles.css' %}">
+{% endblock extra_head %}
+
+{% block content %}
+    <main class="articles-page articles-detail-page">
+        <section class="articles-shell articles-detail-shell">
+            <a class="articles-back-link"
+               href="{% url 'articles:html-list' %}">
+                {% lucide "arrow-left" size=17 aria_hidden="true" %}
+                Kembali ke semua artikel
+            </a>
+
+            {% if messages %}
+                <div class="articles-messages" aria-live="polite">
+                    {% for message in messages %}
+                        <p class="articles-message">{{ message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <header class="articles-detail-header">
+                <div class="articles-card-meta">
+                    <a href="{% url 'articles:html-list' %}?category={{ article.category.slug|urlencode }}">
+                        {{ article.category.name }}
+                    </a>
+
+                    {% if article.published_at %}
+                        <span aria-hidden="true"></span>
+                        <time datetime="{{ article.published_at|date:'c' }}">
+                            {{ article.published_at|date:"j F Y" }}
+                        </time>
+                    {% endif %}
+
+                    {% if is_admin and article.status == "DRAFT" %}
+                        <span class="articles-draft-badge">
+                            Draf · hanya terlihat oleh admin
+                        </span>
+                    {% endif %}
+                </div>
+
+                <h1>{{ article.title }}</h1>
+
+                {% if article.summary %}
+                    <p class="articles-detail-summary">
+                        {{ article.summary }}
+                    </p>
+                {% endif %}
+
+                {% if article.tags.all %}
+                    <div class="articles-detail-tags">
+                        {% for tag in article.tags.all %}
+                            <a class="articles-chip articles-tag-chip"
+                               href="{% url 'articles:html-list' %}?tag={{ tag.slug|urlencode }}">
+                                #{{ tag.name }}
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {% if is_admin %}
+                    <a class="articles-admin-link articles-detail-edit"
+                       href="{% url 'articles:html-update' article.slug %}">
+                        {% lucide "pencil" size=16 aria_hidden="true" %}
+                        Edit artikel
+                    </a>
+                {% endif %}
+            </header>
+
+            {% if article.image %}
+                <figure class="articles-detail-cover">
+                    <img src="{{ article.image.url }}"
+                         alt="Gambar artikel {{ article.title }}">
+                </figure>
+            {% else %}
+                <div class="articles-detail-cover articles-detail-cover-empty"
+                     role="img"
+                     aria-label="Artikel ini tidak memiliki gambar">
+                    {% lucide "sprout" size=46 aria_hidden="true" %}
+                </div>
+            {% endif %}
+
+            <article class="articles-body">
+                <p class="articles-byline">
+                    Ditulis oleh
+                    <strong>{{ article.author.username }}</strong>
+                </p>
+
+                <div class="articles-prose">
+                    {{ article.content|linebreaks }}
+                </div>
+
+                <footer class="articles-article-footer">
+                    <a class="articles-back-link"
+                       href="{% url 'articles:html-list' %}">
+                        {% lucide "arrow-left" size=16 aria_hidden="true" %}
+                        Jelajahi artikel lainnya
+                    </a>
+                </footer>
+            </article>
+        </section>
+    </main>
+{% endblock content %}

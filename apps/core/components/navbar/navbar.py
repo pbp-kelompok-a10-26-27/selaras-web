@@ -19,7 +19,7 @@ class Navbar(component.Component):
             "links": kwargs.get(
                 "links",
                 [
-                    {"label": "Articles", "href": "/articles/"},
+                    {"label": "Articles", "href": "/articles/browse/"},
                     {"label": "Challenges", "href": "/challenges/"},
                     {"label": "Feed", "href": "/feed/"},
                     {"label": "Donations", "href": "/donations/"},
