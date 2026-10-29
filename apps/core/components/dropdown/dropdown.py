@@ -24,6 +24,7 @@ class Dropdown(component.Component):
                 "options_group", {}
             ),  # label: [key: [value, icon], key: [value, icon]], ...
             "dropdown_class": kwargs.get("dropdown_class", ""),
+            "class_": kwargs.get("class_", kwargs.get("dropdown_class", "")),
             "option_class": kwargs.get("option_class", ""),
             "option_group_class": kwargs.get("option_group_class", ""),
         }

@@ -1,0 +1,46 @@
+{% load component_tags lucide %}{% if challenges %}
+<ul class="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
+  {% for challenge in challenges %}
+  {% url 'challenges:detail' challenge.slug as detail_url %}
+  <li
+    data-card-url="{{ detail_url }}"
+    data-slug="{{ challenge.slug }}"
+    data-title="{{ challenge.title }}"
+    class="challenge-card group relative flex cursor-pointer flex-col justify-between rounded-2xl border border-neutral-400 bg-neutral-50 p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-neutral-500 hover:shadow-lg motion-reduce:transition-none motion-reduce:hover:translate-y-0 sm:p-6"
+  >
+    <div>
+      <div class="mb-4 flex items-center justify-between gap-2">
+        {% include "challenges/_status_badge.html" with status=challenge.status %}
+        <span class="font-sans text-b4 font-medium text-neutral-800">{{ challenge.start_date|date:"M j" }} &ndash; {{ challenge.end_date|date:"M j, Y" }}</span>
+      </div>
+
+      <h2 class="font-display text-h5 leading-snug text-foreground">
+        <a href="{{ detail_url }}" class="transition-colors hover:text-secondary-600">{{ challenge.title }}</a>
+      </h2>
+      <p class="mt-2 line-clamp-3 font-sans text-sm leading-relaxed text-neutral-900">{{ challenge.description }}</p>
+    </div>
+
+    <div class="mt-6 flex items-center justify-between gap-3 border-t border-neutral-400/60 pt-4">
+      <span class="flex items-center gap-1.5 font-sans text-b4 text-neutral-800">
+        {% lucide "users" class="w-4 h-4 text-secondary-500" %}
+        {{ challenge.participants_count }} participant{{ challenge.participants_count|pluralize }}
+      </span>
+      {% if challenge.id in joined_challenge_ids %}
+      {% component "button" text="Leave" variant="danger-ghost" size="xs" icon_left="circle-x" attrs="data-trigger-leave data-modal-open='leave-challenge-modal'" / %}
+      {% else %}
+      {% component "button" text="View details" variant="primary" size="sm" icon_right="arrow-right" href=detail_url / %}
+      {% endif %}
+    </div>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<div class="mx-auto my-8 max-w-xl rounded-2xl border border-neutral-400 bg-neutral-50 p-12 text-center">
+  <span class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-neutral-200 text-neutral-700">{% lucide "search-x" class="w-7 h-7" %}</span>
+  <h2 class="font-display text-h5 text-foreground">No challenges found</h2>
+  <p class="mx-auto mt-1 mb-6 max-w-md font-sans text-sm text-neutral-900">
+    {% if search_query %}Nothing matches &ldquo;<strong>{{ search_query }}</strong>&rdquo;. Try a different keyword or clear the filters.{% else %}There are no challenges in this category yet.{% endif %}
+  </p>
+  {% component "button" id="btn-reset-filters" text="Reset filters" variant="secondary" size="md" icon_left="rotate-ccw" type="button" / %}
+</div>
+{% endif %}

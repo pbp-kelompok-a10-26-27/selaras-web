@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+{% load static component_tags lucide %}
+
+{% block title %}{{ challenge.title }} · Challenges{% endblock %}
+
+{% block content %}
+<main class="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 pb-20 pt-36 sm:px-6 sm:pt-40 lg:px-8">
+  <!-- Back link -->
+  <nav aria-label="Back" class="mb-6">
+    {% url 'challenges:list' as list_url %}
+    {% component "button" text="Back to challenges" variant="neutral-ghost" size="sm" icon_left="arrow-left" href=list_url / %}
+  </nav>
+
+  {% if user.is_authenticated and user.is_admin %}
+  <!-- Admin shortcut -->
+  <div class="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-secondary-900 p-4 text-neutral-50 shadow-sm">
+    <div class="flex items-center gap-2 font-sans text-b4 font-semibold">
+      {% lucide "shield-check" class="w-4 h-4 text-primary-400" %}
+      <span>Admin preview</span>
+    </div>
+    <div class="flex flex-wrap items-center gap-2">
+      {% url 'dashboard:admin_challenge_update' challenge.slug as edit_url %}
+      {% url 'dashboard:admin_challenge_list' as dashboard_challenges_url %}
+      {% component "button" text="Edit in dashboard" variant="neutral" size="sm" icon_left="pencil" href=edit_url / %}
+      {% component "button" text="Challenges dashboard" variant="neutral" size="sm" icon_left="layout-dashboard" href=dashboard_challenges_url / %}
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="grid grid-cols-1 items-start gap-6 lg:grid-cols-3 lg:gap-8">
+    <!-- Left column: details and guide -->
+    <div class="order-2 space-y-6 sm:space-y-8 lg:order-1 lg:col-span-2">
+      <article class="rounded-2xl border border-neutral-400 bg-neutral-50 p-5 sm:p-8">
+        <div class="mb-4 flex flex-wrap items-center gap-2">
+          {% include "challenges/_status_badge.html" with status=challenge.status %}
+          <span class="inline-flex items-center gap-1.5 rounded-full border border-neutral-400 bg-neutral-100 px-3 py-1 font-sans text-b4 font-semibold text-neutral-900">
+            {% lucide "calendar-days" class="w-3.5 h-3.5 text-secondary-600" %}
+            {{ duration_days }} day{{ duration_days|pluralize }}
+          </span>
+          {% with count=challenge.participations.count %}
+          <span class="inline-flex items-center gap-1.5 rounded-full border border-neutral-400 bg-neutral-100 px-3 py-1 font-sans text-b4 font-semibold text-neutral-900">
+            {% lucide "users" class="w-3.5 h-3.5 text-secondary-600" %}
+            {{ count }} participant{{ count|pluralize }}
+          </span>
+          {% endwith %}
+        </div>
+
+        <h1 class="font-display text-h4 leading-tight text-foreground sm:text-h3 lg:text-h2">{{ challenge.title }}</h1>
+
+        <p class="mt-3 flex items-center gap-2 font-sans text-sm text-neutral-900">
+          {% lucide "calendar" class="w-4 h-4 text-secondary-500" %}
+          <span>Runs <strong>{{ challenge.start_date|date:"M j, Y" }}</strong> to <strong>{{ challenge.end_date|date:"M j, Y" }}</strong></span>
+        </p>
+
+        <div class="mt-6 border-t border-neutral-400/60 pt-6">
+          <h2 class="mb-3 font-display text-h5 text-foreground">About this challenge</h2>
+          <p class="whitespace-pre-line font-sans text-b3 leading-relaxed text-neutral-900">{{ challenge.description }}</p>
+        </div>
+      </article>
+
+      <section class="rounded-2xl border border-neutral-400 bg-neutral-50 p-5 sm:p-8" aria-labelledby="howItWorksTitle">
+        <h2 id="howItWorksTitle" class="mb-4 flex items-center gap-2 font-display text-h5 text-foreground">
+          <span class="text-secondary-500">{% lucide "compass" class="w-5 h-5" %}</span>
+          How it works
+        </h2>
+        <ol class="space-y-4 font-sans text-sm text-neutral-900">
+          <li class="flex items-start gap-3">
+            <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary-100 font-sans text-b4 font-bold text-secondary-800">1</span>
+            <span>Do an eco-friendly action every day that fits the challenge topic.</span>
+          </li>
+          <li class="flex items-start gap-3">
+            <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary-100 font-sans text-b4 font-bold text-secondary-800">2</span>
+            <span>Open this page and press <strong>Log today's progress</strong> to check in and add a short reflection.</span>
+          </li>
+          <li class="flex items-start gap-3">
+            <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary-100 font-sans text-b4 font-bold text-secondary-800">3</span>
+            <span>Reach 100% to earn the Eco-Warrior badge on your profile.</span>
+          </li>
+        </ol>
+      </section>
+
+      <section class="rounded-2xl border border-neutral-400 bg-neutral-50 p-5 sm:p-8" aria-labelledby="rewardTitle">
+        <div class="flex items-center gap-4">
+          <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-100 text-primary-700">{% lucide "award" class="w-5 h-5" %}</span>
+          <div>
+            <p class="font-sans text-xs font-semibold uppercase tracking-wider text-neutral-800">Reward</p>
+            <h2 id="rewardTitle" class="font-display text-h5 text-foreground">Eco-Warrior badge</h2>
+            <p class="mt-0.5 font-sans text-sm text-neutral-900">Complete every day of this challenge to add this badge to your profile.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Right column: participation panel -->
+    <aside class="order-1 space-y-6 lg:sticky lg:top-28 lg:order-2 lg:col-span-1">
+      <div class="rounded-2xl border border-neutral-400 bg-neutral-50 p-5 sm:p-6">
+        {% if not user.is_authenticated %}
+        <div class="py-2 text-center">
+          <span class="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-primary-100 text-primary-700">{% lucide "user-plus" class="w-5 h-5" %}</span>
+          <h2 class="font-display text-h5 text-foreground">Join this challenge</h2>
+          <p class="mb-6 mt-2 font-sans text-sm text-neutral-900">Log in to join and keep track of your daily progress.</p>
+          {% url 'accounts:login' as login_url %}
+          {% component "button" text="Log in to join" variant="primary" size="lg" full_width=True icon_right="arrow-right" href=login_url|add:"?next="|add:request.path / %}
+        </div>
+
+        {% elif not is_joined %}
+        <div>
+          <h2 class="mb-2 font-display text-h5 text-foreground">Ready to join?</h2>
+          <p class="mb-6 font-sans text-sm text-neutral-900">This challenge is free and open to everyone on SELARAS.</p>
+          {% if is_ended %}
+          <p class="rounded-xl border border-neutral-400 bg-neutral-200 p-3.5 text-center font-sans text-b4 font-semibold text-neutral-900">This challenge ended on {{ challenge.end_date|date:"M j, Y" }}.</p>
+          {% elif is_upcoming %}
+          <p class="rounded-xl border border-neutral-400 bg-neutral-200 p-3.5 text-center font-sans text-b4 font-semibold text-neutral-900">This challenge start on {{ challenge.end_date|date:"M j, Y" }}.</p>
+          {% else %}
+          <form method="POST" action="{% url 'challenges:join' challenge.slug %}">
+            {% csrf_token %}
+            {% component "button" text="Join challenge" variant="primary" size="lg" full_width=True type="submit" icon_left="circle-check" / %}
+          </form>
+          {% endif %}
+        </div>
+
+        {% else %}
+        <div class="space-y-6">
+          <div class="flex items-center justify-between">
+            <span class="font-sans text-b4 font-semibold text-secondary-800">Your status</span>
+            {% if participation.completed_at %}
+            <span class="inline-flex items-center gap-1.5 rounded-full bg-secondary-700 px-3 py-1 font-sans text-b4 font-semibold text-neutral-50">
+              {% lucide "award" class="w-3.5 h-3.5 text-primary-400" %}
+              Completed
+            </span>
+            {% else %}
+            <span class="inline-flex items-center gap-1.5 rounded-full border border-primary-300 bg-primary-100 px-3 py-1 font-sans text-b4 font-semibold text-secondary-900">
+              {% lucide "activity" class="w-3.5 h-3.5 text-secondary-700" %}
+              In progress
+            </span>
+            {% endif %}
+          </div>
+
+          <div>
+            <div class="mb-2 flex items-center justify-between font-sans text-b4">
+              <span class="font-semibold text-secondary-900">Progress</span>
+              <span class="text-sm font-bold text-secondary-700">{{ progress_percentage }}%</span>
+            </div>
+            <div class="h-3 w-full overflow-hidden rounded-full border border-neutral-300 bg-neutral-200" role="progressbar" aria-valuenow="{{ progress_percentage }}" aria-valuemin="0" aria-valuemax="100" aria-label="Challenge progress">
+              <div class="h-full rounded-full bg-primary-500 transition-all duration-500 ease-out" style="width: {{ progress_percentage }}%;"></div>
+            </div>
+            <p class="mt-2 font-sans text-b4 font-medium text-secondary-800"><strong>{{ days_completed }}</strong> of <strong>{{ duration_days }}</strong> days completed</p>
+          </div>
+
+          <div class="border-t border-neutral-400/60 pt-4">
+            {% if already_checked_in_today %}
+            <div class="space-y-3">
+              <p class="flex items-center justify-center gap-2 rounded-xl border border-primary-300 bg-primary-100 p-3 font-sans text-b4 font-semibold text-secondary-900">
+                {% lucide "circle-check" class="w-4 h-4 text-primary-700" %}
+                You checked in today
+              </p>
+              {% component "button" text="Update today's note" variant="neutral-ghost" size="xs" full_width=True attrs="data-modal-open='checkin-modal'" icon_left="pencil" / %}
+            </div>
+            {% else %}
+            {% component "button" text="Log today's progress" variant="secondary" size="lg" full_width=True attrs="data-modal-open='checkin-modal'" icon_left="pencil" / %}
+            {% endif %}
+          </div>
+
+          <div class="border-t border-neutral-300 pt-3">
+            {% component "button" type="button" text="Leave challenge" variant="danger-ghost" size="xs" full_width=True icon_left="circle-x" attrs="data-modal-open='leave-challenge-modal'" / %}
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      {% if is_joined %}
+      <section class="rounded-2xl border border-neutral-400 bg-neutral-50 p-5 sm:p-6" aria-labelledby="historyTitle">
+        <h2 id="historyTitle" class="mb-4 flex items-center justify-between font-display text-h5 text-foreground">
+          <span>Check-in history</span>
+          <span class="rounded-full bg-neutral-300 px-2 py-0.5 font-sans text-b4 font-bold tabular-nums text-secondary-900">{{ progress_records|length }}</span>
+        </h2>
+
+        {% if progress_records %}
+        <ul class="max-h-72 space-y-3 overflow-y-auto pr-1">
+          {% for record in progress_records %}
+          <li class="rounded-xl border border-neutral-300 bg-neutral-100/60 p-3.5 font-sans text-b4">
+            <div class="mb-1 flex items-center justify-between">
+              <span class="font-semibold text-secondary-900">{{ record.progress_date|date:"l, M j, Y" }}</span>
+              <span class="inline-flex items-center text-primary-700">{% lucide "check" class="w-3.5 h-3.5" %}</span>
+            </div>
+            {% if record.notes %}
+            <p class="mt-1 rounded-lg border border-neutral-200 bg-neutral-50 p-2 italic text-neutral-900">&ldquo;{{ record.notes }}&rdquo;</p>
+            {% else %}
+            <p class="mt-0.5 italic text-neutral-800">Checked in without a note.</p>
+            {% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <div class="py-6 text-center font-sans text-b4 text-neutral-800">
+          {% lucide "clipboard-list" class="w-8 h-8 mx-auto mb-2 text-neutral-700" %}
+          <span>No check-ins yet. Log your first one today.</span>
+        </div>
+        {% endif %}
+      </section>
+      {% endif %}
+    </aside>
+  </div>
+</main>
+
+<!-- Check-in modal -->
+{% component "modal" id="checkin-modal" title="Log today's progress" size="md" %}
+  {% fill "content" %}
+  <form id="checkin-form" method="POST" action="{% url 'challenges:progress' challenge.slug %}" class="space-y-4">
+    {% csrf_token %}
+    <div>
+      <span class="mb-1 block font-sans text-b4 font-semibold text-secondary-900">Check-in date</span>
+      <p class="flex items-center gap-2 rounded-xl border border-neutral-300 bg-neutral-100 p-3 font-sans text-sm font-semibold text-secondary-900">
+        {% lucide "calendar" class="w-4 h-4 text-secondary-600" %}
+        <span>{{ today|date:"l, F j, Y" }}</span>
+      </p>
+    </div>
+    <div>
+      <label for="checkin-notes" class="mb-1.5 block font-sans text-b4 font-semibold text-secondary-900">Reflection on today's action</label>
+      <textarea
+        id="checkin-notes"
+        name="notes"
+        rows="4"
+        placeholder="What did you do today to help the planet?"
+        class="w-full resize-none rounded-xl border border-neutral-400 bg-neutral-50 p-3.5 font-sans text-sm text-secondary-900 outline-none transition-all placeholder:text-neutral-500 focus:border-primary-500 focus:ring-2 focus:ring-primary-400/30"
+      ></textarea>
+      <p class="mt-1 font-sans text-b4 text-neutral-800">This note is saved to your check-in history.</p>
+    </div>
+  </form>
+  {% endfill %}
+  {% fill "footer" %}
+  {% component "button" text="Cancel" variant="neutral" size="sm" attrs="data-modal-close" / %}
+  {% component "button" text="Save progress" variant="primary" size="sm" type="submit" attrs="form='checkin-form'" icon_left="save" / %}
+  {% endfill %}
+{% endcomponent %}
+
+<!-- Leave modal -->
+{% component "modal" id="leave-challenge-modal" title="Leave this challenge?" size="md" %}
+  {% fill "content" %}
+  <p class="font-sans text-sm text-neutral-900">Are you sure you want to leave <strong class="text-secondary-900">&ldquo;{{ challenge.title }}&rdquo;</strong>?</p>
+  <p class="mt-2 rounded-xl border border-red-100/40 bg-red-100/10 p-3 font-sans text-b4 font-medium text-red-100">All your check-ins and notes for this challenge will be permanently deleted.</p>
+  {% endfill %}
+  {% fill "footer" %}
+  <form method="POST" action="{% url 'challenges:leave' challenge.slug %}" class="flex w-full items-center justify-end gap-3">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{% url 'challenges:detail' challenge.slug %}" />
+    {% component "button" text="Cancel" variant="neutral" size="sm" attrs="data-modal-close" / %}
+    {% component "button" type="submit" text="Leave challenge" variant="danger" size="sm" icon_left="circle-x" / %}
+  </form>
+  {% endfill %}
+{% endcomponent %}
+
+{% include "accounts/_messages.html" %}
+{% endblock %}
+
+{% block scripts %}
+<script type="module" src="{% static 'js/challenges/messages.js' %}"></script>
+{% endblock %}
