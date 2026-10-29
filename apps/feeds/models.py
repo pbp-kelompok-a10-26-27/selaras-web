@@ -4,8 +4,17 @@ from pathlib import Path
 from django.conf import settings
 from django.db import models
 from django.db.models import Q, UniqueConstraint
+from django.db.models.functions import Length
+from django.db.models.lookups import GreaterThanOrEqual, LessThanOrEqual
 
 from apps.core.models import TimeStamp
+
+
+def length_between(field, low, high):
+    """Panjang teks low..high. Bukan regex: PostgreSQL menolak .{1,2000} (maks 255)."""
+    return Q(
+        GreaterThanOrEqual(Length(field), low), LessThanOrEqual(Length(field), high)
+    )
 
 
 def post_image_upload_to(instance, filename):
@@ -47,7 +56,7 @@ class Post(TimeStamp):
         ]
         constraints = [
             models.CheckConstraint(
-                condition=Q(content__regex=r"(?s)^.{1,2000}$"),
+                condition=length_between("content", 1, 2000),
                 name="feed_post_content_length",
             )
         ]
@@ -108,7 +117,7 @@ class Comment(TimeStamp):
                 name="feed_comment_not_self_parent",
             ),
             models.CheckConstraint(
-                condition=Q(content__regex=r"(?s)^.{1,500}$"),
+                condition=length_between("content", 1, 500),
                 name="feed_comment_content_length",
             ),
         ]

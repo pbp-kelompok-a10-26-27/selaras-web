@@ -178,5 +178,11 @@ LOGGING = {
     "handlers": {"console": {"class": "logging.StreamHandler"}},
     "loggers": {
         "apps": {"handlers": ["console"], "level": "WARNING", "propagate": False},
+        # Traceback error 500 ikut tercetak di log (Django bawaan hanya saat DEBUG)
+        "django.request": {
+            "handlers": ["console"],
+            "level": "ERROR",
+            "propagate": False,
+        },
     },
 }

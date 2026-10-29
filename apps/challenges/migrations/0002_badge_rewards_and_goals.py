@@ -40,7 +40,9 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='badge',
             name='slug',
-            field=models.SlugField(blank=True, max_length=120, default=''),
+            # No index yet: the unique AlterField below creates it. Indexing here too
+            # makes PostgreSQL fail with "..._like already exists".
+            field=models.SlugField(blank=True, max_length=120, default='', db_index=False),
             preserve_default=False,
         ),
         # Existing badges need distinct slugs before the column can be unique
