@@ -1,0 +1,50 @@
+{% load component_tags lucide ui_extras %}
+{% comment %}
+Side panel with the user's running challenges, used on the feed, donation and article pages.
+Needs `challenge_progress` (challenges.services.active_progress). Optional `widget_title`,
+`widget_empty` (shown, with a link to challenges, when there is nothing to track).
+{% endcomment %}
+{% if user.is_authenticated %}
+<section class="rounded-2xl border border-neutral-400 bg-neutral-50 p-5 sm:p-6" aria-labelledby="challengeWidgetTitle">
+  <div class="flex items-center justify-between gap-3">
+    <h2 id="challengeWidgetTitle" class="flex items-center gap-2 font-display text-h5 text-foreground">
+      <span class="text-primary-700" aria-hidden="true">{% lucide "flame" class="w-5 h-5" %}</span>
+      {{ widget_title|default:"Progres challenge" }}
+    </h2>
+    {% url 'challenges:history' as history_url %}
+    <a href="{{ history_url }}" class="shrink-0 rounded-md font-sans text-xs font-semibold text-secondary-700 hover:text-secondary-900 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">Semua</a>
+  </div>
+
+  {% if challenge_progress %}
+  <ul class="mt-4 space-y-4">
+    {% for item in challenge_progress %}
+    <li>
+      <a href="{% url 'challenges:detail' item.challenge.slug %}" class="group block rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
+        <div class="flex items-start justify-between gap-3">
+          <p class="min-w-0 font-sans text-sm font-semibold leading-snug text-secondary-900 group-hover:underline">{{ item.challenge.title }}</p>
+          {% if item.completed %}
+            {% component "badge" text="Selesai" variant="primary" size="sm" icon="circle-check" / %}
+          {% elif item.challenge.badge %}
+            {% component "badge_chip" badge=item.challenge.badge size="xs" show_name=False / %}
+          {% endif %}
+        </div>
+        {% component "progress" value=item.percent size="sm" class_="mt-2" / %}
+        <p class="mt-1.5 font-sans text-xs text-neutral-900">
+          {% if item.is_money %}
+            <strong class="text-secondary-900">Rp {{ item.current|rupiah }}</strong> dari Rp {{ item.target|rupiah }}
+          {% else %}
+            <strong class="text-secondary-900">{{ item.current }}</strong> dari {{ item.target }} {{ item.unit }}
+          {% endif %}
+          {% if not item.completed %} · s.d. {{ item.challenge.end_date|date:"j M" }}{% endif %}
+        </p>
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="mt-3 font-sans text-sm text-neutral-900">{{ widget_empty|default:"Ikuti challenge dan lihat progresmu bertambah dari aktivitasmu di sini." }}</p>
+  {% url 'challenges:list' as challenges_url %}
+  {% component "button" href=challenges_url text="Cari challenge" variant="neutral" size="sm" icon_left="search" class_="mt-4" / %}
+  {% endif %}
+</section>
+{% endif %}

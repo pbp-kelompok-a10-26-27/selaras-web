@@ -1,0 +1,48 @@
+{% load lucide %}
+{# Ringkasan dampak pribadi #}
+<section id="impact" class="scroll-reveal mt-6 scroll-mt-32 rounded-3xl border border-neutral-400 bg-neutral-50 p-5 sm:p-8" aria-labelledby="impact-title">
+  <div class="flex flex-wrap items-end justify-between gap-3">
+    <div>
+      <h2 id="impact-title" class="flex items-center gap-2 text-h5">
+        {% lucide "sprout" class="w-5 h-5 text-secondary-500" aria_hidden="true" %}
+        Dampakmu
+      </h2>
+      <p class="mt-1 font-sans text-sm text-neutral-900">Semua yang sudah kamu lakukan di SELARAS. Tanpa peringkat, cuma progres kamu sendiri.</p>
+    </div>
+  </div>
+
+  <div class="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+    {% url 'articles:html-list' as articles_url %}
+    {% url 'challenges:history' as challenges_url %}
+    {% url 'feeds:list' as feed_url %}
+    {% url 'donations:history' as donations_url %}
+    {% with i=impact %}
+    <a href="{{ articles_url }}" class="account-tile group flex flex-col gap-1 p-4">
+      <p class="flex items-center gap-1.5 font-sans text-xs font-semibold text-neutral-800">{% lucide "book-open-check" class="w-4 h-4 text-secondary-500" aria_hidden="true" %}Artikel dibaca</p>
+      <p class="font-sans text-2xl font-semibold tabular-nums text-secondary-900" data-count-to="{{ i.articles_read }}">{{ i.articles_read }}</p>
+      {% if i.articles_published %}<p class="font-sans text-xs text-neutral-800">{{ i.articles_published }} tulisanmu terbit</p>{% endif %}
+    </a>
+    <a href="{{ challenges_url }}" class="account-tile group flex flex-col gap-1 p-4">
+      <p class="flex items-center gap-1.5 font-sans text-xs font-semibold text-neutral-800">{% lucide "trophy" class="w-4 h-4 text-secondary-500" aria_hidden="true" %}Challenge selesai</p>
+      <p class="font-sans text-2xl font-semibold tabular-nums text-secondary-900" data-count-to="{{ i.challenges_completed }}">{{ i.challenges_completed }}</p>
+      <p class="font-sans text-xs text-neutral-800">dari {{ i.challenges_joined }} yang diikuti</p>
+    </a>
+    <a href="{{ challenges_url }}" class="account-tile group flex flex-col gap-1 p-4">
+      <p class="flex items-center gap-1.5 font-sans text-xs font-semibold text-neutral-800">{% lucide "flame" class="w-4 h-4 text-orange-100" aria_hidden="true" %}Streak terpanjang</p>
+      <p class="font-sans text-2xl font-semibold tabular-nums text-secondary-900">{{ i.longest_streak }} <span class="text-sm font-normal text-neutral-800">hari</span></p>
+      <p class="font-sans text-xs text-neutral-800">{{ i.badges }} lencana didapat</p>
+    </a>
+    <a href="{{ donations_url }}" class="account-tile group flex flex-col gap-1 p-4">
+      <p class="flex items-center gap-1.5 font-sans text-xs font-semibold text-neutral-800">{% lucide "hand-heart" class="w-4 h-4 text-secondary-500" aria_hidden="true" %}Kampanye didukung</p>
+      <p class="font-sans text-2xl font-semibold tabular-nums text-secondary-900" data-count-to="{{ i.campaigns_supported }}">{{ i.campaigns_supported }}</p>
+      <p class="font-sans text-xs text-neutral-800">donasi terverifikasi</p>
+    </a>
+    <a href="{{ feed_url }}" class="account-tile group col-span-2 flex flex-col gap-1 p-4 sm:col-span-4 sm:flex-row sm:items-center sm:gap-6">
+      <p class="flex items-center gap-1.5 font-sans text-xs font-semibold text-neutral-800">{% lucide "rss" class="w-4 h-4 text-secondary-500" aria_hidden="true" %}Di komunitas</p>
+      <p class="font-sans text-sm text-secondary-900"><strong class="tabular-nums">{{ i.posts }}</strong> cerita dibagikan</p>
+      <p class="font-sans text-sm text-secondary-900"><strong class="tabular-nums">{{ i.likes_received }}</strong> suka dari orang lain</p>
+      <p class="font-sans text-sm text-secondary-900"><strong class="tabular-nums">{{ i.encouragements }}</strong> komentar penyemangat</p>
+    </a>
+    {% endwith %}
+  </div>
+</section>

@@ -1,0 +1,16 @@
+{% load component_tags lucide %}
+
+<div class="mx-auto max-w-xl rounded-2xl border border-dashed border-neutral-500 bg-neutral-50 p-10 text-center sm:p-12 {{ class_ }}" data-empty-state>
+  <span class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-100 text-primary-700" aria-hidden="true">
+    {% lucide icon class="w-7 h-7" %}
+  </span>
+  <h2 class="font-display text-h5 text-foreground">{{ title }}</h2>
+  {% if description %}
+  <p class="mx-auto mt-1 max-w-md font-sans text-sm text-neutral-900">{{ description }}</p>
+  {% endif %}
+  {% if has_actions %}
+  <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
+    {% slot "actions" %}{% endslot %}
+  </div>
+  {% endif %}
+</div>

@@ -1,0 +1,34 @@
+{% load component_tags %}{% if show %}
+<nav aria-label="Paginasi" class="flex flex-wrap items-center justify-center gap-2 {{ class_ }}" data-pagination>
+  {% if previous_url %}
+    {% component "button" href=previous_url text="Sebelumnya" variant="neutral" size="sm" icon_left="chevron-left" / %}
+  {% else %}
+    {% component "button" text="Sebelumnya" variant="neutral" size="sm" icon_left="chevron-left" disabled=True / %}
+  {% endif %}
+
+  <ul class="hidden items-center gap-1 sm:flex">
+    {% for item in items %}
+      {% if item.ellipsis %}
+      <li aria-hidden="true" class="px-1.5 font-sans text-sm text-neutral-800">&hellip;</li>
+      {% else %}
+      <li>
+        <a
+          href="{{ item.url }}"
+          {% if item.current %}aria-current="page"{% endif %}
+          aria-label="Halaman {{ item.number }}"
+          class="inline-flex h-9 min-w-9 items-center justify-center rounded-lg border px-2 font-sans text-sm font-semibold outline-none transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2
+            {% if item.current %}border-secondary-700 bg-secondary-700 text-neutral-50{% else %}border-neutral-400 bg-neutral-50 text-secondary-800 hover:-translate-y-0.5 hover:border-neutral-500 hover:bg-neutral-300{% endif %}"
+        >{{ item.number }}</a>
+      </li>
+      {% endif %}
+    {% endfor %}
+  </ul>
+  <p class="font-sans text-sm text-neutral-800 sm:hidden" aria-live="polite">Halaman {{ page_number }} dari {{ total_pages }}</p>
+
+  {% if next_url %}
+    {% component "button" href=next_url text="Berikutnya" variant="neutral" size="sm" icon_right="chevron-right" / %}
+  {% else %}
+    {% component "button" text="Berikutnya" variant="neutral" size="sm" icon_right="chevron-right" disabled=True / %}
+  {% endif %}
+</nav>
+{% endif %}

@@ -1,0 +1,5 @@
+{% load component_tags %}{% comment %}
+Status pill for a donation. Usage:
+{% include "donations/partials/_donation_status.html" with status=donation.status %}
+status is one of PENDING, APPROVED, REJECTED (data-status keeps the raw value for scripts and tests).
+{% endcomment %}{% if status == "APPROVED" %}{% component "badge" text="Disetujui" variant="primary" icon="circle-check" attrs='data-status="APPROVED"' / %}{% elif status == "REJECTED" %}{% component "badge" text="Ditolak" variant="danger" icon="circle-x" attrs='data-status="REJECTED"' / %}{% else %}{% component "badge" text="Menunggu verifikasi" variant="warning" icon="clock" attrs='data-status="PENDING"' / %}{% endif %}

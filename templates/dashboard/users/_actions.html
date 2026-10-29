@@ -1,0 +1,29 @@
+{% load lucide %}{# Tombol ubah peran + aktif/nonaktif. compact=True: ikon saja (daftar) #}
+{% url 'dashboard:admin_user_role' member.pk as role_url %}
+{% url 'dashboard:admin_user_active' member.pk as active_url %}
+{% if member.is_admin %}
+<button type="button" data-modal-open="adminConfirmModal" aria-haspopup="dialog" title="Cabut akses admin" {% if compact %}aria-label="Cabut akses admin {{ member.display_name }}"{% endif %}
+  data-confirm-action="{{ role_url }}" data-confirm-tone="primary" data-confirm-label="Ya, cabut akses"
+  data-confirm-title="Cabut akses admin?" data-confirm-body="{{ member.display_name }} tidak bisa lagi membuka dashboard admin."
+  data-confirm-fields='{"role": "user"}'
+  class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 rounded-lg border border-neutral-700 font-sans text-sm font-semibold text-neutral-800 outline-none transition-colors hover:bg-neutral-300 hover:text-secondary-900 focus-visible:ring-2 focus-visible:ring-primary-500 {% if compact %}h-8 w-8{% else %}min-h-9 px-3.5{% endif %}">{% lucide "shield-off" class="w-4 h-4" %}{% if not compact %}Cabut akses admin{% endif %}</button>
+{% else %}
+<button type="button" data-modal-open="adminConfirmModal" aria-haspopup="dialog" title="Jadikan admin" {% if compact %}aria-label="Jadikan {{ member.display_name }} admin"{% endif %}
+  data-confirm-action="{{ role_url }}" data-confirm-tone="primary" data-confirm-label="Ya, jadikan admin"
+  data-confirm-title="Jadikan admin?" data-confirm-body="{{ member.display_name }} akan bisa mengelola semua konten, donasi, dan pengguna lewat dashboard."
+  data-confirm-fields='{"role": "admin"}'
+  class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 rounded-lg border border-neutral-700 font-sans text-sm font-semibold text-neutral-800 outline-none transition-colors hover:bg-neutral-300 hover:text-secondary-900 focus-visible:ring-2 focus-visible:ring-primary-500 {% if compact %}h-8 w-8{% else %}min-h-9 px-3.5{% endif %}">{% lucide "shield-plus" class="w-4 h-4" %}{% if not compact %}Jadikan admin{% endif %}</button>
+{% endif %}
+{% if member.is_active %}
+<button type="button" data-modal-open="adminConfirmModal" aria-haspopup="dialog" title="Nonaktifkan akun" {% if compact %}aria-label="Nonaktifkan akun {{ member.display_name }}"{% endif %}
+  data-confirm-action="{{ active_url }}" data-confirm-label="Nonaktifkan"
+  data-confirm-title="Nonaktifkan akun?" data-confirm-body="{{ member.display_name }} akan langsung keluar dan tidak bisa masuk. Postingan dan datanya tetap tersimpan, dan akun bisa diaktifkan lagi kapan saja."
+  data-confirm-fields='{"active": "0"}'
+  class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 rounded-lg border border-red-100/40 font-sans text-sm font-semibold text-red-100 outline-none transition-colors hover:border-red-100 hover:bg-red-100/10 focus-visible:ring-2 focus-visible:ring-primary-500 {% if compact %}h-8 w-8{% else %}min-h-9 px-3.5{% endif %}">{% lucide "user-x" class="w-4 h-4" %}{% if not compact %}Nonaktifkan{% endif %}</button>
+{% else %}
+<button type="button" data-modal-open="adminConfirmModal" aria-haspopup="dialog" title="Aktifkan lagi" {% if compact %}aria-label="Aktifkan lagi akun {{ member.display_name }}"{% endif %}
+  data-confirm-action="{{ active_url }}" data-confirm-tone="primary" data-confirm-label="Aktifkan"
+  data-confirm-title="Aktifkan akun lagi?" data-confirm-body="{{ member.display_name }} bisa masuk dan beraktivitas lagi seperti biasa."
+  data-confirm-fields='{"active": "1"}'
+  class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 rounded-lg border border-primary-700 font-sans text-sm font-semibold text-primary-700 outline-none transition-colors hover:bg-primary-100 focus-visible:ring-2 focus-visible:ring-primary-500 {% if compact %}h-8 w-8{% else %}min-h-9 px-3.5{% endif %}">{% lucide "user-check" class="w-4 h-4" %}{% if not compact %}Aktifkan lagi{% endif %}</button>
+{% endif %}

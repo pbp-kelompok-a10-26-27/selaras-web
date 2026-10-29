@@ -1,0 +1,402 @@
+{% extends "base.html" %}
+{% load static lucide component_tags %}
+
+{% block title %}SELARAS - Untuk Bumi{% endblock %}
+
+{% block content %}
+
+<main class="landing-flow relative overflow-x-clip text-foreground" id="landing">
+
+  <svg aria-hidden="true" width="0" height="0" class="absolute">
+    <defs>
+      <symbol id="landing-leaf" viewBox="0 0 24 24">
+        <path d="M12 1.5C6.2 5.4 3.6 11 5.4 16.8 6.8 20.6 12 22.5 12 22.5s5.2-1.9 6.6-5.7C20.4 11 17.8 5.4 12 1.5Z" fill="currentColor" />
+        <path d="M12 21.5c0-5.3-.6-11-2.6-16.4M12 13.5l3.6-3.2M11.6 17.2 8 14.4" fill="none" stroke="var(--color-secondary-900)" stroke-opacity="0.22" stroke-width="0.9" stroke-linecap="round" />
+      </symbol>
+    </defs>
+  </svg>
+
+  <section aria-labelledby="heroTitle" class="relative isolate flex min-h-[100svh] flex-col" data-hero>
+    
+    {# The meadow fades out through a mask (.hero-backdrop), not a colour painted on top,
+       so the page background shows through and there is no edge under the hero #}
+    <div aria-hidden="true" class="hero-backdrop absolute inset-0 -z-10 overflow-hidden">
+      <img
+        src="{% static 'assets/images/landing/bg-landing-page.webp' %}"
+        alt=""
+        fetchpriority="high"
+        class="hero-image h-full w-full scale-110 opacity-60 object-cover object-[60%_bottom]"
+        data-hero-image
+      />
+      
+      <div class="absolute inset-0 bg-linear-to-b from-neutral-300/90 via-neutral-300/55 via-45% to-transparent to-75%"></div>
+      
+      <div class="hero-glow absolute inset-0 hidden pointer-fine:block" data-hero-glow></div>
+    </div>
+
+    <div class="mx-auto flex w-full max-w-7xl flex-1 flex-col px-4 pt-36 pb-6 sm:px-8 lg:px-12 lg:pt-44">
+      
+      <h1 id="heroTitle" class="mt-6 max-w-4xl font-display text-[clamp(2.75rem,8vw,6.25rem)] leading-[0.95] tracking-tight text-secondary-900">
+        <span class="hero-rise inline-block" style="--i: 1">Hidup</span>
+        <span class="hero-rise relative inline-block text-secondary-500" style="--i: 2">
+          selaras
+          {# Hand-drawn underline, drawn in on load #}
+          <svg aria-hidden="true" viewBox="0 0 220 24" class="absolute -bottom-1 left-0 h-3 w-full overflow-visible sm:h-4" preserveAspectRatio="none">
+            <path data-draw d="M3 16 C 40 6, 90 4, 130 10 S 200 20, 217 8" fill="none" class="stroke-primary-300" stroke-width="5" stroke-linecap="round" />
+          </svg>
+        </span>
+        <span class="hero-rise inline-block" style="--i: 3">dengan bumi,</span>
+        <span class="hero-rise inline-block" style="--i: 4">satu kebiasaan</span>
+        <span class="hero-rise inline-block" style="--i: 5">setiap hari.</span>
+      </h1>
+
+      <p class="hero-rise mt-6 max-w-xl font-sans text-b3 leading-relaxed text-secondary-800 sm:text-b2" style="--i: 6">
+        SELARAS membantu kamu membangun kebiasaan ramah lingkungan secara bertahap melalui kegiatan
+        memahami, mempraktikkan, membagikan, lalu memberi kembali.
+      </p>
+
+      <div class="hero-rise mt-8 flex flex-col gap-3 sm:flex-row sm:items-center" style="--i: 7">
+        {% if user.is_authenticated %}
+          {% component "button" text="Lanjutkan challenge-mu" variant="secondary" size="lg" href=urls.challenges icon_right="arrow-right" / %}
+        {% else %}
+          {% component "button" text="Mulai sekarang, gratis" variant="secondary" size="lg" href=urls.register icon_right="arrow-right" / %}
+        {% endif %}
+        {% component "button" text="Pelajari caranya" variant="neutral" size="lg" href="#cincin" icon_right="arrow-down" / %}
+      </div>
+
+      {# Live numbers: a quiet row, each one jumps to its layer #}
+      <div class="hero-rise mt-auto pt-16" style="--i: 8">
+        <ul class="grid grid-cols-2 gap-x-6 gap-y-5 lg:grid-cols-4">
+          {% with item="group flex flex-col gap-1 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-primary-500" number="font-sans text-[clamp(1.5rem,3vw,2.25rem)] font-semibold leading-none tracking-tight tabular-nums text-secondary-900" label="inline-flex items-center gap-1 font-sans text-sm text-secondary-700 transition-colors group-hover:text-secondary-900" arrow="w-3.5 h-3.5 opacity-0 -translate-x-1 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0 group-focus-visible:opacity-100" %}
+          <li><a href="#belajar" class="{{ item }}">
+            <span class="{{ number }}" data-count="{{ learn.count }}">{{ learn.count }}</span>
+            <span class="{{ label }}">artikel terbit {% lucide "arrow-down-right" class=arrow %}</span>
+          </a></li>
+          <li><a href="#bertindak" class="{{ item }}">
+            <span class="{{ number }}" data-count="{{ act.count }}">{{ act.count }}</span>
+            <span class="{{ label }}">tantangan aktif {% lucide "arrow-down-right" class=arrow %}</span>
+          </a></li>
+          <li><a href="#berbagi" class="{{ item }}">
+            <span class="{{ number }}" data-count="{{ share.count }}">{{ share.count }}</span>
+            <span class="{{ label }}">cerita komunitas {% lucide "arrow-down-right" class=arrow %}</span>
+          </a></li>
+          <li><a href="#berdonasi" class="{{ item }}" title="{{ give.raised_full }}">
+            <span class="{{ number }}">Rp {{ give.raised_compact }}</span>
+            <span class="{{ label }}">terkumpul untuk bumi {% lucide "arrow-down-right" class=arrow %}</span>
+          </a></li>
+          {% endwith %}
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  {# Words light up one by one as the reader scrolls through #}
+  <section aria-label="Tentang SELARAS" class="relative mx-auto max-w-5xl px-4 py-28 sm:px-8 lg:py-40">
+    <span aria-hidden="true" data-parallax="0.18" class="pointer-events-none absolute top-16 right-[4%] hidden w-10 rotate-[32deg] text-primary-300 sm:block"><svg viewBox="0 0 24 24" class="animate-float h-auto w-full"><use href="#landing-leaf" /></svg></span>
+    <p class="mt-6 font-display text-[clamp(1.75rem,4.2vw,3.25rem)] leading-[1.15] text-secondary-900" data-manifesto>
+      Perubahan besar jarang datang sekaligus. Ia tumbuh seperti pohon yang bersifat perlahan, konsisten,
+      satu lapis setiap hari. Kami percaya hidup berkelanjutan dimulai dari keseimbangan antara
+      apa yang kita ketahui, apa yang kita lakukan, apa yang kita bagikan, dan apa yang kita berikan.
+    </p>
+  </section>
+
+  <section id="cincin" aria-labelledby="ringsTitle" class="relative mx-auto max-w-7xl px-4 pb-24 sm:px-8 lg:px-12 lg:pb-36">
+    <div class="grid items-center gap-12 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-16">
+      <div class="flex flex-col gap-6" data-reveal>
+        <h2 id="ringsTitle" class="font-display text-[clamp(2rem,4.5vw,3.5rem)] leading-[1.05] text-secondary-900">Satu hari, satu cincin.</h2>
+        <p class="max-w-lg font-sans text-b3 leading-relaxed text-secondary-800">
+          Pohon menambah satu cincin setiap tahun. Di SELARAS, setiap hari kamu menjalankan kebiasaan,
+          satu cincin tipis bertambah. Empat lapisan di dalamnya saling menguatkan.
+        </p>
+
+        {# Legend: hovering or focusing a layer highlights its ring #}
+        <ul class="grid grid-cols-2 gap-2" aria-label="Empat lapisan">
+          {% for key, icon, name in layer_index %}
+          <li>
+            <a href="#{{ name|lower }}" data-ring-legend="{{ key }}" class="flex min-h-11 items-center gap-3 rounded-2xl border border-secondary-200/70 bg-neutral-50/60 px-3 py-2 font-sans text-sm font-semibold text-secondary-800 outline-none transition-all duration-300 hover:border-secondary-300 hover:bg-neutral-50 focus-visible:ring-2 focus-visible:ring-primary-500 aria-[current=true]:border-secondary-500 aria-[current=true]:bg-neutral-50">
+              {% lucide icon class="w-4 h-4 shrink-0 text-secondary-500" %}{{ name }}
+            </a>
+          </li>
+          {% endfor %}
+        </ul>
+
+        {# What the hovered/focused ring means #}
+        <div id="ringInfo" aria-live="polite" class="rounded-3xl border border-secondary-200/70 bg-neutral-50/70 p-5 backdrop-blur transition-colors duration-300">
+          <p class="flex items-center gap-2 font-sans text-[0.6875rem] font-semibold uppercase tracking-wider text-neutral-800">
+            <span data-info-swatch class="h-2.5 w-2.5 rounded-full bg-secondary-700"></span>
+            <span data-info-kicker>Cincin pertumbuhan</span>
+          </p>
+          <p class="mt-1 font-display text-h5 leading-tight text-secondary-900" data-info-title>Empat lapis kebiasaan</p>
+          <p class="mt-1 font-sans text-sm text-secondary-800" data-info-text>Arahkan kursor ke sebuah cincin, atau tekan Tab, untuk membaca maknanya.</p>
+        </div>
+      </div>
+
+      <figure class="relative mx-auto w-full max-w-[34rem]" aria-labelledby="ringsCaption" data-reveal>
+        <svg id="growthRings" viewBox="0 0 520 520" class="aspect-square h-auto w-full overflow-visible drop-shadow-[0_30px_40px_rgba(33,43,28,0.12)]" role="group" aria-labelledby="ringsCaption" data-tilt>
+          {# Bark: a soft outer edge #}
+          <circle cx="260" cy="260" r="248" class="fill-secondary-100 stroke-secondary-200" stroke-width="2" />
+          {# Layers, from the outside in. JS swaps the circles for hand-made wobbly rings. #}
+          <a href="#berdonasi" data-ring-link="give" aria-label="Berdonasi: {{ give.raised_full }} terkumpul. Menuju lapisan Berdonasi">
+            <circle data-ring="give" data-radius="212" cx="260" cy="260" r="212" class="fill-none stroke-secondary-300 transition-[opacity,stroke-width] duration-300" stroke-width="58" stroke-opacity="0.55" />
+          </a>
+          <a href="#berbagi" data-ring-link="share" aria-label="Berbagi: {{ share.count }} cerita komunitas. Menuju lapisan Berbagi">
+            <circle data-ring="share" data-radius="155" cx="260" cy="260" r="155" class="fill-none stroke-tertiary-300 transition-[opacity,stroke-width] duration-300" stroke-width="50" stroke-opacity="0.7" />
+          </a>
+          <a href="#bertindak" data-ring-link="act" aria-label="Bertindak: {{ act.count }} tantangan aktif. Menuju lapisan Bertindak">
+            <circle data-ring="act" data-radius="104" cx="260" cy="260" r="104" class="fill-none stroke-primary-500 transition-[opacity,stroke-width] duration-300" stroke-width="44" stroke-opacity="0.6" />
+          </a>
+          <a href="#belajar" data-ring-link="learn" aria-label="Belajar: {{ learn.count }} artikel. Menuju lapisan Belajar">
+            <circle data-ring="learn" data-radius="60" cx="260" cy="260" r="60" class="fill-none stroke-primary-300 transition-[opacity,stroke-width] duration-300" stroke-width="38" stroke-opacity="0.75" />
+          </a>
+          {# Daily rings (JS) and rays drawn on top #}
+          <g data-day-rings aria-hidden="true" class="pointer-events-none"></g>
+          <g data-rays aria-hidden="true" class="pointer-events-none"></g>
+          {# Heartwood #}
+          <circle cx="260" cy="260" r="26" class="fill-secondary-700" aria-hidden="true" />
+          <text x="260" y="256" text-anchor="middle" class="fill-neutral-50 font-sans text-[11px] font-semibold uppercase tracking-widest" aria-hidden="true">hari</text>
+          <text x="260" y="274" text-anchor="middle" class="fill-neutral-50 font-sans text-[17px] font-bold" aria-hidden="true" data-day-label>30</text>
+        </svg>
+
+        <div class="mt-6 flex flex-col gap-2 px-1">
+          <div class="flex flex-col gap-0.5 font-sans text-sm sm:flex-row sm:items-baseline sm:justify-between sm:gap-3">
+            <label for="growthDay" class="font-semibold text-secondary-900">Geser untuk melihat pertumbuhan</label>
+            <output for="growthDay" id="growthDayOutput" class="tabular-nums text-secondary-700">Hari ke-30 · 30 cincin harian</output>
+          </div>
+          <input id="growthDay" type="range" min="1" max="60" value="30" class="landing-range w-full cursor-pointer" />
+        </div>
+
+        <figcaption id="ringsCaption" class="sr-only">
+          Diagram cincin pertumbuhan pohon dengan empat lapisan: Belajar di tengah, lalu Bertindak, Berbagi, dan Berdonasi di bagian terluar.
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section id="lapisan" aria-labelledby="layersTitle" class="relative">
+    <span aria-hidden="true" data-parallax="0.22" class="pointer-events-none absolute top-[30%] right-[2%] hidden w-11 -rotate-[40deg] text-tertiary-300 sm:block"><svg viewBox="0 0 24 24" class="animate-float-reverse h-auto w-full"><use href="#landing-leaf" /></svg></span>
+    <span aria-hidden="true" data-parallax="0.16" class="pointer-events-none absolute top-[70%] left-[1%] hidden w-9 rotate-[140deg] text-primary-500/60 sm:block"><svg viewBox="0 0 24 24" class="animate-float h-auto w-full"><use href="#landing-leaf" /></svg></span>
+    <div class="mx-auto max-w-7xl px-4 py-20 sm:px-8 lg:px-12 lg:py-28">
+      <header class="mb-14 max-w-2xl lg:mb-20" data-reveal>
+        
+        <h2 id="layersTitle" class="mt-3 font-display text-[clamp(2rem,4.5vw,3.5rem)] leading-[1.05] text-secondary-900">Empat lapisan, dari dalam ke luar.</h2>
+        <p class="mt-4 font-sans text-b3 text-secondary-800">Setiap lapisan memperkuat lapisan di dalamnya. Kamu dapat memulai dari mana saja.</p>
+      </header>
+
+      <div class="grid gap-12 lg:grid-cols-[14rem_minmax(0,1fr)] lg:gap-16">
+        {# Sticky ring index (desktop): highlights the layer being read #}
+        <nav aria-label="Lapisan" class="hidden lg:block">
+          <div class="sticky top-32 flex flex-col gap-6">
+            <svg viewBox="0 0 200 200" class="h-40 w-40" aria-hidden="true">
+              <circle cx="100" cy="100" r="92" class="fill-none stroke-secondary-300 transition-opacity duration-500" stroke-width="14" data-mini-ring="give" opacity="0.2" />
+              <circle cx="100" cy="100" r="70" class="fill-none stroke-tertiary-300 transition-opacity duration-500" stroke-width="14" data-mini-ring="share" opacity="0.2" />
+              <circle cx="100" cy="100" r="48" class="fill-none stroke-primary-500 transition-opacity duration-500" stroke-width="14" data-mini-ring="act" opacity="0.2" />
+              <circle cx="100" cy="100" r="26" class="fill-none stroke-primary-300 transition-opacity duration-500" stroke-width="14" data-mini-ring="learn" opacity="0.2" />
+              <circle cx="100" cy="100" r="9" class="fill-secondary-700" />
+            </svg>
+            <ol class="flex flex-col gap-1 font-sans text-sm">
+              {% for key, icon, name in layer_index %}
+              <li>
+                <a href="#{{ name|lower }}" data-index-link="{{ key }}" class="group flex items-center gap-3 rounded-xl px-3 py-2 font-semibold text-secondary-600 outline-none transition-colors hover:bg-neutral-50/70 hover:text-secondary-900 focus-visible:ring-2 focus-visible:ring-primary-500 aria-[current=true]:bg-neutral-50 aria-[current=true]:text-secondary-900">
+                  {% lucide icon class="w-4 h-4 shrink-0 text-secondary-500" %}{{ name }}
+                </a>
+              </li>
+              {% endfor %}
+            </ol>
+          </div>
+        </nav>
+
+        <div class="flex flex-col gap-24 lg:gap-32">
+
+          <article id="belajar" data-layer="learn" aria-labelledby="learnTitle" data-reveal>
+            <header class="flex flex-col gap-3">
+              <p class="flex items-center gap-3 font-sans text-xs font-semibold uppercase tracking-[0.2em] text-secondary-500"><span class="flex h-7 w-7 items-center justify-center rounded-full bg-primary-200 text-secondary-700">{% lucide "book-open" class="w-3.5 h-3.5" %}</span>Lapisan inti</p>
+              <h3 id="learnTitle" class="font-display text-[clamp(2.25rem,5vw,3.75rem)] leading-none text-secondary-900">Belajar</h3>
+              <p class="max-w-2xl font-sans text-b3 text-secondary-800">Kebiasaan yang bertahan dimulai dari pemahaman. Baca artikel singkat dan praktis tentang sampah, energi, pangan, dan gaya hidup berkelanjutan.</p>
+            </header>
+            {% include "landing/demos/_learn.html" %}
+            {% if learn.latest %}
+            <ul class="mt-8 grid gap-4 md:grid-cols-3">
+              {% for article in learn.latest %}
+              <li>
+                <a href="{{ article.url }}" class="landing-card group flex h-full flex-col gap-3 p-5" data-spotlight>
+                  {% if article.category %}<span class="self-start rounded-full bg-primary-200 px-2.5 py-0.5 font-sans text-[0.6875rem] font-semibold text-primary-900">{{ article.category }}</span>{% endif %}
+                  <span class="font-sans text-base font-semibold leading-snug text-secondary-900">{{ article.title }}</span>
+                  {% if article.summary %}<span class="line-clamp-3 font-sans text-sm text-secondary-700">{{ article.summary }}</span>{% endif %}
+                  <span class="mt-auto inline-flex items-center gap-1 font-sans text-sm font-semibold text-primary-700">Baca {% lucide "arrow-right" class="w-4 h-4 transition-transform group-hover:translate-x-1" %}</span>
+                </a>
+              </li>
+              {% endfor %}
+            </ul>
+            {% else %}
+            <div class="mt-8 flex flex-col items-start gap-3 rounded-3xl border border-dashed border-primary-300 bg-neutral-50/60 p-6 sm:flex-row sm:items-center">
+              <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary-200 text-primary-800">{% lucide "book-open" class="w-6 h-6" %}</span>
+              <p class="flex-1 font-sans text-sm text-secondary-800"><strong class="font-semibold text-secondary-900">Artikel pertama sedang disiapkan.</strong> Lapisan inti ini akan segera berisi bacaan seputar hidup berkelanjutan.</p>
+            </div>
+            {% endif %}
+            {% if urls.articles %}
+            <a href="{{ urls.articles }}" class="landing-link group mt-6">Jelajahi semua artikel <span class="transition-transform group-hover:translate-x-1">{% lucide "arrow-right" class="w-4 h-4" %}</span></a>
+            {% endif %}
+          </article>
+
+          <article id="bertindak" data-layer="act" aria-labelledby="actTitle" data-reveal>
+            <header class="flex flex-col gap-3">
+              <p class="flex items-center gap-3 font-sans text-xs font-semibold uppercase tracking-[0.2em] text-secondary-500"><span class="flex h-7 w-7 items-center justify-center rounded-full bg-primary-300 text-secondary-800">{% lucide "footprints" class="w-3.5 h-3.5" %}</span>Lapisan kedua</p>
+              <h3 id="actTitle" class="font-display text-[clamp(2.25rem,5vw,3.75rem)] leading-none text-secondary-900">Bertindak</h3>
+              <p class="max-w-2xl font-sans text-b3 text-secondary-800">Pengetahuan baru bermakna saat dipraktikkan. Ikuti tantangan selama beberapa hari, catat progres harian, dan raih lencana saat kebiasaan kamu terbentuk.</p>
+            </header>
+
+            {# How a challenge grows a ring #}
+            <ol class="mt-8 grid gap-3 sm:grid-cols-3">
+              {% for icon, step_title, step_text in act_steps %}
+              <li class="landing-card flex flex-col gap-2 p-5" data-spotlight>
+                <span class="flex items-center justify-between">
+                  <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-200 text-secondary-800">{% lucide icon class="w-5 h-5" %}</span>
+                  <span class="font-mono text-xs text-neutral-800">0{{ forloop.counter }}</span>
+                </span>
+                <span class="mt-2 font-sans text-base font-semibold text-secondary-900">{{ step_title }}</span>
+                <span class="font-sans text-sm text-secondary-700">{{ step_text }}</span>
+              </li>
+              {% endfor %}
+            </ol>
+            {% include "landing/demos/_act.html" %}
+
+            <dl class="mt-6 grid grid-cols-3 divide-x divide-secondary-200/70 rounded-3xl border border-secondary-200/70 bg-neutral-50/50">
+              <div class="p-4 sm:p-5"><dt class="font-sans text-xs text-secondary-700">Peserta</dt><dd class="font-sans text-h4 font-semibold tracking-tight tabular-nums text-secondary-900" data-count="{{ act.participants }}">{{ act.participants }}</dd></div>
+              <div class="p-4 sm:p-5"><dt class="font-sans text-xs text-secondary-700">Tantangan selesai</dt><dd class="font-sans text-h4 font-semibold tracking-tight tabular-nums text-secondary-900" data-count="{{ act.completed }}">{{ act.completed }}</dd></div>
+              <div class="p-4 sm:p-5"><dt class="font-sans text-xs text-secondary-700">Lencana diraih</dt><dd class="font-sans text-h4 font-semibold tracking-tight tabular-nums text-secondary-900" data-count="{{ act.badges }}">{{ act.badges }}</dd></div>
+            </dl>
+
+            {% if act.latest %}
+            <ul class="mt-6 flex flex-col divide-y divide-secondary-200/70 overflow-hidden rounded-3xl border border-secondary-200/70 bg-neutral-50/70">
+              {% for challenge in act.latest %}
+              <li>
+                <a href="{{ challenge.url }}" class="group flex items-center gap-4 p-4 outline-none transition-colors hover:bg-neutral-50 focus-visible:bg-neutral-50 sm:p-5">
+                  <span class="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-2xl bg-secondary-700 font-sans text-neutral-50"><span class="text-base font-bold leading-none">{{ challenge.days }}</span><span class="text-[0.625rem] uppercase">hari</span></span>
+                  <span class="min-w-0 flex-1">
+                    <span class="block truncate font-sans text-base font-semibold text-secondary-900">{{ challenge.title }}</span>
+                    <span class="font-sans text-xs text-secondary-700">{{ challenge.participants }} peserta{% if challenge.starts_in > 0 %} · dimulai {{ challenge.starts_in }} hari lagi{% else %} · sedang berlangsung{% endif %}</span>
+                  </span>
+                  <span class="text-secondary-500 transition-transform group-hover:translate-x-1">{% lucide "arrow-right" class="w-5 h-5" %}</span>
+                </a>
+              </li>
+              {% endfor %}
+            </ul>
+            {% endif %}
+            {% if urls.challenges %}
+            <a href="{{ urls.challenges }}" class="landing-link group mt-6">{% if act.count %}Pilih tantangan{% else %}Lihat tantangan mendatang{% endif %} <span class="transition-transform group-hover:translate-x-1">{% lucide "arrow-right" class="w-4 h-4" %}</span></a>
+            {% endif %}
+          </article>
+
+          <article id="berbagi" data-layer="share" aria-labelledby="shareTitle" data-reveal>
+            <header class="flex flex-col gap-3">
+              <p class="flex items-center gap-3 font-sans text-xs font-semibold uppercase tracking-[0.2em] text-secondary-500"><span class="flex h-7 w-7 items-center justify-center rounded-full bg-tertiary-200 text-tertiary-800">{% lucide "messages-square" class="w-3.5 h-3.5" %}</span>Lapisan ketiga</p>
+              <h3 id="shareTitle" class="font-display text-[clamp(2.25rem,5vw,3.75rem)] leading-none text-secondary-900">Berbagi</h3>
+              <p class="max-w-2xl font-sans text-b3 text-secondary-800">Kebiasaan baik itu menular. Bagikan perjalananmu di feed, beri semangat melalui suka dan komentar, dan temukan orang-orang dengan tujuan yang sama.</p>
+            </header>
+
+            <div class="mt-8 grid items-start gap-4 md:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+              {% include "landing/demos/_share.html" %}
+              <dl class="grid grid-cols-3 gap-3 md:grid-cols-1">
+                <div class="flex flex-col justify-center rounded-2xl bg-tertiary-200/80 p-4 md:flex-row md:items-baseline md:justify-between"><dt class="order-2 font-sans text-xs text-secondary-700 md:order-1">Cerita dibagikan</dt><dd class="font-sans text-h4 font-semibold tracking-tight tabular-nums text-secondary-900" data-count="{{ share.count }}">{{ share.count }}</dd></div>
+                <div class="flex flex-col justify-center rounded-2xl bg-tertiary-200/80 p-4 md:flex-row md:items-baseline md:justify-between"><dt class="order-2 font-sans text-xs text-secondary-700 md:order-1">Suka</dt><dd class="font-sans text-h4 font-semibold tracking-tight tabular-nums text-secondary-900" data-count="{{ share.likes }}">{{ share.likes }}</dd></div>
+                <div class="flex flex-col justify-center rounded-2xl bg-tertiary-200/80 p-4 md:flex-row md:items-baseline md:justify-between"><dt class="order-2 font-sans text-xs text-secondary-700 md:order-1">Komentar</dt><dd class="font-sans text-h4 font-semibold tracking-tight tabular-nums text-secondary-900" data-count="{{ share.comments }}">{{ share.comments }}</dd></div>
+              </dl>
+            </div>
+            {% if urls.feed %}
+            <a href="{{ urls.feed }}" class="landing-link group mt-6">{% if share.count %}Buka feed komunitas{% else %}Jadilah yang pertama berbagi{% endif %} <span class="transition-transform group-hover:translate-x-1">{% lucide "arrow-right" class="w-4 h-4" %}</span></a>
+            {% endif %}
+          </article>
+
+          <article id="berdonasi" data-layer="give" aria-labelledby="giveTitle" data-reveal>
+            <header class="flex flex-col gap-3">
+              <p class="flex items-center gap-3 font-sans text-xs font-semibold uppercase tracking-[0.2em] text-secondary-500"><span class="flex h-7 w-7 items-center justify-center rounded-full bg-secondary-200 text-secondary-700">{% lucide "hand-heart" class="w-3.5 h-3.5" %}</span>Lapisan terluar</p>
+              <h3 id="giveTitle" class="font-display text-[clamp(2.25rem,5vw,3.75rem)] leading-none text-secondary-900">Berdonasi</h3>
+              <p class="max-w-2xl font-sans text-b3 text-secondary-800">Lapisan terluar melindungi semuanya. Dukung kampanye lingkungan yang telah diverifikasi, dan saksikan kontribusi kamu tumbuh bersama kontribusi orang lain.</p>
+            </header>
+
+            {% if give.latest %}
+            <ul class="mt-8 grid gap-4 md:grid-cols-3">
+              {% for campaign in give.latest %}
+              <li>
+                <a href="{{ campaign.url }}" class="landing-card group flex h-full flex-col gap-4 p-5" data-spotlight>
+                  <span class="font-sans text-base font-semibold leading-snug text-secondary-900">{{ campaign.title }}</span>
+                  <span class="mt-auto flex flex-col gap-2">
+                    <span class="h-2 overflow-hidden rounded-full bg-secondary-100" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ campaign.percent }}" aria-label="{{ campaign.percent }}% dari target">
+                      <span class="block h-full rounded-full bg-secondary-300 transition-[width] duration-1000 ease-out motion-reduce:transition-none" data-grow-width="{{ campaign.percent }}"></span>
+                    </span>
+                    <span class="flex items-baseline justify-between gap-2 font-sans text-xs text-secondary-700">
+                      <span><strong class="text-sm font-semibold text-secondary-900">{{ campaign.raised }}</strong> dari {{ campaign.target }}</span>
+                      <span>{{ campaign.donors }} donatur</span>
+                    </span>
+                  </span>
+                </a>
+              </li>
+              {% endfor %}
+            </ul>
+            {% else %}
+            <div class="mt-8 flex flex-col items-start gap-3 rounded-3xl border border-dashed border-secondary-300/60 bg-neutral-50/60 p-6 sm:flex-row sm:items-center">
+              <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-secondary-200 text-secondary-800">{% lucide "hand-heart" class="w-6 h-6" %}</span>
+              <p class="flex-1 font-sans text-sm text-secondary-800"><strong class="font-semibold text-secondary-900">Kampanye pertama sedang disiapkan.</strong> Setiap kampanye diverifikasi sebelum dapat menerima donasi.</p>
+            </div>
+            {% endif %}
+            {% include "landing/demos/_give.html" %}
+            <p class="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 font-sans text-sm text-secondary-700">
+              <span><strong class="font-semibold text-secondary-900" data-count="{{ give.donors }}">{{ give.donors }}</strong> donatur</span>
+              <span><strong class="font-semibold text-secondary-900">{{ give.raised_full }}</strong> terkumpul</span>
+              {% if urls.donations %}
+              <a href="{{ urls.donations }}" class="landing-link group">Lihat kampanye <span class="transition-transform group-hover:translate-x-1">{% lucide "arrow-right" class="w-4 h-4" %}</span></a>
+              {% endif %}
+            </p>
+          </article>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {% if community_goals %}
+  <div class="mx-auto max-w-7xl px-4 pb-16 sm:px-8 lg:px-12 lg:pb-24" data-reveal>
+    {% include "challenges/partials/community_goals.html" %}
+  </div>
+  {% endif %}
+
+  {% include "landing/_impact.html" %}
+
+  {# Dusk: an eased fade into the dark closing section (.landing-dusk in input.css) #}
+  <div aria-hidden="true" class="landing-dusk h-48 sm:h-64"></div>
+  <section aria-labelledby="ctaTitle" class="relative isolate overflow-hidden bg-secondary-900 text-neutral-50">
+    {# Huge faint rings, like the end of a log; they turn slowly with the scroll #}
+    {# The wrapper fades the rings out before the section's top and bottom edges, so they
+       never end in a straight cut; the rings inside turn, the fade stays put #}
+    <div aria-hidden="true" class="cta-rings pointer-events-none absolute -right-48 top-1/2 -z-10 size-224 -translate-y-1/2 sm:-right-24">
+      <svg viewBox="0 0 800 800" class="h-full w-full opacity-20" data-cta-rings>
+        {% for r in cta_rings %}<circle cx="400" cy="400" r="{{ r }}" fill="none" class="stroke-primary-300" stroke-width="1.5" />{% endfor %}
+      </svg>
+    </div>
+    <span aria-hidden="true" data-parallax="0.12" class="pointer-events-none absolute top-[20%] left-[55%] hidden w-8 rotate-[150deg] text-primary-300/70 sm:block"><svg viewBox="0 0 24 24" class="animate-float-reverse h-auto w-full"><use href="#landing-leaf" /></svg></span>
+    <div class="mx-auto flex max-w-7xl flex-col gap-8 px-4 py-24 sm:px-8 lg:px-12 lg:py-32" data-reveal>
+      <p class="font-sans text-xs font-semibold uppercase tracking-[0.24em] text-primary-300">Mulai hari ini</p>
+      <h2 id="ctaTitle" class="max-w-3xl font-display text-[clamp(2.4rem,6vw,4.75rem)] leading-[1.02]">Cincin pertamamu dapat tumbuh hari ini.</h2>
+      <p class="max-w-xl font-sans text-b3 text-secondary-100">Tidak perlu sempurna. Pilih satu kebiasaan kecil, jalankan besok, dan biarkan cincinnya bertambah.</p>
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+        {% if user.is_authenticated %}
+          {% component "button" text="Pilih tantangan" variant="primary" size="lg" href=urls.challenges icon_right="arrow-right" / %}
+        {% else %}
+          {% component "button" text="Buat akun gratis" variant="primary" size="lg" href=urls.register icon_right="arrow-right" / %}
+          <a href="{{ urls.login }}" class="inline-flex min-h-12 items-center justify-center rounded-xl px-5 font-sans text-base font-semibold text-neutral-50 underline-offset-4 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-primary-300">Sudah memiliki akun? Masuk</a>
+        {% endif %}
+      </div>
+      {% if urls.helpdesk %}
+      <p class="font-sans text-sm text-secondary-200">Ada pertanyaan? <a href="{{ urls.helpdesk }}" class="font-semibold text-neutral-50 underline underline-offset-4 outline-none hover:text-primary-300 focus-visible:ring-2 focus-visible:ring-primary-300">Hubungi helpdesk kami</a></p>
+      {% endif %}
+    </div>
+  </section>
+</main>
+
+
+{{ ring_info|json_script:"ringInfoData" }}
+{{ habits|json_script:"habitData" }}
+{% endblock content %}
+
+{% block scripts %}
+<script type="module" src="{% static 'js/landing/home.js' %}" defer></script>
+{% endblock scripts %}

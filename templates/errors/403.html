@@ -1,0 +1,118 @@
+{% extends "errors/base.html" %}
+{% load lucide component_tags %}
+
+{% block title %}Akses dibatasi · SELARAS{% endblock %}
+{% block code_label %}Forbidden 403{% endblock %}
+
+{% block content %}
+<div class="grid w-full items-center gap-12 lg:grid-cols-12 lg:gap-10">
+
+  {# Tapping the lock shakes it and the ranger says something new each time #}
+  <section aria-label="Kawasan lindung 403" class="hero-rise order-2 lg:order-1 lg:col-span-6" style="--i: 3">
+    <div class="error-garden error-garden--locked relative isolate overflow-hidden rounded-[2rem] border border-secondary-200/70 bg-neutral-50/60 px-4 py-10 shadow-[0_32px_64px_-40px_rgb(33_43_28/0.45)] backdrop-blur-sm sm:px-8 sm:py-14">
+
+      <div class="relative flex items-center justify-center gap-1 sm:gap-3" data-parallax data-depth="14">
+        <span class="error-digit" aria-hidden="true">4</span>
+
+        <button type="button" class="error-ring" data-ring data-lock aria-label="Ketuk gembok kawasan lindung" aria-describedby="lockMessage">
+          <svg viewBox="0 0 520 520" class="h-full w-full overflow-visible" data-rings data-ring-count="6" data-ring-palette="locked" aria-hidden="true">
+            <circle cx="260" cy="260" r="240" fill="none" class="stroke-tertiary-400" stroke-width="6" />
+            <circle cx="260" cy="260" r="170" fill="none" class="stroke-secondary-300" stroke-width="6" />
+            <circle cx="260" cy="260" r="100" fill="none" class="stroke-tertiary-300" stroke-width="6" />
+          </svg>
+          <span class="error-ring-core error-ring-core--lock" data-lock-icon aria-hidden="true">
+            {% lucide "lock-keyhole" class="h-full w-full" %}
+          </span>
+        </button>
+
+        <span class="error-digit" aria-hidden="true">3</span>
+      </div>
+
+      {# The ranger's speech bubble; errors.js cycles the text on each tap #}
+      <div class="relative mx-auto mt-8 max-w-sm">
+        <div class="error-bubble rounded-2xl border border-secondary-200 bg-neutral-50 px-4 py-3 text-center text-b4 text-secondary-800 shadow-sm sm:text-b3">
+          <span class="mr-1 inline-flex align-[-3px] text-secondary-500">{% lucide "trees" class="h-4 w-4" %}</span>
+          <span id="lockMessage" data-lock-message aria-live="polite">Kawasan ini sedang dipulihkan. Mohon tidak masuk dulu.</span>
+        </div>
+      </div>
+
+      <p class="relative mt-4 text-center text-b4 text-neutral-800">
+        <span class="pointer-fine:hidden">Ketuk gembok untuk mencoba membukanya.</span>
+        <span class="hidden pointer-fine:inline">Klik gembok untuk mencoba membukanya.</span>
+      </p>
+    </div>
+  </section>
+
+  <section aria-labelledby="errorTitle" class="order-1 lg:order-2 lg:col-span-6">
+    <p class="hero-rise inline-flex items-center gap-2 rounded-full bg-tertiary-200 px-3 py-1 text-b4 font-semibold text-tertiary-900" style="--i: 0">
+      {% lucide "shield-alert" class="h-4 w-4" %}
+      403 &middot; Akses dibatasi
+    </p>
+
+    <h1 id="errorTitle" class="mt-5 font-display text-[clamp(2.5rem,6vw,4.25rem)] leading-[1.02] tracking-tight text-secondary-900">
+      <span class="hero-rise inline-block" style="--i: 1">Kawasan ini</span>
+      <span class="hero-rise relative inline-block text-secondary-500" style="--i: 2">
+        sedang dilindungi.
+        <svg aria-hidden="true" viewBox="0 0 220 24" class="absolute -bottom-2 left-0 h-3 w-full overflow-visible" preserveAspectRatio="none">
+          <path data-draw d="M3 16 C 40 6, 90 4, 130 10 S 200 20, 217 8" fill="none" class="stroke-tertiary-300" stroke-width="5" stroke-linecap="round" />
+        </svg>
+      </span>
+    </h1>
+
+    {% if user.is_authenticated %}
+      <p class="hero-rise mt-6 max-w-xl text-b3 leading-relaxed text-secondary-800" style="--i: 3">
+        Akun <span class="font-semibold text-secondary-900">@{{ user.username }}</span> belum memiliki izin
+        untuk membuka halaman ini. Jika menurut kamu ini keliru, tim kami siap membantu.
+      </p>
+    {% else %}
+      <p class="hero-rise mt-6 max-w-xl text-b3 leading-relaxed text-secondary-800" style="--i: 3">
+        Halaman ini hanya bisa dibuka setelah kamu masuk. Masuk dulu, lalu kami antar
+        kamu kembali ke sini.
+      </p>
+    {% endif %}
+
+    <div class="hero-rise mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center" style="--i: 4">
+      {% if user.is_authenticated %}
+        {% url 'home' as home_url %}
+        {% url 'helpdesk:ticket_list' as helpdesk_url %}
+        {% component "button" text="Kembali ke beranda" variant="secondary" size="lg" href=home_url icon_left="house" / %}
+        {% component "button" text="Hubungi Help Desk" variant="tertiary" size="lg" href=helpdesk_url icon_left="life-buoy" / %}
+      {% else %}
+        {% url 'accounts:register' as register_url %}
+        {% component "button" text="Masuk" variant="secondary" size="lg" href=login_url icon_left="log-in" / %}
+        {% component "button" text="Buat akun" variant="tertiary" size="lg" href=register_url icon_left="user-plus" / %}
+      {% endif %}
+      {% component "button" text="Halaman sebelumnya" variant="secondary-ghost" size="lg" icon_left="arrow-left" attrs="data-back hidden" / %}
+    </div>
+
+    <div class="hero-rise mt-12" style="--i: 5">
+      <h2 class="text-s6 font-sans font-semibold tracking-widest text-secondary-600 uppercase">
+        Kenapa ini terjadi?
+      </h2>
+      <ul class="mt-4 grid gap-3">
+        <li class="landing-card flex items-start gap-3 p-4" data-spotlight tabindex="-1">
+          <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary-200 text-secondary-700">{% lucide "user-cog" class="h-5 w-5" %}</span>
+          <span>
+            <span class="block text-b3 font-semibold text-secondary-900">Halaman khusus peran tertentu</span>
+            <span class="block text-b4 text-neutral-800">Beberapa halaman hanya untuk admin atau koordinator.</span>
+          </span>
+        </li>
+        <li class="landing-card flex items-start gap-3 p-4" data-spotlight tabindex="-1">
+          <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary-200 text-secondary-700">{% lucide "clock-alert" class="h-5 w-5" %}</span>
+          <span>
+            <span class="block text-b3 font-semibold text-secondary-900">Sesimu mungkin berakhir</span>
+            <span class="block text-b4 text-neutral-800">Coba masuk kembali, lalu buka halaman ini lagi.</span>
+          </span>
+        </li>
+        <li class="landing-card flex items-start gap-3 p-4" data-spotlight tabindex="-1">
+          <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-tertiary-200 text-tertiary-800">{% lucide "share-2" class="h-5 w-5" %}</span>
+          <span>
+            <span class="block text-b3 font-semibold text-secondary-900">Tautan dari akun lain</span>
+            <span class="block text-b4 text-neutral-800">Tiket atau data milik orang lain tidak bisa dibuka.</span>
+          </span>
+        </li>
+      </ul>
+    </div>
+  </section>
+</div>
+{% endblock %}

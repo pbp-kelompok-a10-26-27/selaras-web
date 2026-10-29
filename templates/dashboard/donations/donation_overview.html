@@ -1,0 +1,156 @@
+{% extends "dashboard/base.html" %}
+{% load static lucide component_tags ui_extras %}
+
+{% block title %}Donasi{% endblock %}
+
+{% block content %}
+<div class="flex flex-col gap-8" id="adminDonations">
+  <header class="flex flex-col gap-3">
+    <nav aria-label="Navigasi">
+      <ol class="flex flex-wrap items-center gap-1.5 font-sans text-sm">
+        <li><a href="{{ dashboard_home_url }}" class="rounded-md px-1 py-0.5 text-neutral-800 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">Dashboard</a></li>
+        <li aria-hidden="true" class="text-neutral-700">{% lucide "chevron-right" class="w-4 h-4" %}</li>
+        <li><span aria-current="page" class="px-1 font-semibold text-primary-800">Donasi</span></li>
+      </ol>
+    </nav>
+    <div class="flex flex-wrap items-end justify-between gap-3">
+      <div class="flex flex-col gap-1">
+        <h1 class="font-display text-h3 leading-tight text-foreground sm:text-h2">Donasi</h1>
+        <p class="max-w-2xl font-sans text-b3 text-neutral-900">Pantau kampanye, verifikasi donasi yang masuk, dan lihat dana yang sudah terkumpul.</p>
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        {% url 'donations:campaign_list' as public_url %}
+        {% component "button" text="Lihat halaman publik" variant="neutral" size="sm" icon_left="external-link" href=public_url attrs='target="_blank" rel="noopener"' / %}
+        {% url 'donations:verification_queue' as queue_url %}
+        {% component "button" text="Semua donasi" variant="neutral" size="sm" icon_left="list-checks" href=queue_url / %}
+        {% url 'donations:campaign_create' as create_url %}
+        {% component "button" text="Kampanye baru" variant="primary" size="sm" icon_left="circle-plus" href=create_url / %}
+      </div>
+    </div>
+  </header>
+
+  <section aria-label="Statistik donasi">
+    <dl class="grid grid-cols-2 gap-3 lg:grid-cols-4 sm:gap-4">
+      {% include "dashboard/_metric.html" with icon="hand-heart" label="Terkumpul" prefix="Rp" value=totals.collected|default:0|rupiah hint="dari donasi disetujui" tone="primary" %}
+      {% include "dashboard/_metric.html" with icon="hourglass" label="Menunggu verifikasi" value=totals.pending hint="perlu dicek admin" tone="warning" %}
+      {% include "dashboard/_metric.html" with icon="megaphone" label="Kampanye dibuka" value=totals.open_campaigns hint="sedang menerima donasi" tone="info" %}
+      {% include "dashboard/_metric.html" with icon="users" label="Donatur" value=totals.donors hint="orang yang berdonasi" tone="neutral" %}
+    </dl>
+  </section>
+
+  <section aria-labelledby="queueTitle" class="flex flex-col gap-3">
+    <div class="flex flex-wrap items-end justify-between gap-2">
+      <div class="flex flex-col">
+        <h2 id="queueTitle" class="flex items-center gap-2 font-sans text-lg font-semibold text-foreground">
+          <span class="text-secondary-500">{% lucide "clipboard-check" class="w-5 h-5" %}</span>
+          Perlu diverifikasi
+          <span class="rounded-full bg-orange-100/20 px-2 py-0.5 font-sans text-xs font-bold tabular-nums text-secondary-900">{{ totals.pending }}</span>
+        </h2>
+        <p class="font-sans text-xs text-neutral-800">Yang paling lama menunggu tampil duluan.{% if totals.pending_amount %} Total Rp {{ totals.pending_amount|rupiah }}.{% endif %}</p>
+      </div>
+      {% if totals.pending %}
+      <a href="{% url 'donations:verification_queue' %}?status=PENDING" class="group inline-flex min-h-9 items-center gap-1 rounded-lg px-1 font-sans text-sm font-semibold text-secondary-700 outline-none hover:text-secondary-900 hover:underline focus-visible:ring-2 focus-visible:ring-primary-500">
+        Lihat antrean
+        <span class="transition-transform group-hover:translate-x-0.5">{% lucide "arrow-right" class="w-4 h-4" %}</span>
+      </a>
+      {% endif %}
+    </div>
+
+    {% if pending_donations %}
+    <ul class="grid grid-cols-1 gap-2 lg:grid-cols-2">
+      {% for donation in pending_donations %}
+      <li>
+        <a href="{% url 'donations:verify' donation.pk %}" class="group flex items-center gap-3 rounded-2xl border border-neutral-400 bg-neutral-50 p-4 outline-none transition-all hover:-translate-y-0.5 hover:border-neutral-500 hover:shadow-md focus-visible:ring-2 focus-visible:ring-primary-500 motion-reduce:hover:translate-y-0">
+          {% component "avatar" src=donation.donor.avatar_url name=donation.donor.display_name size="md" / %}
+          <span class="min-w-0 flex-1">
+            <span class="block truncate font-sans text-sm font-bold text-foreground">{{ donation.donor.display_name }}</span>
+            <span class="block truncate font-sans text-xs text-neutral-800">{{ donation.campaign.title }} · {{ donation.created_at|timesince }} lalu</span>
+          </span>
+          <span class="shrink-0 font-sans text-sm font-bold tabular-nums text-secondary-900">Rp {{ donation.amount|rupiah }}</span>
+          <span class="shrink-0 text-neutral-700 transition-transform group-hover:translate-x-0.5 group-hover:text-secondary-700" aria-hidden="true">{% lucide "chevron-right" class="w-5 h-5" %}</span>
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="flex items-center gap-2 rounded-2xl border border-primary-300 bg-primary-100/60 p-4 font-sans text-sm font-semibold text-secondary-800">
+      {% lucide "circle-check" class="w-5 h-5 text-primary-700" %}Semua donasi sudah diverifikasi. Mantap!
+    </p>
+    {% endif %}
+  </section>
+
+  <section aria-labelledby="campaignsTitle" class="flex flex-col gap-4">
+    <h2 id="campaignsTitle" class="flex items-center gap-2 font-sans text-lg font-semibold text-foreground">
+      <span class="text-secondary-500">{% lucide "megaphone" class="w-5 h-5" %}</span>
+      Kampanye
+    </h2>
+
+    <form method="GET" action="{% url 'dashboard:admin_donation_list' %}" data-autosubmit class="grid grid-cols-1 items-end gap-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+      <search class="flex flex-col">
+        {% component "input" type="search" id="adminCampaignSearch" name="search" label="Cari kampanye" placeholder=" " icon="search" value=params.search attrs='maxlength="100"' / %}
+      </search>
+      {% component "dropdown" id="adminCampaignStatus" name="status" label="Status" placeholder=status_label options=status_options initial_value=params.status default_label=status_label / %}
+    </form>
+    {% with count=page_obj.paginator.count %}
+    {% include "dashboard/_filter_chips.html" with count_text=count|stringformat:"d"|add:" kampanye" %}
+    {% endwith %}
+
+    {% if page_obj.object_list %}
+    <ul class="grid grid-cols-1 gap-3 lg:grid-cols-2">
+      {% for campaign in page_obj %}
+      {% url 'donations:campaign_detail' campaign.slug as detail_url %}
+      {% url 'donations:campaign_update' campaign.slug as edit_url %}
+      <li class="flex flex-col gap-4 rounded-2xl border border-neutral-400 bg-neutral-50 p-5 transition-all hover:border-neutral-500" data-campaign-row="{{ campaign.slug }}">
+        <div class="flex items-start gap-3">
+          {% if campaign.image %}
+          <img src="{{ campaign.image.url }}" alt="" loading="lazy" class="h-14 w-14 shrink-0 rounded-xl object-cover">
+          {% else %}
+          <span class="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-primary-100 text-primary-700">{% lucide "hand-heart" class="w-6 h-6" %}</span>
+          {% endif %}
+          <div class="min-w-0 flex-1">
+            <div class="flex flex-wrap items-center gap-2">
+              {% if campaign.status == "PUBLISHED" %}
+                {% if campaign.accepting %}{% component "badge" text="Dibuka" variant="primary" size="sm" icon="circle-dot" / %}{% else %}{% component "badge" text="Terbit, di luar jadwal" variant="neutral" size="sm" icon="calendar-x" / %}{% endif %}
+              {% elif campaign.status == "CLOSED" %}{% component "badge" text="Ditutup" variant="neutral" size="sm" icon="lock" / %}
+              {% else %}{% component "badge" text="Draf" variant="outline" size="sm" icon="file-pen" / %}{% endif %}
+              {% if campaign.pending_count %}{% component "badge" text=campaign.pending_count|stringformat:"d"|add:" menunggu" variant="warning" size="sm" icon="hourglass" / %}{% endif %}
+            </div>
+            <h3 class="mt-1.5 line-clamp-2 font-sans text-base font-bold text-foreground">{{ campaign.title }}</h3>
+            <p class="font-sans text-xs text-neutral-800">
+              {% if campaign.ends_at %}Sampai {{ campaign.ends_at|date:"j M Y" }}{% else %}Tanpa batas waktu{% endif %} · {{ campaign.donor_count }} donatur
+            </p>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          {% component "progress" value=campaign.progress label="Progres dana "|add:campaign.title size="sm" / %}
+          <p class="flex flex-wrap items-baseline justify-between gap-2 font-sans text-xs text-neutral-900">
+            <span><strong class="text-sm font-bold tabular-nums text-foreground">Rp {{ campaign.approved_total|rupiah }}</strong> dari Rp {{ campaign.target_amount|rupiah }}</span>
+            <span class="font-semibold tabular-nums text-secondary-800">{{ campaign.progress|floatformat:0 }}%</span>
+          </p>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 border-t border-neutral-300 pt-3">
+          {% component "button" text="Lihat" variant="neutral-ghost" size="xs" icon_left="external-link" href=detail_url attrs='target="_blank" rel="noopener"' / %}
+          {% component "button" text="Edit" variant="neutral" size="xs" icon_left="pencil" href=edit_url / %}
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+
+    {% component "pagination" page_obj=page_obj class_="mt-2" / %}
+
+    {% else %}
+    {% component "empty_state" icon="megaphone" title="Kampanye nggak ditemukan" description="Coba kata kunci atau filter lain, atau buat kampanye baru." %}
+      {% fill "actions" %}{% component "button" text="Hapus filter" variant="neutral" size="sm" icon_left="rotate-ccw" href=reset_url / %}{% endfill %}
+    {% endcomponent %}
+    {% endif %}
+  </section>
+</div>
+
+{% include "accounts/_messages.html" %}
+{% endblock %}
+
+{% block scripts %}
+<script type="module" src="{% static 'js/dashboard/admin_list.js' %}"></script>
+{% endblock %}

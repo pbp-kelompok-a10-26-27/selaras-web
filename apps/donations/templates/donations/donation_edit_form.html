@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load static component_tags lucide %}
+
+{% block title %}Edit Donasi · SELARAS{% endblock %}
+
+{% block content %}
+<div class="relative isolate">
+  <div class="page-aura" aria-hidden="true"></div>
+
+  <main id="donationFormPage" class="mx-auto w-full max-w-3xl px-4 pb-24 pt-36 sm:px-6 sm:pt-40">
+    <nav aria-label="Kembali" class="mb-6">
+      {% url 'donations:detail' donation.pk as detail_url %}
+      {% component "button" text="Kembali ke detail" variant="neutral-ghost" size="sm" icon_left="arrow-left" href=detail_url / %}
+    </nav>
+
+    <header class="mb-8">
+      {% component "badge" text="Menunggu verifikasi" variant="warning" icon="clock" / %}
+      <h1 class="mt-3 font-display text-h3 leading-tight text-foreground sm:text-h2">Edit donasi</h1>
+      <p class="mt-2 max-w-2xl font-sans text-b3 text-neutral-900">
+        Perbarui nominal atau ganti bukti untuk {{ donation.campaign.title }}. Donasi yang sudah diverifikasi tidak dapat diedit.
+      </p>
+    </header>
+
+    <form
+      method="post"
+      enctype="multipart/form-data"
+      class="space-y-6 rounded-3xl border border-neutral-400 bg-neutral-50 p-5 sm:p-8"
+      data-donation-form
+    >
+      {% csrf_token %}
+      {% include "donations/partials/donation_fields.html" %}
+
+      <div class="flex flex-col-reverse gap-3 border-t border-neutral-400/60 pt-5 sm:flex-row sm:items-center sm:justify-end">
+        {% component "button" href=detail_url text="Batal" variant="neutral" size="lg" / %}
+        {% component "button" type="submit" text="Simpan perubahan" variant="secondary" size="lg" icon_left="check" / %}
+      </div>
+    </form>
+  </main>
+</div>
+
+{% include "accounts/_messages.html" %}
+{% endblock %}
+
+{% block scripts %}
+<script type="module" src="{% static 'js/donations/form.js' %}"></script>
+{% endblock %}

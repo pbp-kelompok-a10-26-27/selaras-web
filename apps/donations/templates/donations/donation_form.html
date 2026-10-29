@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% load static component_tags lucide l10n ui_extras %}
+
+{% block title %}Catat Donasi · {{ campaign.title }} · SELARAS{% endblock %}
+
+{% block content %}
+<div class="relative isolate">
+  <div class="page-aura" aria-hidden="true"></div>
+
+  <main id="donationFormPage" class="mx-auto w-full max-w-5xl px-4 pb-24 pt-36 sm:px-6 sm:pt-40 lg:px-8">
+    <nav aria-label="Kembali" class="mb-6">
+      {% url 'donations:campaign_detail' campaign.slug as campaign_url %}
+      {% component "button" text="Kembali ke kampanye" variant="neutral-ghost" size="sm" icon_left="arrow-left" href=campaign_url / %}
+    </nav>
+
+    <header class="mb-8">
+      {% component "badge" text="Donasi manual" variant="primary" icon="hand-heart" / %}
+      <h1 class="mt-3 font-display text-h3 leading-tight text-foreground sm:text-h2">Dukung {{ campaign.title }}</h1>
+      <p class="mt-2 max-w-2xl font-sans text-b3 text-neutral-900">
+        Masukkan nominal dan unggah bukti transfer. Donasi akan dicatat sebagai menunggu verifikasi admin.
+      </p>
+    </header>
+
+    <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_21rem] lg:items-start">
+      <form
+        id="donationForm"
+        method="post"
+        enctype="multipart/form-data"
+        class="space-y-6 rounded-3xl border border-neutral-400 bg-neutral-50 p-5 sm:p-8"
+        data-donation-form
+      >
+        {% csrf_token %}
+        {% include "donations/partials/donation_fields.html" %}
+
+        <div class="flex flex-col-reverse gap-3 border-t border-neutral-400/60 pt-5 sm:flex-row sm:items-center sm:justify-end">
+          {% component "button" href=campaign_url text="Batal" variant="neutral" size="lg" / %}
+          {% component "button" type="submit" text="Kirim donasi" variant="primary" size="lg" icon_left="hand-heart" / %}
+        </div>
+      </form>
+
+      <aside
+        class="overflow-hidden rounded-2xl border border-neutral-400 bg-neutral-50 shadow-sm lg:sticky lg:top-28"
+        aria-label="Ringkasan kampanye"
+        data-donation-summary
+        data-raised="{{ campaign.approved_total|unlocalize }}"
+        data-target="{{ campaign.target_amount|unlocalize }}"
+      >
+        <div class="campaign-media p-5" data-tone="primary">
+          {% include "donations/partials/_campaign_status.html" with status=campaign.status %}
+          <p class="mt-3 font-display text-h5 leading-snug text-foreground">{{ campaign.title }}</p>
+        </div>
+        <div class="p-5">
+          <div class="flex items-end justify-between gap-3">
+            <div>
+              <p class="font-sans text-b4 text-neutral-800">Terkumpul</p>
+              <p class="font-sans text-base font-semibold text-secondary-900">Rp {{ campaign.approved_total|rupiah }}</p>
+            </div>
+            <p class="font-display text-h5 text-secondary-600" data-summary-percent>{{ campaign.progress_percent|floatformat:0 }}%</p>
+          </div>
+          {% component "progress" value=campaign.progress_percent label=campaign.title with_preview=True class_="mt-2.5" / %}
+          <p class="mt-2 font-sans text-b4 text-neutral-800">dari target Rp {{ campaign.target_amount|rupiah }}</p>
+
+          <p class="mt-4 flex items-start gap-2 rounded-xl bg-primary-50 p-3 font-sans text-b4 text-secondary-800" data-summary-note>
+            {% lucide "sparkles" class="w-4 h-4 mt-0.5 shrink-0 text-primary-700" aria_hidden="true" %}
+            <span>Pilih nominal untuk melihat dampaknya pada progres kampanye.</span>
+          </p>
+        </div>
+      </aside>
+    </div>
+  </main>
+</div>
+
+{% include "accounts/_messages.html" %}
+{% endblock %}
+
+{% block scripts %}
+<script type="module" src="{% static 'js/donations/form.js' %}"></script>
+{% endblock %}

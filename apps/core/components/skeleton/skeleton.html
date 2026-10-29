@@ -1,0 +1,55 @@
+<div class="skeleton-wrapper animate-pulse {{ class_ }}" role="status" aria-label="Memuat...">
+    {% if variant == "avatar" %}
+        <div class="bg-neutral-400 rounded-full {{ width|default:'w-12' }} {{ height|default:'h-12' }}"></div>
+
+    {% elif variant == "circle" %}
+        <div class="bg-neutral-400 rounded-full {{ width|default:'w-10' }} {{ height|default:'h-10' }}"></div>
+
+    {% elif variant == "rect" or variant == "image" %}
+        <div class="bg-neutral-400 {{ rounded|default:'rounded-2xl' }} {{ width|default:'w-full' }} {{ height|default:'h-48' }}"></div>
+
+    {% elif variant == "card" %}
+        <div class="p-5 bg-neutral-100 border border-neutral-400 rounded-3xl space-y-4 {{ width|default:'w-full' }}">
+            {# Card Image / Header #}
+            <div class="bg-neutral-400 rounded-2xl w-full h-40"></div>
+            {# Title Line #}
+            <div class="bg-neutral-400 rounded-lg h-5 w-3/4"></div>
+            {# Subtitle / Body Lines #}
+            <div class="space-y-2">
+                <div class="bg-neutral-400 rounded-md h-4 w-full"></div>
+                <div class="bg-neutral-400 rounded-md h-4 w-5/6"></div>
+            </div>
+        </div>
+
+    {% elif variant == "form" %}
+        <div class="space-y-4 {{ width|default:'w-full' }}">
+            <div class="space-y-1.5">
+                <div class="bg-neutral-400 rounded-md h-4 w-1/4"></div>
+                <div class="bg-neutral-400 rounded-xl h-11 w-full"></div>
+            </div>
+            <div class="space-y-1.5">
+                <div class="bg-neutral-400 rounded-md h-4 w-1/3"></div>
+                <div class="bg-neutral-400 rounded-xl h-11 w-full"></div>
+            </div>
+            <div class="bg-neutral-400 rounded-xl h-11 w-32 mt-6"></div>
+        </div>
+
+    {% elif variant == "text" %}
+        <div class="space-y-2.5 {{ width|default:'w-full' }}">
+            {% for i in "123456"|make_list %}
+                {% if forloop.counter <= lines %}
+                    <div class="bg-neutral-400 rounded-md {{ height|default:'h-4' }} 
+                        {% if forloop.last and lines > 1 %}w-2/3
+                        {% elif forloop.first %}w-full
+                        {% else %}w-5/6{% endif %}">
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+    {% else %}
+        {# Default custom block #}
+        <div class="bg-neutral-400 {{ rounded|default:'rounded-xl' }} {{ width|default:'w-full' }} {{ height|default:'h-4' }}"></div>
+    {% endif %}
+    <span class="sr-only">Memuat konten...</span>
+</div>

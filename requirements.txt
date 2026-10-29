@@ -1,6 +1,12 @@
 django>=5.0,<6.0
+Pillow>=10.0
 django-cors-headers>=4.0,<5.0
 psycopg[binary]>=3.0,<4.0
 lucide[django]>=1.1,<2.0
+
+# Dev tools (lint & security audit)
+ruff>=0.6
+pip-audit>=2.7
+django-components
 gunicorn>=22.0,<24.0
 whitenoise>=6.9,<7.0

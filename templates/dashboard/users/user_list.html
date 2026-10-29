@@ -1,0 +1,109 @@
+{% extends "dashboard/base.html" %}
+{% load static lucide component_tags %}
+
+{% block title %}Pengguna{% endblock %}
+
+{% block content %}
+<div class="flex flex-col gap-8" id="adminUsers">
+  <header class="flex flex-col gap-3">
+    <nav aria-label="Navigasi">
+      <ol class="flex flex-wrap items-center gap-1.5 font-sans text-sm">
+        <li><a href="{{ dashboard_home_url }}" class="rounded-md px-1 py-0.5 text-neutral-800 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">Dashboard</a></li>
+        <li aria-hidden="true" class="text-neutral-700">{% lucide "chevron-right" class="w-4 h-4" %}</li>
+        <li><span aria-current="page" class="px-1 font-semibold text-primary-800">Pengguna</span></li>
+      </ol>
+    </nav>
+    <div class="flex flex-col gap-1">
+      <h1 class="font-display text-h3 leading-tight text-foreground sm:text-h2">Pengguna</h1>
+      <p class="max-w-2xl font-sans text-b3 text-neutral-900">Lihat siapa saja yang gabung, atur peran admin, dan nonaktifkan akun yang bermasalah.</p>
+    </div>
+  </header>
+
+  <section aria-label="Statistik pengguna">
+    <dl class="grid grid-cols-2 gap-3 lg:grid-cols-4 sm:gap-4">
+      {% include "dashboard/_metric.html" with icon="users" label="Total" value=metrics.total hint="akun terdaftar" tone="primary" %}
+      {% include "dashboard/_metric.html" with icon="user-plus" label="Baru" value=metrics.new_week hint="7 hari terakhir" tone="info" %}
+      {% include "dashboard/_metric.html" with icon="shield-check" label="Admin" value=metrics.admins hint="punya akses dashboard" tone="warning" %}
+      {% include "dashboard/_metric.html" with icon="circle-slash" label="Nonaktif" value=metrics.inactive hint="tidak bisa masuk" tone="neutral" %}
+    </dl>
+  </section>
+
+  <section aria-label="Cari dan saring pengguna" class="flex flex-col gap-4">
+    <form method="GET" action="{% url 'dashboard:admin_user_list' %}" data-autosubmit class="grid grid-cols-1 items-end gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(0,2fr)_repeat(3,minmax(0,1fr))]">
+      <search class="flex flex-col sm:col-span-2 xl:col-span-1">
+        {% component "input" type="search" id="adminUsersSearch" name="search" label="Cari nama, username, atau email" placeholder=" " icon="search" value=params.search attrs='maxlength="100"' / %}
+      </search>
+      {% component "dropdown" id="adminUsersRole" name="role" label="Peran" placeholder=role_label options=role_options initial_value=params.role default_label=role_label / %}
+      {% component "dropdown" id="adminUsersState" name="state" label="Status" placeholder=state_label options=state_options initial_value=params.state default_label=state_label / %}
+      {% component "dropdown" id="adminUsersSort" name="sort" label="Urutkan" placeholder=sort_label options=sort_options initial_value=params.sort default_label=sort_label / %}
+    </form>
+    {% with count=page_obj.paginator.count %}
+    {% include "dashboard/_filter_chips.html" with count_text=count|stringformat:"d"|add:" pengguna" %}
+    {% endwith %}
+  </section>
+
+  <section aria-labelledby="usersTitle" class="flex flex-col gap-3">
+    <h2 id="usersTitle" class="sr-only">Daftar pengguna</h2>
+
+    {% if page_obj.object_list %}
+    <div class="hidden grid-cols-[minmax(0,2fr)_7rem_9rem_8rem_11rem] gap-4 px-5 font-sans text-[0.6875rem] font-semibold uppercase tracking-wider text-neutral-800 xl:grid" aria-hidden="true">
+      <span>Pengguna</span><span>Peran</span><span>Aktivitas</span><span>Bergabung</span><span class="text-right">Aksi</span>
+    </div>
+
+    <ul class="flex flex-col gap-2">
+      {% for member in page_obj %}
+      {% url 'dashboard:admin_user_detail' member.pk as detail_url %}
+      <li class="flex flex-col items-start gap-4 rounded-2xl border border-neutral-400 bg-neutral-50 p-4 transition-all hover:border-neutral-500 sm:p-5 xl:grid xl:grid-cols-[minmax(0,2fr)_7rem_9rem_8rem_11rem] xl:items-center {% if not member.is_active %}opacity-75{% endif %}" data-user-row="{{ member.username }}">
+        <div class="flex w-full min-w-0 items-center gap-3">
+          {% component "avatar" src=member.avatar_url name=member.display_name size="md" / %}
+          <div class="min-w-0">
+            <p class="flex flex-wrap items-center gap-2 font-sans text-sm font-bold text-foreground">
+              <a href="{{ detail_url }}" class="min-w-0 max-w-full truncate transition-colors hover:text-secondary-700">{{ member.display_name }}</a>
+              {% if member.pk == user.pk %}<span class="rounded-full bg-primary-100 px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wider text-primary-800">Kamu</span>{% endif %}
+              {% if not member.is_active %}{% component "badge" text="Nonaktif" variant="outline" size="sm" icon="circle-slash" / %}{% endif %}
+            </p>
+            <p class="truncate font-sans text-xs text-neutral-800">@{{ member.username }} · {{ member.email }}</p>
+          </div>
+        </div>
+
+        <div>
+          {% if member.is_admin %}{% component "badge" text="Admin" variant="secondary" size="sm" icon="shield-check" / %}{% else %}{% component "badge" text="Pengguna" variant="neutral" size="sm" icon="user-round" / %}{% endif %}
+        </div>
+
+        <p class="flex items-center gap-3 font-sans text-xs font-semibold tabular-nums text-secondary-800">
+          <span class="inline-flex items-center gap-1" title="Postingan">{% lucide "message-square-text" class="w-3.5 h-3.5 text-secondary-600" %}{{ member.post_count }}<span class="sr-only"> postingan</span></span>
+          <span class="inline-flex items-center gap-1" title="Artikel">{% lucide "newspaper" class="w-3.5 h-3.5 text-secondary-600" %}{{ member.article_count }}<span class="sr-only"> artikel</span></span>
+        </p>
+
+        <p class="font-sans text-xs text-neutral-900">
+          {{ member.date_joined|date:"j M Y" }}
+          <span class="block text-neutral-800">{% if member.last_login %}Masuk {{ member.last_login|timesince }} lalu{% else %}Belum pernah masuk{% endif %}</span>
+        </p>
+
+        <div class="flex w-full items-center justify-end gap-2 border-t border-neutral-300 pt-3 xl:w-auto xl:border-t-0 xl:pt-0">
+          {% component "button" text="Detail" variant="neutral" size="xs" icon_left="eye" href=detail_url / %}
+          {% if member.pk != user.pk %}{% if user.is_superuser or not member.is_superuser %}
+          {% include "dashboard/users/_actions.html" with compact=True %}
+          {% endif %}{% endif %}
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+
+    {% component "pagination" page_obj=page_obj class_="mt-2" / %}
+
+    {% else %}
+    {% component "empty_state" icon="user-search" title="Pengguna nggak ditemukan" description="Coba kata kunci atau filter lain." %}
+      {% fill "actions" %}{% component "button" text="Hapus filter" variant="neutral" size="sm" icon_left="rotate-ccw" href=reset_url / %}{% endfill %}
+    {% endcomponent %}
+    {% endif %}
+  </section>
+</div>
+
+{% include "dashboard/_confirm_modal.html" %}
+{% include "accounts/_messages.html" %}
+{% endblock %}
+
+{% block scripts %}
+<script type="module" src="{% static 'js/dashboard/admin_list.js' %}"></script>
+{% endblock %}

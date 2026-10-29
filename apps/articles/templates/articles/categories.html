@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% load static component_tags lucide %}
+
+{% block title %}Kategori Artikel · SELARAS{% endblock %}
+
+{% block content %}
+<div class="relative isolate">
+  <div class="page-aura" aria-hidden="true"></div>
+
+  <main class="mx-auto w-full max-w-4xl px-4 pb-24 pt-36 sm:px-6 sm:pt-40 lg:px-8">
+    <nav aria-label="Kembali" class="mb-6">
+      {% url 'articles:html-list' as list_url %}
+      {% component "button" text="Semua artikel" variant="neutral-ghost" size="sm" icon_left="arrow-left" href=list_url / %}
+    </nav>
+
+    <header class="mb-8">
+      {% component "badge" text="Area pengelolaan · admin" variant="primary" icon="shield-check" / %}
+      <h1 class="mt-3 font-display text-h3 leading-tight text-foreground sm:text-h2">Kategori artikel</h1>
+      <p class="mt-2 max-w-xl font-sans text-b3 text-neutral-900">Setiap artikel wajib punya kategori. Kategori yang masih dipakai artikel tidak dapat dihapus.</p>
+    </header>
+
+    <section class="mb-6 rounded-3xl border border-neutral-400 bg-neutral-50 p-5 sm:p-6" aria-labelledby="newCategoryTitle">
+      <h2 id="newCategoryTitle" class="flex items-center gap-2 font-display text-h5 text-foreground">
+        <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-100 text-primary-700" aria-hidden="true">{% lucide "folder-plus" class="w-4 h-4" %}</span>
+        {% if editing %}Ganti nama “{{ editing.name }}”{% else %}Tambah kategori{% endif %}
+      </h2>
+      <form method="post" class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-start">
+        {% csrf_token %}
+        {% if editing %}<input type="hidden" name="action" value="rename"><input type="hidden" name="id" value="{{ editing.pk }}">{% else %}<input type="hidden" name="action" value="create">{% endif %}
+        <div class="min-w-0 flex-1">
+          {% component "input" type="text" id="category-name" name="name" label="Nama kategori" placeholder=" " icon="folder" value=form.name.value errors=form.name.errors required=True attrs='maxlength="100" autocomplete="off"' / %}
+        </div>
+        {% if editing %}
+        {% component "button" href=request.path text="Batal" variant="neutral" size="lg" / %}
+        {% component "button" type="submit" text="Simpan" variant="secondary" size="lg" icon_left="check" / %}
+        {% else %}
+        {% component "button" type="submit" text="Tambah" variant="secondary" size="lg" icon_left="plus" / %}
+        {% endif %}
+      </form>
+    </section>
+
+    <section class="rounded-3xl border border-neutral-400 bg-neutral-50" aria-label="Daftar kategori">
+      {% if categories %}
+      <ul class="divide-y divide-neutral-400/70">
+        {% for category in categories %}
+        <li class="flex flex-wrap items-center gap-3 px-5 py-4 sm:px-6">
+          <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-100 text-primary-700" aria-hidden="true">{% lucide "folder-open" class="w-5 h-5" %}</span>
+          <div class="min-w-0 flex-1">
+            <p class="font-sans text-sm font-semibold text-secondary-900">{{ category.name }}</p>
+            <p class="font-sans text-b4 text-neutral-800">{{ category.published }} terbit · {{ category.total }} total</p>
+          </div>
+          <form method="post" class="flex items-center gap-2">
+            {% csrf_token %}
+            <input type="hidden" name="id" value="{{ category.pk }}">
+            <a href="?edit={{ category.pk }}" class="inline-flex min-h-9 items-center gap-1.5 rounded-xl px-3 font-sans text-sm font-semibold text-secondary-700 outline-none transition-colors hover:bg-secondary-50 focus-visible:ring-2 focus-visible:ring-primary-500">{% lucide "pencil" class="w-4 h-4" aria_hidden="true" %}Ganti nama</a>
+            {% if category.total %}
+            <span class="inline-flex min-h-9 cursor-not-allowed items-center gap-1.5 rounded-xl px-3 font-sans text-sm font-semibold text-neutral-700" title="Masih dipakai {{ category.total }} artikel">{% lucide "lock" class="w-4 h-4" aria_hidden="true" %}Dipakai</span>
+            {% else %}
+            <button type="submit" name="action" value="delete" class="inline-flex min-h-9 cursor-pointer items-center gap-1.5 rounded-xl px-3 font-sans text-sm font-semibold text-red-100 outline-none transition-colors hover:bg-red-100/10 focus-visible:ring-2 focus-visible:ring-primary-500">{% lucide "trash-2" class="w-4 h-4" aria_hidden="true" %}Hapus</button>
+            {% endif %}
+          </form>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+        {% component "empty_state" icon="folder-open" title="Belum ada kategori." description="Tambahkan kategori pertama agar artikel bisa ditulis." / %}
+      {% endif %}
+    </section>
+  </main>
+</div>
+{% include "accounts/_messages.html" %}
+{% endblock %}
+
+{% block scripts %}
+<script type="module">
+  import { showMessagesAsToasts } from "{% static 'js/accounts/shared.js' %}";
+  showMessagesAsToasts();
+</script>
+{% endblock %}

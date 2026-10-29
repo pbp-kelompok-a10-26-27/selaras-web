@@ -1,0 +1,17 @@
+{% load component_tags lucide %}
+{% comment %}
+Fields of the "new post" form. Shared by the quick composer modal on the feed page and by
+feeds/create.html, so both stay identical. Needs `form` (FeedPostForm).
+{% endcomment %}
+{% if form.non_field_errors %}
+<div role="alert" class="flex items-start gap-2 rounded-xl border border-tertiary-400 bg-tertiary-50 p-3 font-sans text-sm text-tertiary-900">
+  {% lucide "circle-alert" class="w-4 h-4 mt-0.5 shrink-0" %}
+  <div>{% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}</div>
+</div>
+{% endif %}
+
+{% component "textarea" id=form.content.auto_id name=form.content.html_name label="Cerita progres" value=form.content.value rows=5 maxlength=2000 required=True errors=form.content.errors attrs="data-modal-autofocus" / %}
+
+{% component "dropdown" id=form.challenge.auto_id name=form.challenge.html_name label="Challenge (opsional)" placeholder="Posting tanpa challenge" options=form.challenge_options initial_value=form.challenge.value|default_if_none:"" default_label=form.selected_challenge_label / %}
+
+{% component "photo_picker" id=form.images.auto_id name=form.images.html_name title="Tambah foto (opsional)" hint=form.photo_hint max_files=form.max_images max_mb=form.max_mb input_class="feed-image-input" errors=form.images.errors / %}

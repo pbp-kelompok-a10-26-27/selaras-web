@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% load static component_tags lucide ui_extras %}
+
+{% block title %}Detail Donasi · SELARAS{% endblock %}
+
+{% block content %}
+<div class="relative isolate">
+  <div class="page-aura" aria-hidden="true"></div>
+
+  <main id="donationDetailPage" class="mx-auto w-full max-w-4xl px-4 pb-24 pt-36 sm:px-6 sm:pt-40 lg:px-8">
+    <nav aria-label="Kembali" class="mb-6">
+      {% url 'donations:history' as history_url %}
+      {% component "button" text="Kembali ke riwayat" variant="neutral-ghost" size="sm" icon_left="arrow-left" href=history_url / %}
+    </nav>
+
+    <article class="overflow-hidden rounded-3xl border border-neutral-400 bg-neutral-50">
+      <header class="campaign-media px-6 py-8 sm:px-9 sm:py-10" data-tone="primary">
+        <p class="font-sans text-xs font-semibold uppercase tracking-wider text-secondary-700">Detail donasi</p>
+        <div class="mt-3 flex flex-wrap items-center justify-between gap-3">
+          <h1 class="font-display text-h4 leading-tight text-foreground sm:text-h3">{{ donation.campaign.title }}</h1>
+          {% include "donations/partials/_donation_status.html" with status=donation.status %}
+        </div>
+        <p class="mt-4 font-sans text-sm text-secondary-800">Nominal</p>
+        <p class="font-sans text-3xl font-semibold text-secondary-900 sm:text-4xl" data-countup="{{ donation.amount|floatformat:'0u' }}" data-prefix="Rp ">Rp {{ donation.amount|rupiah }}</p>
+      </header>
+
+      <section aria-labelledby="statusTitle" class="border-b border-neutral-400/60 px-6 py-7 sm:px-9">
+        <h2 id="statusTitle" class="sr-only">Status verifikasi</h2>
+        <ol class="grid gap-5 sm:grid-cols-3 sm:gap-3">
+          <li class="flex items-start gap-3 sm:flex-col sm:items-start">
+            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-300 text-secondary-900" aria-hidden="true">{% lucide "send" class="w-5 h-5" %}</span>
+            <span class="font-sans text-sm">
+              <strong class="block text-foreground">Diajukan</strong>
+              <span class="text-neutral-800">{% if donation.created_at %}{{ donation.created_at|date:"j M Y, H:i" }}{% else %}Tidak tersedia{% endif %}</span>
+            </span>
+          </li>
+          <li class="flex items-start gap-3 sm:flex-col sm:items-start">
+            {% if donation.status == "PENDING" %}
+            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-secondary-500 bg-neutral-50 text-secondary-700" aria-hidden="true">{% lucide "hourglass" class="w-5 h-5 animate-pulse" %}</span>
+            <span class="font-sans text-sm"><strong class="block text-foreground">Diperiksa admin</strong><span class="text-neutral-800">Sedang menunggu</span></span>
+            {% else %}
+            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-300 text-secondary-900" aria-hidden="true">{% lucide "clipboard-check" class="w-5 h-5" %}</span>
+            <span class="font-sans text-sm"><strong class="block text-foreground">Diperiksa admin</strong><span class="text-neutral-800">{% if donation.verified_at %}{{ donation.verified_at|date:"j M Y, H:i" }}{% else %}Selesai{% endif %}</span></span>
+            {% endif %}
+          </li>
+          <li class="flex items-start gap-3 sm:flex-col sm:items-start">
+            {% if donation.status == "APPROVED" %}
+            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-secondary-700 text-neutral-50" aria-hidden="true">{% lucide "badge-check" class="w-5 h-5" %}</span>
+            <span class="font-sans text-sm"><strong class="block text-foreground">Disetujui</strong><span class="text-neutral-800">Masuk ke progres kampanye</span></span>
+            {% elif donation.status == "REJECTED" %}
+            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-100 text-neutral-50" aria-hidden="true">{% lucide "circle-x" class="w-5 h-5" %}</span>
+            <span class="font-sans text-sm"><strong class="block text-foreground">Ditolak</strong><span class="text-neutral-800">Tidak masuk ke progres kampanye</span></span>
+            {% else %}
+            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-dashed border-neutral-500 text-neutral-700" aria-hidden="true">{% lucide "badge-check" class="w-5 h-5" %}</span>
+            <span class="font-sans text-sm"><strong class="block text-neutral-800">Hasil verifikasi</strong><span class="text-neutral-800">Belum tersedia</span></span>
+            {% endif %}
+          </li>
+        </ol>
+      </section>
+
+      {% if donation.status == "REJECTED" and donation.rejection_reason %}
+      <div role="note" class="mx-6 mt-6 flex items-start gap-3 rounded-2xl border border-tertiary-400 bg-tertiary-50 p-4 sm:mx-9">
+        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-tertiary-200 text-tertiary-800" aria-hidden="true">{% lucide "message-square-warning" class="w-5 h-5" %}</span>
+        <div class="min-w-0">
+          <p class="font-sans text-sm font-semibold text-tertiary-900">Alasan dari admin</p>
+          <p class="mt-0.5 font-sans text-sm text-tertiary-900">{{ donation.rejection_reason }}</p>
+          <p class="mt-2 font-sans text-b4 text-tertiary-800">Kamu bisa mencatat donasi baru dengan bukti transfer yang jelas.</p>
+        </div>
+      </div>
+      {% endif %}
+
+      <dl class="grid gap-4 p-6 sm:grid-cols-2 sm:p-9">
+        <div class="rounded-2xl border border-neutral-400 bg-neutral-100 p-5">
+          <dt class="font-sans text-xs font-semibold uppercase tracking-wider text-neutral-800">Tanggal pengajuan</dt>
+          <dd class="mt-2 font-sans text-sm font-semibold text-secondary-900">{% if donation.created_at %}{{ donation.created_at|date:"j M Y, H:i" }}{% else %}Tidak tersedia{% endif %}</dd>
+        </div>
+        <div class="rounded-2xl border border-neutral-400 bg-neutral-100 p-5">
+          <dt class="font-sans text-xs font-semibold uppercase tracking-wider text-neutral-800">Bukti transfer</dt>
+          <dd class="mt-2">
+            {% if proof_available %}
+            {% url 'donations:proof' donation.pk as proof_url %}
+            {% component "button" href=proof_url text="Unduh bukti" variant="neutral" size="sm" icon_left="file-down" / %}
+            {% else %}
+            <span class="font-sans text-sm text-neutral-800">Bukti tidak tersedia.</span>
+            {% endif %}
+          </dd>
+        </div>
+        <div class="rounded-2xl border border-neutral-400 bg-neutral-100 p-5 sm:col-span-2">
+          <dt class="font-sans text-xs font-semibold uppercase tracking-wider text-neutral-800">Pesan & tampilan</dt>
+          <dd class="mt-2 space-y-1.5 font-sans text-sm text-secondary-900">
+            {% if donation.message %}<p class="italic">“{{ donation.message }}”</p>{% else %}<p class="text-neutral-800">Tanpa pesan.</p>{% endif %}
+            <p class="flex items-center gap-1.5 text-neutral-900">{% if donation.is_anonymous %}{% lucide "venetian-mask" class="w-4 h-4" aria_hidden="true" %}Tampil sebagai “Orang baik” di daftar donatur{% else %}{% lucide "user-round" class="w-4 h-4" aria_hidden="true" %}Namamu tampil di daftar donatur setelah disetujui{% endif %}</p>
+          </dd>
+        </div>
+        <div class="flex flex-wrap items-center gap-3 sm:col-span-2">
+          {% if donation.status == "PENDING" %}
+          {% url 'donations:edit' donation.pk as edit_url %}
+          {% component "button" href=edit_url text="Edit donasi" variant="secondary" size="md" icon_left="pencil" / %}
+          {% endif %}
+          {% url 'donations:campaign_detail' donation.campaign.slug as campaign_url %}
+          {% component "button" href=campaign_url text="Lihat kampanye" variant="neutral" size="md" icon_right="arrow-right" / %}
+        </div>
+      </dl>
+    </article>
+  </main>
+</div>
+
+{% include "accounts/_messages.html" %}
+{% endblock %}
+
+{% block scripts %}
+<script type="module" src="{% static 'js/donations/campaign.js' %}"></script>
+{% endblock %}

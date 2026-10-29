@@ -6,11 +6,60 @@ The platform addresses common difficulties in sustainable living: good intention
 
 SELARAS provides structured challenges with daily progress tracking and badges/streaks, contextual educational articles with real-world product recommendations, weather-based suggestions for outdoor activities, a community feed, local environmental donation campaigns, and a dedicated support channel.
 
-### Progress
+### Progress Tracker
+
 - [x] Setup repository & modules
 - [x] Created design system palettes including colors, typography, icons, etc.
-- (Figma Link)[https://www.figma.com/design/ehFwOVTAobEXuoefdRIzAf/SELARAS?node-id=63-332&t=f8Pf6tkPLaACOtkz-0]
 - [x] Created simple landing page (unfinished - not a final design) (still not responsive, test for deployment only)
+
+- [x] Created authentication system
+- [x] Created login and register form and page
+
+- [x] Setup overall models, views, and urls for each module
+- [x] Added dashboard module for admin and user
+
+- [x] Created reusable navbar and button components (refactored using `django-components`)
+- [x] Created login and register page
+- [x] Created design system page for design system tokens and components overview in URL `/design-system/`
+
+- [x] Finalized design system components 
+- [x] Modified authentication system
+
+- [x] Added pre-commit hooks (Husky + lint-staged) for ruff lint/format and migration checks
+- [x] Added `ruff format --check` to CI
+
+- [x] Created helpdesk module for ticket management system
+- [x] Finalized profile page and authentication system
+- [x] Refined and updated some design system components
+- [x] Created 403 and 404 Page (won't visible for now since DEBUG = True)
+- [x] Reconstruct landing page
+- [x] Redesigned feeds and donations modules on the design system (new components: badge, avatar, progress, empty_state, pagination, textarea, file_drop)
+- [x] Redesigned articles on the design system
+- [x] Major update ([docs/CHANGES.md](docs/CHANGES.md)):
+  - UUID keys for posts, comments, donations and notifications
+  - Challenges tracked automatically from articles, donations and the feed, with badge rewards
+  - Featured badges next to user names
+  - Notifications in the navbar bell
+  - Up to 10 photos per post (20 for admins)
+  - Likers lists, comment likes and Instagram-style replies
+  - Articles written by users and reviewed by admins, with read tracking and category management
+  - Donor wall and rejection reasons for donations
+- [x] Gamification: community goals, per-challenge leaderboards and a personal impact summary on the profile
+- [x] Demo data seeder: `python manage.py seed_demo` (`--reset`, `--clear`)
+
+
+
+### Design System Notes
+All components will be using `django-components` configuration (still not applied for the others), in progress. For more details, read the existing navbar and button configuration components. Furthermore, you can read [Django Components](https://django-components.github.io/django-components/docs/). Components will be placed in `apps/core/components/` with this given structure.
+
+```text
+core
+└── components
+    └── component-1
+        └── component-1.html
+        └── component-1.py
+
+```
 
 ### Group Members
 
@@ -101,15 +150,72 @@ fix(challenges): fix daily progress validation
 docs(helpdesk): document ticket workflow
 ```
 
+### Git Hooks
+
+Pre-commit hooks are managed by [Husky](https://typicode.github.io/husky/) and [lint-staged](https://github.com/lint-staged/lint-staged). Config lives in `.husky/pre-commit` and `lint-staged.config.js`.
+
+#### One-time setup (after cloning or pulling this change)
+
+```bash
+python -m venv venv
+venv\Scripts\activate            # Windows
+source venv/bin/activate         # macOS/Linux
+
+pip install -r requirements.txt  # installs ruff
+npm install                      # installs Husky and activates the hooks
+```
+
+The hook finds `venv/` or `.venv/` automatically, so you don't need to activate the venv before committing. Use one of those two folder names.
+
+#### Before every commit
+
+Run these from the project root:
+
+```bash
+ruff check --fix .                              # lint and auto-fix
+ruff format .                                   # format code
+python manage.py makemigrations                 # if you changed any models
+python manage.py test                           # make sure nothing broke
+git add <files>
+git commit -m "feat(module): short description"
+```
+
+#### What runs automatically on `git commit`
+
+Only staged files are checked:
+
+| Staged files        | Command                                              | Result                                          |
+| ------------------- | ---------------------------------------------------- | ----------------------------------------------- |
+| `*.py`              | `ruff check --fix`, then `ruff format`               | Fixes are re-staged; unfixable errors block the commit |
+| `apps/**/models.py` | `python manage.py makemigrations --check --dry-run`  | Blocks the commit if a migration is missing     |
+
+If the commit is blocked, read the error, fix it, `git add` again, and re-commit.
+
+#### Rules
+
+* Do not bypass the hook with `git commit --no-verify`. CI runs the same checks, so the PR will fail anyway.
+* Commit migration files together with the model changes that need them.
+* Do not edit files inside `*/migrations/` by hand to silence ruff. Migrations are excluded from linting.
+
+#### Troubleshooting
+
+* `ruff: command not found`: run `pip install -r requirements.txt` inside `venv/` or `.venv/`.
+* The hook doesn't run at all: run `npm install` (or `npm run prepare`) again. Then `git config core.hooksPath` should print `.husky/_`.
+
 ### Pull Requests
 
 Before opening a PR:
 
 ```bash
+ruff check .
+ruff format --check .
 python manage.py check
+python manage.py makemigrations --check --dry-run
 python manage.py test
 npm run build
 ```
+
+These match the CI pipeline. If they all pass locally, CI should pass too.
 
 A PR should contain:
 

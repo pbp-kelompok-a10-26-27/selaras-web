@@ -2,6 +2,12 @@
 @import "tailwindcss";
 @source "../../templates/**/*.html";
 @source "../../apps/**/templates/**/*.html";
+@source "../../apps/**/components/**/*.html";
+@source "../js/**/*.js";
+
+/* Admin dashboard: true while <html data-sidebar-state="collapsed"> (set by sidebar.js, and
+   before first paint by templates/dashboard/base.html so it never flickers) */
+@custom-variant sidebar-collapsed (&:where([data-sidebar-state="collapsed"] *));
 
 @theme {
   /* Primary (hijau muda / lime) */
@@ -39,6 +45,20 @@
   --color-tertiary-700: #92767c;
   --color-tertiary-800: #6d595d;
   --color-tertiary-900: #554548;
+
+  /* Red */
+  --color-red-100: #df2525;
+  
+  /* Orange */
+  --color-orange-100: #FFA756;
+  
+  /* Yellow */
+  --color-yellow-100: #fff49b;
+  --color-yellow-200: #ffe37e;
+
+  /* Blue */
+  --color-blue-100: #3b82f6;
+  --color-blue-200: #2563eb;
 
   /* Neutral (abu hangat) */
   --color-neutral-50: #fffffe;
@@ -179,7 +199,9 @@
 .scroll-reveal {
   opacity: 0;
   transform: translateY(1.5rem);
-  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+  transition:
+    opacity 0.8s ease-out,
+    transform 0.8s ease-out;
 }
 
 .scroll-reveal.is-visible {
@@ -197,4 +219,2541 @@
     transition: none;
   }
 }
+
+/* =================== FORM LOGIN & REGISTER ======================== */
+
+.floating-input {
+  position: relative;
+}
+
+.floating-input:focus ~ .floating-label,
+.floating-input:not(:placeholder-shown) ~ .floating-label,
+.floating-input:-webkit-autofill ~ .floating-label,
+.floating-input:autofill ~ .floating-label {
+  transform: translateY(-1.5rem) scale(0.85);
+  color: #475c3b;
+  background-color: #fffffe;
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
+}
+
+.floating-input:-webkit-autofill {
+  -webkit-text-fill-color: #212b1c;
+  caret-color: #212b1c;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
+.floating-input:-webkit-autofill ~ .floating-label {
+  z-index: 20;
+}
+
+@keyframes gentle-float {
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(1.5deg);
+  }
+}
+
+@keyframes gentle-float-reverse {
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(6px) rotate(-1.5deg);
+  }
+}
+
+.animate-float {
+  animation: gentle-float 4.5s ease-in-out infinite;
+}
+
+.animate-float-reverse {
+  animation: gentle-float-reverse 5.5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-float,
+  .animate-float-reverse,
+  .fade-in,
+  .slide-in-up {
+    animation: none !important;
+    transition: none !important;
+  }
+}
 /* ================================================================== */
+
+.falling-leaf {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  pointer-events: none;
+
+  will-change: transform;
+
+  animation-name: falling-leaf-animation;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+.falling-leaf svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* =========================================================
+   FALLING MOTION
+   ========================================================= */
+
+@keyframes falling-leaf-animation {
+  0% {
+    transform: translate3d(0, -10vh, 0) rotate(0deg);
+  }
+
+  20% {
+    transform: translate3d(calc(var(--drift-x) * 0.25), 20vh, 0)
+      rotate(calc(var(--rotation) * 0.2));
+  }
+
+  40% {
+    transform: translate3d(calc(var(--drift-x) * -0.4), 40vh, 0)
+      rotate(calc(var(--rotation) * 0.45));
+  }
+
+  60% {
+    transform: translate3d(calc(var(--drift-x) * 0.6), 60vh, 0)
+      rotate(calc(var(--rotation) * 0.7));
+  }
+
+  80% {
+    transform: translate3d(calc(var(--drift-x) * -0.5), 80vh, 0)
+      rotate(calc(var(--rotation) * 0.85));
+  }
+
+  100% {
+    transform: translate3d(var(--drift-x), 115vh, 0) rotate(var(--rotation));
+  }
+}
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .falling-leaf {
+    display: none;
+    animation: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .leaf {
+    animation: none;
+    display: none;
+  }
+}
+/* ================================================================== */
+
+/* ============================ LANDING ============================= */
+/* Smooth in-page scrolling on the landing page only (anchor links, "Lihat keempat lapisan"),
+   with room for the fixed navbar so headings don't land underneath it */
+html:has(#landing) {
+  scroll-behavior: smooth;
+  scroll-padding-top: 7rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:has(#landing) {
+    scroll-behavior: auto;
+  }
+}
+
+/* One continuous background, read top to bottom: the meadow's pale green (the hero
+   image fades into primary-100) -> fresh green layers -> bark. It stays light to the
+   end; a short green fade above the closing section (home.html) takes it into the dark */
+.landing-flow {
+  background-image: linear-gradient(
+    180deg,
+    var(--color-primary-100) 0%,
+    var(--color-primary-50) 18%,
+    var(--color-primary-100) 38%,
+    var(--color-primary-200) 58%,
+    var(--color-secondary-50) 80%,
+    var(--color-secondary-100) 100%
+  );
+}
+
+/* Dusk above the closing section. A plain two-stop fade shows a visible band where it
+   meets the dark; these eased stops (one colour, only the opacity changes) start and
+   finish so gently that there is no edge on either side */
+.landing-dusk {
+  background-image: linear-gradient(
+    180deg,
+    rgb(33 43 28 / 0) 0%,
+    rgb(33 43 28 / 0.013) 8.1%,
+    rgb(33 43 28 / 0.049) 15.5%,
+    rgb(33 43 28 / 0.104) 22.5%,
+    rgb(33 43 28 / 0.175) 29%,
+    rgb(33 43 28 / 0.259) 35.3%,
+    rgb(33 43 28 / 0.352) 41.2%,
+    rgb(33 43 28 / 0.45) 47.1%,
+    rgb(33 43 28 / 0.55) 52.9%,
+    rgb(33 43 28 / 0.648) 58.8%,
+    rgb(33 43 28 / 0.741) 64.7%,
+    rgb(33 43 28 / 0.825) 71%,
+    rgb(33 43 28 / 0.896) 77.5%,
+    rgb(33 43 28 / 0.951) 84.5%,
+    rgb(33 43 28 / 0.987) 91.9%,
+    var(--color-secondary-900) 100%
+  );
+}
+
+/* Hero: headline words and blocks rise in one after another (--i = order) */
+@keyframes hero-rise {
+  from {
+    opacity: 0;
+    transform: translateY(1.25rem);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+.hero-rise {
+  animation: hero-rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--i, 0) * 90ms + 100ms);
+}
+
+/* The meadow drifts with the scroll/pointer (home.js sets --hero-x / --hero-y) */
+.hero-image {
+  translate: var(--hero-x, 0) var(--hero-y, 0);
+  will-change: translate;
+}
+
+/* Soft sunlight following the pointer (home.js sets --glow-x / --glow-y) */
+.hero-glow {
+  background: radial-gradient(
+    32rem circle at var(--glow-x, 70%) var(--glow-y, 30%),
+    color-mix(in srgb, var(--color-neutral-50) 55%, transparent),
+    transparent 70%
+  );
+  mix-blend-mode: soft-light;
+}
+
+/* Manifesto: each word brightens as the reader scrolls past it */
+[data-manifesto] .word {
+  opacity: 0.18;
+  transition: opacity 0.4s ease-out;
+}
+
+[data-manifesto] .word.is-lit {
+  opacity: 1;
+}
+
+/* Glassy card with a light that follows the pointer (home.js sets --spot-x / --spot-y) */
+.landing-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 1.5rem;
+  border: 1px solid color-mix(in srgb, var(--color-secondary-200) 70%, transparent);
+  background: color-mix(in srgb, var(--color-neutral-50) 65%, transparent);
+  outline: none;
+  transition:
+    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.3s,
+    box-shadow 0.4s;
+}
+
+.landing-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0;
+  background: radial-gradient(
+    18rem circle at var(--spot-x, 50%) var(--spot-y, 50%),
+    var(--color-primary-200),
+    transparent 70%
+  );
+  transition: opacity 0.3s;
+}
+
+.landing-card:hover,
+.landing-card:focus-visible {
+  transform: translateY(-4px);
+  border-color: var(--color-secondary-300);
+  box-shadow: 0 24px 48px -28px rgb(33 43 28 / 0.4);
+}
+
+.landing-card:hover::before,
+.landing-card:focus-visible::before {
+  opacity: 1;
+}
+
+.landing-card:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-primary-500);
+}
+
+/* "Jelajahi ..." links under each layer */
+.landing-link {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 0.75rem;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-secondary-800);
+  outline: none;
+}
+
+.landing-link:hover {
+  color: var(--color-secondary-900);
+}
+
+.landing-link:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-primary-500);
+}
+
+/* Day slider: thin track that fills up to the thumb (home.js sets --fill) */
+.landing-range {
+  appearance: none;
+  height: 1.5rem;
+  background: transparent;
+}
+
+.landing-range::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    var(--color-secondary-700) var(--fill, 50%),
+    var(--color-secondary-200) var(--fill, 50%)
+  );
+}
+
+.landing-range::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    var(--color-secondary-700) var(--fill, 50%),
+    var(--color-secondary-200) var(--fill, 50%)
+  );
+}
+
+.landing-range::-webkit-slider-thumb {
+  appearance: none;
+  margin-top: -8px;
+  height: 20px;
+  width: 20px;
+  border-radius: 999px;
+  border: 3px solid var(--color-neutral-50);
+  background: var(--color-secondary-700);
+  box-shadow: 0 2px 8px rgb(33 43 28 / 0.3);
+  transition: transform 0.2s;
+}
+
+.landing-range::-moz-range-thumb {
+  height: 14px;
+  width: 14px;
+  border-radius: 999px;
+  border: 3px solid var(--color-neutral-50);
+  background: var(--color-secondary-700);
+  box-shadow: 0 2px 8px rgb(33 43 28 / 0.3);
+}
+
+.landing-range:active::-webkit-slider-thumb,
+.landing-range:hover::-webkit-slider-thumb {
+  transform: scale(1.15);
+}
+
+.landing-range:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 4px;
+  border-radius: 999px;
+}
+
+/* Seamless section joins. The hero's meadow fades out through a mask, so the page's own
+   background shows through (a colour fade never matches it exactly). */
+.hero-backdrop {
+  mask-image: linear-gradient(180deg, #000 0%, #000 62%, transparent 100%);
+}
+
+/* The closing section's rings fade out before its top and bottom edges */
+.cta-rings {
+  mask-image: linear-gradient(180deg, transparent 8%, #000 32%, #000 68%, transparent 92%);
+}
+
+/* The footer under the dark closing section: no dividing line */
+body:has(#landing) footer {
+  border-top-color: transparent;
+}
+
+/* In the components layer, so Tailwind utilities in the markup (has-checked:, px-4 ...) win */
+@layer components {
+/* --------------------------- Try-it demos --------------------------- */
+/* templates/landing/demos/, static/js/landing/demos.js */
+.landing-demo {
+  position: relative;
+  border-radius: 1.75rem;
+  border: 1px solid color-mix(in srgb, var(--color-secondary-200) 80%, transparent);
+  background:
+    radial-gradient(120% 80% at 100% 0%, color-mix(in srgb, var(--color-primary-200) 55%, transparent), transparent 60%),
+    color-mix(in srgb, var(--color-neutral-50) 72%, transparent);
+  padding: 1.25rem;
+  box-shadow: 0 30px 60px -45px rgb(33 43 28 / 0.45);
+  backdrop-filter: blur(12px);
+}
+
+@media (min-width: 640px) {
+  .landing-demo {
+    padding: 1.75rem;
+  }
+}
+
+.landing-demo-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  background: var(--color-secondary-900);
+  padding: 0.3rem 0.75rem 0.3rem 0.6rem;
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--color-neutral-50);
+}
+
+.landing-demo-pulse {
+  position: relative;
+  height: 0.5rem;
+  width: 0.5rem;
+  border-radius: 999px;
+  background: var(--color-primary-300);
+}
+
+.landing-demo-pulse::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: inherit;
+  animation: demo-ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes demo-ping {
+  75%,
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+/* Choice and primary buttons shared by the demos */
+.demo-choice {
+  display: inline-flex;
+  min-height: 3rem;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.875rem;
+  border: 1px solid var(--color-secondary-200);
+  background: var(--color-neutral-50);
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-secondary-800);
+  outline: none;
+  transition:
+    transform 0.2s,
+    background-color 0.2s,
+    border-color 0.2s,
+    color 0.2s;
+}
+
+.demo-choice:hover {
+  border-color: var(--color-secondary-300);
+  transform: translateY(-1px);
+}
+
+.demo-choice:active {
+  transform: scale(0.97);
+}
+
+.demo-choice:focus-visible,
+.demo-choice:has(:focus-visible) {
+  box-shadow: 0 0 0 2px var(--color-primary-500);
+}
+
+.demo-choice:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+  transform: none;
+}
+
+.demo-primary {
+  display: inline-flex;
+  min-height: 3rem;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.875rem;
+  background: var(--color-secondary-800);
+  padding: 0 1.25rem;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-neutral-50);
+  outline: none;
+  transition:
+    transform 0.2s,
+    background-color 0.2s,
+    opacity 0.2s;
+}
+
+.demo-primary:hover:not(:disabled) {
+  background: var(--color-secondary-700);
+  transform: translateY(-1px);
+}
+
+.demo-primary:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.demo-primary:focus-visible {
+  box-shadow:
+    0 0 0 2px var(--color-neutral-50),
+    0 0 0 4px var(--color-primary-500);
+}
+
+.demo-primary:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+/* Belajar: a deck of fact-or-myth cards (JS sets --stack = place in the pile, --drag-x) */
+.quiz-deck {
+  position: relative;
+  min-height: 18rem;
+  touch-action: pan-y;
+}
+
+@media (min-width: 768px) {
+  .quiz-deck {
+    min-height: 15rem;
+  }
+}
+
+.quiz-card {
+  position: absolute;
+  inset: 0 0 1.25rem;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 1.5rem;
+  border: 1px solid var(--color-secondary-200);
+  background: var(--color-neutral-50);
+  padding: 1.5rem;
+  box-shadow: 0 18px 40px -30px rgb(33 43 28 / 0.55);
+  transform: translate3d(var(--drag-x, 0px), calc(var(--stack, 0) * 0.6rem), 0)
+    rotate(calc(var(--drag-x, 0px) / 22))
+    scale(calc(1 - var(--stack, 0) * 0.045));
+  transform-origin: 50% 100%;
+  transition:
+    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.45s,
+    background-color 0.3s,
+    border-color 0.3s;
+  user-select: none;
+}
+
+.quiz-card[data-current] {
+  cursor: grab;
+}
+
+.quiz-card[data-dragging] {
+  cursor: grabbing;
+  transition: none;
+}
+
+.quiz-card[data-stack-hidden] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.quiz-card[data-gone] {
+  opacity: 0;
+  pointer-events: none;
+  transform: translate3d(calc(var(--fly, 1) * 120%), -1rem, 0) rotate(calc(var(--fly, 1) * 18deg));
+}
+
+.quiz-card[data-state="right"] {
+  border-color: var(--color-primary-300);
+  background: var(--color-primary-100);
+}
+
+.quiz-card[data-state="wrong"] {
+  border-color: var(--color-tertiary-300);
+  background: var(--color-tertiary-100);
+}
+
+/* "Mitos" / "Fakta" stamps appear as the card is dragged (JS sets --lean: -1 .. 1) */
+.quiz-stamp {
+  position: absolute;
+  top: 1.1rem;
+  border-radius: 0.5rem;
+  border: 2px solid currentColor;
+  padding: 0.1rem 0.5rem;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.quiz-stamp-myth {
+  right: 1.1rem;
+  color: var(--color-tertiary-700);
+  rotate: 12deg;
+  opacity: max(0, calc(var(--lean, 0) * -1));
+}
+
+.quiz-stamp-fact {
+  left: 1.1rem;
+  color: var(--color-primary-700);
+  rotate: -12deg;
+  opacity: max(0, var(--lean, 0));
+}
+
+.quiz-result {
+  display: none;
+  margin-top: auto;
+  padding-top: 1rem;
+}
+
+.quiz-card[data-state] .quiz-result {
+  display: block;
+  animation: demo-pop 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.quiz-end {
+  position: absolute;
+  inset: 0 0 1.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1.5rem;
+  border: 1px dashed var(--color-primary-300);
+  background: color-mix(in srgb, var(--color-neutral-50) 70%, transparent);
+  padding: 1.5rem;
+  text-align: center;
+  animation: demo-pop 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.quiz-end[hidden] {
+  display: none;
+}
+
+.quiz-dot {
+  height: 0.375rem;
+  flex: 1;
+  border-radius: 999px;
+  background: var(--color-secondary-200);
+  transition: background-color 0.3s;
+}
+
+.quiz-dot[data-state="current"] {
+  background: var(--color-secondary-500);
+}
+
+.quiz-dot[data-state="right"] {
+  background: var(--color-primary-500);
+}
+
+.quiz-dot[data-state="wrong"] {
+  background: var(--color-tertiary-400);
+}
+
+@keyframes demo-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+}
+
+@keyframes demo-shake {
+  20%,
+  60% {
+    translate: -4px 0;
+  }
+  40%,
+  80% {
+    translate: 4px 0;
+  }
+}
+
+/* Bertindak: day check-ins, progress ring and badges */
+.act-ring-value {
+  stroke-dasharray: var(--progress, 0) 100;
+  transition: stroke-dasharray 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.act-day {
+  position: relative;
+  display: flex;
+  aspect-ratio: 3 / 4;
+  width: 100%;
+  cursor: pointer;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.875rem;
+  border: 1px solid var(--color-secondary-200);
+  background: var(--color-neutral-50);
+  font-family: var(--font-sans);
+  color: var(--color-secondary-800);
+  outline: none;
+  transition:
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.25s,
+    border-color 0.25s,
+    color 0.25s;
+}
+
+@media (min-width: 640px) {
+  .act-day {
+    aspect-ratio: auto;
+    height: 4.25rem;
+  }
+}
+
+.act-day:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-secondary-300);
+}
+
+.act-day:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-primary-500);
+}
+
+.act-day[data-next] {
+  border-color: var(--color-secondary-500);
+  border-style: dashed;
+}
+
+.act-day[aria-pressed="true"] {
+  border-color: var(--color-secondary-700);
+  background: var(--color-secondary-700);
+  color: var(--color-neutral-50);
+}
+
+.act-day[data-shake] {
+  animation: demo-shake 0.4s;
+}
+
+.act-day-label {
+  font-size: 0.5625rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.7;
+}
+
+.act-day-number {
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.act-day-check {
+  position: absolute;
+  top: -0.4rem;
+  right: -0.4rem;
+  display: flex;
+  height: 1.25rem;
+  width: 1.25rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--color-primary-300);
+  color: var(--color-secondary-900);
+  opacity: 0;
+  transform: scale(0.3);
+  transition:
+    opacity 0.2s,
+    transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.act-day-check svg {
+  height: 0.75rem;
+  width: 0.75rem;
+}
+
+.act-day[aria-pressed="true"] .act-day-check {
+  opacity: 1;
+  transform: none;
+}
+
+.act-badge {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 0.875rem;
+  border: 1px dashed var(--color-secondary-200);
+  padding: 0.5rem;
+  transition:
+    background-color 0.3s,
+    border-color 0.3s;
+}
+
+@media (max-width: 639px) {
+  .act-badge {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+.act-badge-icon {
+  display: flex;
+  height: 2.25rem;
+  width: 2.25rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.75rem;
+  background: var(--color-secondary-100);
+  color: var(--color-secondary-300);
+  filter: grayscale(1);
+  opacity: 0.6;
+  transition:
+    filter 0.3s,
+    opacity 0.3s,
+    background-color 0.3s;
+}
+
+.act-badge[data-unlocked="true"] {
+  border-style: solid;
+  border-color: var(--color-primary-300);
+  background: var(--color-primary-100);
+}
+
+.act-badge[data-unlocked="true"] .act-badge-icon {
+  background: var(--color-primary-300);
+  color: var(--color-secondary-900);
+  filter: none;
+  opacity: 1;
+  animation: badge-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.act-badge[data-unlocked="true"] .act-badge-state {
+  display: none;
+}
+
+@keyframes badge-pop {
+  0% {
+    transform: scale(0.4) rotate(-20deg);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+/* Leaves bursting out of the ring when a badge unlocks (JS fills .act-burst) */
+.act-burst {
+  pointer-events: none;
+  position: absolute;
+  inset: 50% auto auto 50%;
+}
+
+.act-burst span {
+  position: absolute;
+  height: 0.75rem;
+  width: 0.5rem;
+  border-radius: 100% 0;
+  background: var(--color-primary-400);
+  animation: leaf-burst 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.act-burst span:nth-child(3n) {
+  background: var(--color-tertiary-400);
+}
+
+@keyframes leaf-burst {
+  from {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(0deg) scale(0.4);
+  }
+  to {
+    opacity: 0;
+    transform: translate(var(--x), var(--y)) rotate(var(--r)) scale(1);
+  }
+}
+
+/* Berbagi: posts in the pretend feed */
+.share-post {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.25rem;
+  border: 1px solid color-mix(in srgb, var(--color-tertiary-300) 70%, transparent);
+  background: color-mix(in srgb, var(--color-tertiary-100) 85%, transparent);
+  padding: 0.875rem 1rem;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+.share-post[data-new] {
+  animation: post-in 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes post-in {
+  from {
+    opacity: 0;
+    transform: translateY(-0.75rem) scale(0.97);
+  }
+}
+
+.share-action {
+  display: inline-flex;
+  min-height: 2.25rem;
+  cursor: pointer;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 0.625rem;
+  padding: 0 0.5rem;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-secondary-700);
+  outline: none;
+  transition:
+    background-color 0.2s,
+    color 0.2s;
+}
+
+.share-action:hover {
+  background: color-mix(in srgb, var(--color-tertiary-300) 40%, transparent);
+}
+
+.share-action:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-primary-500);
+}
+
+.share-action[data-like][aria-pressed="true"] {
+  color: var(--color-tertiary-800);
+}
+
+.share-action[data-like][aria-pressed="true"] svg {
+  fill: var(--color-tertiary-500);
+  stroke: var(--color-tertiary-700);
+  animation: badge-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.share-action[data-cheer][aria-pressed="true"] {
+  color: var(--color-primary-800);
+  background: var(--color-primary-200);
+}
+
+/* Big heart on double-tap */
+.share-pop {
+  pointer-events: none;
+  position: absolute;
+  inset: 50% auto auto 50%;
+  color: var(--color-tertiary-400);
+  opacity: 0;
+  translate: -50% -50%;
+}
+
+.share-post[data-popping] .share-pop {
+  animation: heart-pop 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes heart-pop {
+  0% {
+    opacity: 0;
+    scale: 0.3;
+  }
+  30% {
+    opacity: 0.95;
+    scale: 1.1;
+  }
+  100% {
+    opacity: 0;
+    scale: 1.4;
+  }
+}
+
+/* Berdonasi: example campaign bar, with a striped preview of the chosen amount
+   (JS sets --raised and --preview in %) */
+.give-bar {
+  position: relative;
+  height: 0.75rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--color-secondary-100);
+}
+
+.give-bar-raised,
+.give-bar-preview {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 999px;
+  transition:
+    width 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    left 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.give-bar-raised {
+  width: var(--raised, 63%);
+  background: linear-gradient(90deg, var(--color-secondary-300), var(--color-primary-500));
+}
+
+.give-bar-preview {
+  left: var(--raised, 63%);
+  width: var(--preview, 0%);
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--color-primary-300) 0 6px,
+    color-mix(in srgb, var(--color-primary-300) 45%, transparent) 6px 12px
+  );
+  animation: stripes 1s linear infinite;
+  background-size: 17px 17px;
+}
+
+@keyframes stripes {
+  to {
+    background-position: 17px 0;
+  }
+}
+
+.give-seed {
+  display: inline-flex;
+  transition:
+    opacity 0.25s,
+    transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.give-seed[data-off] {
+  display: none;
+}
+
+.give-seed[data-grow] {
+  animation: seed-grow 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+}
+
+@keyframes seed-grow {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.2);
+  }
+}
+
+.give-receipt {
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: 1.25rem;
+  flex-wrap: wrap;
+  background: var(--color-secondary-900);
+  padding: 0.875rem 1rem;
+  animation: post-in 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.give-receipt[hidden] {
+  display: none;
+}
+
+/* ------------------------ Impact estimator: the jar ------------------------ */
+/* templates/landing/_impact.html, static/js/landing/impact.js */
+.impact-board {
+  position: relative;
+  overflow: hidden;
+  border-radius: 2rem;
+  border: 1px solid color-mix(in srgb, var(--color-neutral-50) 70%, transparent);
+  background:
+    radial-gradient(60% 70% at 85% 30%, color-mix(in srgb, var(--color-primary-200) 70%, transparent), transparent 70%),
+    color-mix(in srgb, var(--color-neutral-50) 62%, transparent);
+  box-shadow: 0 30px 80px -40px rgb(33 43 28 / 0.35);
+  backdrop-filter: blur(16px);
+}
+
+.impact-step {
+  margin-bottom: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-secondary-900);
+}
+
+.impact-step span {
+  display: flex;
+  height: 1.5rem;
+  width: 1.5rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1.5px solid var(--color-secondary-700);
+  font-size: 0.75rem;
+}
+
+/* Habit choices look like the paper label on the jar, each tilted a little */
+.impact-sticker {
+  position: relative;
+  display: flex;
+  min-height: 4rem;
+  cursor: pointer;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: 0.5rem 0.5rem 0.5rem 1.25rem;
+  border: 1px solid color-mix(in srgb, var(--color-secondary-200) 90%, transparent);
+  background: var(--color-neutral-300);
+  padding: 0.75rem;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-secondary-800);
+  box-shadow: 0 6px 14px -10px rgb(33 43 28 / 0.4);
+  rotate: var(--tilt, 0deg);
+  transition:
+    rotate 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+    transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+    background-color 0.25s,
+    color 0.25s,
+    box-shadow 0.25s;
+}
+
+.impact-sticker[data-tilt-index="0"] {
+  --tilt: -1.5deg;
+}
+
+.impact-sticker[data-tilt-index="1"] {
+  --tilt: 1.2deg;
+}
+
+.impact-sticker[data-tilt-index="2"] {
+  --tilt: 1deg;
+}
+
+.impact-sticker[data-tilt-index="3"] {
+  --tilt: -1.2deg;
+}
+
+.impact-sticker:hover {
+  transform: translateY(-2px);
+}
+
+.impact-sticker:has(:checked) {
+  rotate: 0deg;
+  transform: translateY(-3px);
+  background: var(--color-secondary-900);
+  color: var(--color-neutral-50);
+  box-shadow: 0 16px 24px -14px rgb(33 43 28 / 0.6);
+}
+
+.impact-sticker:has(:focus-visible) {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+}
+
+.impact-sticker-icon {
+  display: flex;
+  height: 2.25rem;
+  width: 2.25rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1.5px dashed var(--color-secondary-300);
+  color: var(--color-secondary-700);
+  transition: all 0.25s;
+}
+
+.impact-sticker:has(:checked) .impact-sticker-icon {
+  border-color: var(--color-primary-300);
+  border-style: solid;
+  background: var(--color-primary-300);
+  color: var(--color-secondary-900);
+}
+
+/* Duration: a measuring tape. Ticks every day-ish, longer marks for months
+   (JS sets --fill on the input) */
+.impact-tape {
+  position: relative;
+  border-radius: 0.75rem;
+  background: var(--color-yellow-200);
+  box-shadow:
+    inset 0 -2px 0 rgb(33 43 28 / 0.12),
+    0 8px 18px -12px rgb(33 43 28 / 0.5);
+}
+
+.impact-tape-input {
+  display: block;
+  height: 3.25rem;
+  width: 100%;
+  cursor: ew-resize;
+  appearance: none;
+  border-radius: 0.75rem;
+  background:
+    linear-gradient(90deg, rgb(33 43 28 / 0.14) var(--fill, 8%), transparent var(--fill, 8%)),
+    repeating-linear-gradient(90deg, rgb(33 43 28 / 0.55) 0 1.5px, transparent 1.5px 8.333%) 0 0 / 100% 45% no-repeat,
+    repeating-linear-gradient(90deg, rgb(33 43 28 / 0.3) 0 1px, transparent 1px 1.667%) 0 0 / 100% 22% no-repeat;
+  outline: none;
+}
+
+.impact-tape-input::-webkit-slider-thumb {
+  appearance: none;
+  height: 3.25rem;
+  width: 0.375rem;
+  border-radius: 999px;
+  background: var(--color-red-100);
+  box-shadow: 0 0 0 3px rgb(255 255 254 / 0.8);
+}
+
+.impact-tape-input::-moz-range-thumb {
+  height: 3.25rem;
+  width: 0.375rem;
+  border: none;
+  border-radius: 999px;
+  background: var(--color-red-100);
+  box-shadow: 0 0 0 3px rgb(255 255 254 / 0.8);
+}
+
+.impact-tape-input:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-secondary-900);
+}
+
+.impact-quick {
+  min-height: 2.25rem;
+  cursor: pointer;
+  border-radius: 999px;
+  border: 1px solid var(--color-secondary-200);
+  background: color-mix(in srgb, var(--color-neutral-50) 75%, transparent);
+  padding: 0 0.875rem;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-secondary-700);
+  outline: none;
+  transition:
+    background-color 0.2s,
+    color 0.2s,
+    border-color 0.2s;
+}
+
+.impact-quick:hover {
+  border-color: var(--color-secondary-300);
+  color: var(--color-secondary-900);
+}
+
+.impact-quick[aria-pressed="true"] {
+  border-color: var(--color-secondary-900);
+  background: var(--color-secondary-900);
+  color: var(--color-neutral-50);
+}
+
+.impact-quick:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-primary-500);
+}
+
+/* People: a crowd of dots; lit ones are "in" (JS sets data-on) */
+.impact-crowd {
+  display: grid;
+  grid-template-columns: repeat(25, minmax(0, 1fr));
+  gap: 0.3rem;
+}
+
+.impact-crowd span {
+  aspect-ratio: 1;
+  border-radius: 999px 999px 40% 40%;
+  background: var(--color-secondary-200);
+  transform: scale(0.7);
+  transition:
+    background-color 0.3s,
+    transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition-delay: calc(var(--d, 0) * 8ms);
+}
+
+.impact-crowd span[data-on] {
+  background: var(--color-secondary-700);
+  transform: none;
+}
+
+.impact-crowd span:first-child[data-on] {
+  background: var(--color-red-100);
+}
+
+/* The jar. Its fill level comes from --level (0-100, impact.js) */
+.impact-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.impact-jar-wrap {
+  position: relative;
+  width: min(15rem, 70%);
+  padding-top: 1.1rem;
+}
+
+.impact-lid {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  height: 1.4rem;
+  width: 68%;
+  translate: -50% 0;
+  border-radius: 0.5rem 0.5rem 0.25rem 0.25rem;
+  background: repeating-linear-gradient(90deg, var(--color-secondary-700) 0 6px, var(--color-secondary-800) 6px 9px);
+  box-shadow: 0 4px 0 -1px var(--color-secondary-900);
+}
+
+.impact-jar {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  border-radius: 2.25rem 2.25rem 3rem 3rem / 1.5rem 1.5rem 3rem 3rem;
+  border: 3px solid color-mix(in srgb, var(--color-secondary-200) 90%, var(--color-neutral-50));
+  background: linear-gradient(90deg, rgb(255 255 254 / 0.5), rgb(255 255 254 / 0.15) 40%, rgb(255 255 254 / 0.35));
+  box-shadow:
+    inset 0 -14px 30px -18px rgb(33 43 28 / 0.35),
+    0 40px 40px -36px rgb(33 43 28 / 0.55);
+}
+
+.impact-fill {
+  position: absolute;
+  inset: auto 0 0;
+  height: calc(var(--level, 20) * 1%);
+  background: var(--fill-color);
+  color: var(--fill-color);
+  transition:
+    height 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.5s,
+    color 0.5s;
+  --fill-color: var(--color-primary-300);
+}
+
+.impact-fill[data-habit="bag"] {
+  --fill-color: var(--color-tertiary-300);
+}
+
+.impact-fill[data-habit="bike"] {
+  --fill-color: var(--color-secondary-300);
+}
+
+.impact-fill[data-habit="ac"] {
+  --fill-color: var(--color-yellow-200);
+}
+
+.impact-wave {
+  position: absolute;
+  bottom: calc(100% - 1px);
+  left: 0;
+  height: 0.75rem;
+  width: 200%;
+  animation: wave 4s linear infinite;
+}
+
+@keyframes wave {
+  to {
+    translate: -50% 0;
+  }
+}
+
+.impact-shine {
+  pointer-events: none;
+  position: absolute;
+  top: 8%;
+  left: 12%;
+  height: 62%;
+  width: 9%;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgb(255 255 254 / 0.75), rgb(255 255 254 / 0));
+}
+
+.impact-marks {
+  pointer-events: none;
+  position: absolute;
+  inset: 15% 0.6rem 12% auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.impact-marks i {
+  display: block;
+  height: 2px;
+  width: 0.75rem;
+  border-radius: 999px;
+  background: rgb(33 43 28 / 0.25);
+}
+
+/* Items dropping into the jar (impact.js) */
+.impact-drop {
+  position: absolute;
+  top: -12%;
+  height: 1.75rem;
+  width: 1.75rem;
+  color: var(--color-secondary-800);
+  animation: drop-in 1.1s cubic-bezier(0.5, 0, 0.75, 0) forwards;
+}
+
+@keyframes drop-in {
+  0% {
+    opacity: 0;
+    transform: translateY(0) rotate(0deg);
+  }
+  15% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(var(--fall)) rotate(var(--spin));
+  }
+}
+
+.impact-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  max-width: 82%;
+  translate: -50% -50%;
+  rotate: -3deg;
+  border-radius: 0.375rem;
+  border: 1px solid var(--color-secondary-200);
+  background: var(--color-neutral-300);
+  padding: 0.35rem 0.75rem;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  line-height: 1.15;
+  text-align: center;
+  color: var(--color-secondary-900);
+  box-shadow: 0 6px 14px -8px rgb(33 43 28 / 0.45);
+}
+
+/* Rolling digits (impact.js builds one column per digit) */
+.impact-number {
+  display: inline-flex;
+  font-family: var(--font-sans);
+  font-size: clamp(3rem, 7vw, 4.75rem);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-secondary-900);
+}
+
+.impact-digit {
+  display: inline-block;
+  height: 1em;
+  overflow: hidden;
+}
+
+.impact-digit > span {
+  display: flex;
+  flex-direction: column;
+  transform: translateY(calc(var(--n, 0) * -1em));
+  transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.impact-compare {
+  display: flex;
+  width: 100%;
+  max-width: 26rem;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: 1.25rem;
+  border: 1px dashed var(--color-secondary-300);
+  background: color-mix(in srgb, var(--color-neutral-50) 70%, transparent);
+  padding: 0.75rem 1rem;
+}
+
+.impact-compare[data-bump] {
+  animation: demo-pop 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-demo-pulse::after,
+  .impact-wave,
+  .give-bar-preview,
+  .impact-drop {
+    animation: none;
+  }
+
+  .quiz-card,
+  .act-day,
+  .impact-fill,
+  .impact-digit > span,
+  .give-bar-raised,
+  .give-bar-preview {
+    transition: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-rise {
+    animation: none;
+  }
+
+  [data-manifesto] .word {
+    opacity: 1;
+    transition: none;
+  }
+
+  .landing-card,
+  .landing-card:hover,
+  .landing-card:focus-visible {
+    transform: none;
+    transition: none;
+  }
+}
+
+/* ========================== ERROR PAGES =========================== */
+/* templates/errors/ (404, 403) with static/js/errors/errors.js */
+
+/* Soft light following the pointer (errors.js sets --glow-x / --glow-y) */
+.error-glow {
+  background: radial-gradient(
+    28rem circle at var(--glow-x, 70%) var(--glow-y, 40%),
+    color-mix(in srgb, var(--color-primary-200) 70%, transparent),
+    transparent 70%
+  );
+}
+
+/* The big 4 _ 4 / 4 _ 3; the middle digit is a growth ring. Transcity has no
+   numerals, so the digits use the body font */
+.error-digit {
+  font-family: var(--font-sans);
+  font-size: clamp(6rem, 19vw, 12.5rem);
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: var(--color-secondary-900);
+  user-select: none;
+}
+
+.error-ring {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: clamp(5.25rem, 16vw, 10.5rem);
+  aspect-ratio: 1;
+  flex-shrink: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.error-ring:active {
+  transform: scale(0.94);
+}
+
+.error-ring:focus-visible {
+  box-shadow:
+    0 0 0 3px var(--color-primary-50),
+    0 0 0 5px var(--color-secondary-600);
+}
+
+.error-ring > svg {
+  animation: error-ring-spin 90s linear infinite;
+}
+
+/* Each ring moves on its own when hovered: the 404 rings spread out, the 403 rings
+   pull tight around the lock */
+.error-ring-line {
+  transform-box: view-box;
+  transform-origin: 50% 50%;
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: calc(var(--ring-i, 0) * 40ms);
+}
+
+.error-ring:hover .error-ring-line,
+.error-ring:focus-visible .error-ring-line {
+  transform: scale(calc(1.08 - var(--ring-i, 0) * 0.012));
+}
+
+.error-garden--locked .error-ring:hover .error-ring-line,
+.error-garden--locked .error-ring:focus-visible .error-ring-line {
+  transform: scale(calc(0.9 + var(--ring-i, 0) * 0.012));
+}
+
+.error-ring-core {
+  position: absolute;
+  inset: 33%;
+  color: var(--color-secondary-500);
+  pointer-events: none;
+}
+
+.error-ring-core--lock {
+  color: var(--color-tertiary-700);
+}
+
+.error-ring-core--lock.is-shaking {
+  animation: error-lock-shake 0.55s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+
+.error-ripple {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  border: 2px solid var(--color-primary-300);
+  pointer-events: none;
+  animation: error-ripple 0.9s ease-out forwards;
+}
+
+.error-garden--locked .error-ripple {
+  border-color: var(--color-tertiary-400);
+}
+
+/* The ranger's speech bubble points up at the lock */
+.error-bubble {
+  position: relative;
+}
+
+.error-bubble::before {
+  content: "";
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  translate: -50% 0;
+  rotate: 45deg;
+  border-top: 1px solid var(--color-secondary-200);
+  border-left: 1px solid var(--color-secondary-200);
+  background: var(--color-neutral-50);
+}
+
+/* ---------- 404 garden ---------- */
+[data-garden] {
+  cursor: pointer;
+}
+
+/* Grass edge and earth along the bottom; sprouts stand just behind it */
+.error-soil::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 1;
+  height: 42%;
+  border-radius: 50% 50% 0 0 / 1.25rem 1.25rem 0 0;
+  background: linear-gradient(
+    180deg,
+    var(--color-primary-300) 0 6px,
+    var(--color-secondary-200) 6px,
+    var(--color-secondary-100)
+  );
+}
+
+.sprout {
+  position: absolute;
+  bottom: 34%;
+  width: 3.25rem;
+  height: 5.5rem;
+  translate: -50% 0;
+  transform-origin: 50% 100%;
+  scale: var(--sprout-scale, 1);
+  animation: error-sprout-grow 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  transition:
+    opacity 0.6s,
+    scale 0.6s;
+}
+
+.sprout > svg {
+  transform-origin: 50% 100%;
+  animation: error-sprout-sway 3.5s ease-in-out infinite alternate;
+}
+
+.sprout-leaf,
+.sprout-bloom {
+  transform-box: fill-box;
+  animation: error-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) 0.35s both;
+}
+
+.sprout-leaf--left {
+  transform-origin: 100% 100%;
+}
+
+.sprout-leaf--right {
+  transform-origin: 0 100%;
+}
+
+.sprout-bloom {
+  transform-origin: 50% 50%;
+  animation-delay: 0.55s;
+}
+
+.sprout.is-wilting {
+  opacity: 0;
+  scale: 1 0;
+}
+
+@keyframes error-ring-spin {
+  to {
+    rotate: 360deg;
+  }
+}
+
+@keyframes error-ripple {
+  from {
+    opacity: 0.9;
+    transform: scale(0.7);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.7);
+  }
+}
+
+@keyframes error-lock-shake {
+  0%,
+  100% {
+    rotate: 0deg;
+  }
+  20% {
+    rotate: -14deg;
+  }
+  40% {
+    rotate: 11deg;
+  }
+  60% {
+    rotate: -7deg;
+  }
+  80% {
+    rotate: 4deg;
+  }
+}
+
+@keyframes error-sprout-grow {
+  from {
+    scale: 0.4 0;
+  }
+}
+
+@keyframes error-sprout-sway {
+  from {
+    rotate: -3deg;
+  }
+  to {
+    rotate: 3deg;
+  }
+}
+
+@keyframes error-pop {
+  from {
+    transform: scale(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .error-ring > svg,
+  .sprout,
+  .sprout > svg,
+  .sprout-leaf,
+  .sprout-bloom,
+  .error-ring-core--lock.is-shaking {
+    animation: none;
+  }
+
+  .error-ring-line,
+  .error-ring {
+    transition: none;
+  }
+}
+/* ================================================================== */
+
+/* ============================ ACCOUNTS ============================ */
+/* templates/accounts/ (profile, password change, password reset) with static/js/accounts/ */
+
+/* Soft light on the profile cover that follows the pointer (profile.js sets --glow-x / --glow-y) */
+.profile-glow {
+  background: radial-gradient(
+    22rem circle at var(--glow-x, 75%) var(--glow-y, 25%),
+    color-mix(in srgb, var(--color-neutral-50) 70%, transparent),
+    transparent 70%
+  );
+}
+
+/* Completion ring around the avatar. The circle has pathLength="100", so
+   --progress (0-100) is exactly how much of it is drawn */
+.profile-ring-value {
+  stroke-dasharray: 100;
+  stroke-dashoffset: calc(100 - var(--progress, 0));
+  transition: stroke-dashoffset 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Tabs; the sliding underline is [data-tab-indicator], moved by profile.js */
+.profile-tab {
+  display: inline-flex;
+  min-height: 2.75rem;
+  flex-shrink: 0;
+  cursor: pointer;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 0.75rem 0.75rem 0 0;
+  padding: 0 1rem;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-neutral-800);
+  outline: none;
+  transition:
+    color 0.2s,
+    background-color 0.2s;
+}
+
+.profile-tab:hover {
+  color: var(--color-secondary-800);
+  background-color: var(--color-secondary-50);
+}
+
+.profile-tab[aria-selected="true"] {
+  color: var(--color-secondary-900);
+}
+
+.profile-tab:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--color-primary-500);
+}
+
+/* Stat tile with a light that follows the pointer (profile.js sets --spot-x / --spot-y) */
+.account-tile {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 1.5rem;
+  border: 1px solid var(--color-neutral-400);
+  background: var(--color-neutral-50);
+  outline: none;
+  transition:
+    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.3s,
+    box-shadow 0.4s;
+}
+
+.account-tile::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0;
+  background: radial-gradient(
+    14rem circle at var(--spot-x, 50%) var(--spot-y, 50%),
+    var(--color-primary-100),
+    transparent 70%
+  );
+  transition: opacity 0.3s;
+}
+
+.account-tile:hover,
+.account-tile:focus-visible {
+  transform: translateY(-3px);
+  border-color: var(--color-secondary-200);
+  box-shadow: 0 20px 40px -28px rgb(33 43 28 / 0.45);
+}
+
+.account-tile:hover::before,
+.account-tile:focus-visible::before {
+  opacity: 1;
+}
+
+.account-tile:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-primary-500);
+}
+
+/* Profile strength checklist */
+.profile-step-icon {
+  border-color: var(--color-neutral-500);
+  color: transparent;
+}
+
+.profile-step-label {
+  color: var(--color-secondary-800);
+}
+
+.profile-step[data-done="true"] .profile-step-icon {
+  border-color: var(--color-primary-500);
+  background: var(--color-primary-500);
+  color: var(--color-neutral-50);
+  transform: scale(1.05);
+}
+
+.profile-step[data-done="true"] .profile-step-label {
+  color: var(--color-neutral-700);
+  text-decoration: line-through;
+}
+
+/* Shortcut links in the profile side column */
+.profile-shortcut {
+  display: flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: 0.75rem;
+  padding: 0 0.5rem;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-secondary-800);
+  outline: none;
+  transition: background-color 0.2s;
+}
+
+.profile-shortcut:hover {
+  background-color: var(--color-primary-100);
+}
+
+.profile-shortcut:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-primary-500);
+}
+
+/* Unsaved-changes save bar (profile.js sets data-dirty on the form) */
+[data-profile-form][data-dirty="true"] [data-save-bar] {
+  position: sticky;
+  bottom: 1rem;
+  border-color: var(--color-secondary-300);
+  animation: account-nudge 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+[data-profile-form][data-dirty="true"] [data-save-dot] {
+  background-color: var(--color-orange-100);
+}
+
+/* Password strength bars (password.js sets data-level 1-4 on each lit bar) */
+.password-bar {
+  height: 0.375rem;
+  border-radius: 999px;
+  background: var(--color-neutral-400);
+  transition:
+    background-color 0.3s,
+    transform 0.3s;
+}
+
+.password-bar[data-level="1"] {
+  background: var(--color-tertiary-600);
+}
+
+.password-bar[data-level="2"] {
+  background: var(--color-orange-100);
+}
+
+.password-bar[data-level="3"] {
+  background: var(--color-primary-300);
+}
+
+.password-bar[data-level="4"] {
+  background: var(--color-secondary-500);
+}
+
+.password-bar[data-level] {
+  transform: scaleY(1.25);
+}
+
+/* Password requirement checklist */
+.password-rule {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-neutral-800);
+  transition: color 0.2s;
+}
+
+.password-rule-icon {
+  display: flex;
+  height: 1.125rem;
+  width: 1.125rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid var(--color-neutral-500);
+  color: transparent;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.password-rule[data-met="true"] {
+  color: var(--color-secondary-800);
+}
+
+.password-rule[data-met="true"] .password-rule-icon {
+  border-color: var(--color-primary-500);
+  background: var(--color-primary-500);
+  color: var(--color-neutral-50);
+  transform: scale(1.1);
+}
+
+/* "All done" check on the success pages (templates/accounts/_success_check.html):
+   the ring draws in, then the tick, then a few leaves pop out around it */
+.account-check-ring {
+  stroke: var(--color-primary-500);
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+  animation: account-draw 0.7s cubic-bezier(0.65, 0, 0.35, 1) 0.2s forwards;
+}
+
+.account-check-tick {
+  stroke: var(--color-secondary-700);
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: account-draw 0.45s cubic-bezier(0.65, 0, 0.35, 1) 0.8s forwards;
+}
+
+.account-check-glow {
+  animation: account-glow 2.8s ease-in-out 1.2s infinite;
+}
+
+.account-check-leaf,
+.recovery-step-done {
+  animation: account-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation-delay: calc(1.1s + var(--i, 0) * 90ms);
+}
+
+.recovery-step-done {
+  animation-delay: calc(var(--i, 0) * 120ms + 0.3s);
+}
+
+@keyframes account-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes account-glow {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.18);
+    opacity: 0.35;
+  }
+}
+
+@keyframes account-pop {
+  from {
+    opacity: 0;
+    transform: scale(0);
+  }
+}
+
+@keyframes account-nudge {
+  0% {
+    transform: translateY(6px);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .profile-ring-value,
+  .account-tile,
+  .account-tile:hover,
+  .account-tile:focus-visible,
+  .password-bar,
+  .password-rule-icon {
+    transform: none;
+    transition: none;
+  }
+
+  [data-profile-form][data-dirty="true"] [data-save-bar] {
+    animation: none;
+  }
+
+  .account-check-ring,
+  .account-check-tick {
+    stroke-dashoffset: 0;
+    animation: none;
+  }
+
+  .account-check-glow,
+  .account-check-leaf,
+  .recovery-step-done {
+    animation: none;
+  }
+}
+/* ================================================================== */
+
+/* ---------- Profile picture and ticket attachments ---------- */
+
+/* Dims the photo outside the circle that will become the avatar. The stage clips the
+   oversized shadow with overflow-hidden. */
+.avatar-mask {
+  box-shadow: 0 0 0 999px rgba(33, 43, 28, 0.58);
+}
+
+.avatar-pop {
+  animation: avatar-pop 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes avatar-pop {
+  0% {
+    transform: scale(0.88);
+  }
+  55% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .avatar-pop {
+    animation: none;
+  }
+}
+
+/* A ticket attachment tile that was just added: pops in and glows briefly */
+.attach-tile-in {
+  animation: attach-tile-in 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes attach-tile-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.85);
+    box-shadow: 0 0 0 0 rgba(136, 157, 87, 0.6);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.03);
+    box-shadow: 0 0 0 6px rgba(136, 157, 87, 0.25);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(136, 157, 87, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .attach-tile-in {
+    animation: none;
+  }
+}
+
+/* ===================== FEEDS & DONATIONS ========================== */
+/* apps/feeds/templates/, apps/donations/templates/ with static/js/feeds/ and static/js/donations/ */
+
+/* Soft green and pink wash behind the top of a page; it fades out into the page background.
+   Put it as the first child of a `relative isolate` wrapper */
+.page-aura {
+  position: absolute;
+  inset: 0 0 auto 0;
+  z-index: -1;
+  height: 34rem;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      46rem 22rem at 88% 0%,
+      color-mix(in srgb, var(--color-primary-200) 90%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      38rem 20rem at 4% 10%,
+      color-mix(in srgb, var(--color-tertiary-200) 85%, transparent),
+      transparent 70%
+    );
+  mask-image: linear-gradient(180deg, #000 50%, transparent 100%);
+}
+
+/* Items of a list reveal one after another (each sets --i = its place) */
+.scroll-reveal {
+  transition-delay: calc(min(var(--i, 0), 4) * 70ms);
+}
+
+/* Progress bar (components/progress): grows in on load, and the striped part is the
+   "after your donation" preview */
+@keyframes progress-grow {
+  from {
+    width: 0;
+  }
+}
+
+.progress-fill {
+  animation: progress-grow 1.1s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.progress-preview {
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--color-primary-300) 0 6px,
+    color-mix(in srgb, var(--color-primary-300) 45%, transparent) 6px 12px
+  );
+  background-size: 17px 17px;
+  animation: stripes 1s linear infinite;
+}
+
+/* Campaign progress ring. The circle has pathLength="100", so --progress (0-100) is
+   exactly how much of it is drawn */
+@keyframes ring-grow {
+  from {
+    stroke-dashoffset: 100;
+  }
+}
+
+.progress-ring-value {
+  stroke-dasharray: 100;
+  stroke-dashoffset: calc(100 - var(--progress, 0));
+  animation: ring-grow 1.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Feed posts */
+.post-card {
+  transition:
+    border-color 0.3s,
+    box-shadow 0.4s;
+}
+
+.post-card:hover {
+  border-color: var(--color-neutral-500);
+  box-shadow: 0 24px 44px -32px rgb(33 43 28 / 0.45);
+}
+
+/* Landing on /feed/#post-12 (after liking or deleting) lights the post up for a moment */
+.post-card:target {
+  scroll-margin-top: 8rem;
+  animation: post-target 1.8s ease-out;
+}
+
+@keyframes post-target {
+  0% {
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary-300) 80%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 4px transparent;
+  }
+}
+
+.post-like[aria-pressed="true"] {
+  color: var(--color-tertiary-800);
+  background: color-mix(in srgb, var(--color-tertiary-300) 35%, transparent);
+}
+
+.post-like[aria-pressed="true"] svg {
+  fill: var(--color-tertiary-500);
+  stroke: var(--color-tertiary-700);
+}
+
+.post-like[data-bump] svg {
+  animation: badge-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Big heart on double-tap (post detail) */
+.post-heart {
+  pointer-events: none;
+  position: absolute;
+  inset: 50% auto auto 50%;
+  color: var(--color-tertiary-400);
+  opacity: 0;
+  translate: -50% -50%;
+}
+
+.post-body[data-popping] .post-heart {
+  animation: heart-pop 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Campaign banner: a tinted wash with a few growth rings (data-tone picks the colour) */
+.campaign-media {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  color: var(--color-secondary-700);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-200),
+    var(--color-primary-100) 60%,
+    var(--color-primary-50)
+  );
+}
+
+.campaign-media[data-tone="secondary"] {
+  background: linear-gradient(
+    135deg,
+    var(--color-secondary-200),
+    var(--color-secondary-100) 60%,
+    var(--color-secondary-50)
+  );
+}
+
+.campaign-media[data-tone="tertiary"] {
+  color: var(--color-tertiary-800);
+  background: linear-gradient(
+    135deg,
+    var(--color-tertiary-300),
+    var(--color-tertiary-200) 55%,
+    var(--color-tertiary-100)
+  );
+}
+
+.campaign-media::before,
+.campaign-media::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  aspect-ratio: 1;
+  border-radius: 999px;
+  border: 1.5px solid color-mix(in srgb, currentColor 22%, transparent);
+}
+
+.campaign-media::before {
+  width: 17rem;
+  top: -7rem;
+  right: -5rem;
+}
+
+.campaign-media::after {
+  width: 10rem;
+  top: -2.5rem;
+  right: 0.5rem;
+}
+
+/* ============================ ARTICLES ============================ */
+/* apps/articles/templates/articles/ with static/js/articles/ */
+
+/* Reading progress bar at the very top (detail.js sets --read, 0-1) */
+.article-read-progress {
+  transform: scaleX(var(--read, 0));
+  transition: transform 0.1s linear;
+}
+
+/* Article body: plain paragraphs from |linebreaks. data-size (sm, md, lg) is the
+   reader's text size choice */
+.article-prose {
+  --prose-size: 1.0625rem;
+  font-family: var(--font-sans);
+  font-size: var(--prose-size);
+  line-height: 1.85;
+  color: var(--color-neutral-900);
+  overflow-wrap: break-word;
+}
+
+.article-prose[data-size="sm"] {
+  --prose-size: 0.9375rem;
+}
+
+.article-prose[data-size="lg"] {
+  --prose-size: 1.25rem;
+}
+
+.article-prose p + p {
+  margin-top: 1.3em;
+}
+
+.article-prose > p:first-child::first-letter {
+  float: left;
+  margin: 0.08em 0.12em 0 0;
+  font-family: var(--font-display);
+  font-size: 3.4em;
+  line-height: 0.9;
+  color: var(--color-secondary-700);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .article-read-progress {
+    transition: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress-fill,
+  .progress-preview,
+  .progress-ring-value,
+  .post-card:target,
+  .post-like[data-bump] svg,
+  .post-body[data-popping] .post-heart {
+    animation: none;
+  }
+
+  .post-card {
+    transition: none;
+  }
+}
+
+/* ===================== BADGES & NOTIFICATIONS ===================== */
+/* components/badge_chip, components/user_name, the profile badge collection,
+   the navbar bell (static/js/notifications/bell.js) and apps/notifications/ */
+
+/* A challenge badge as a pill; data-tone is the badge's colour */
+.badge-chip {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  border: 1px solid var(--color-primary-300);
+  border-radius: 9999px;
+  background: var(--color-primary-100);
+  color: var(--color-secondary-800);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.badge-chip[data-tone="secondary"] {
+  border-color: var(--color-secondary-700);
+  background: var(--color-secondary-700);
+  color: var(--color-neutral-50);
+}
+
+.badge-chip[data-tone="tertiary"] {
+  border-color: var(--color-tertiary-300);
+  background: var(--color-tertiary-100);
+  color: var(--color-tertiary-800);
+}
+
+.badge-chip[data-tone="gold"] {
+  border-color: var(--color-yellow-200);
+  background: color-mix(in srgb, var(--color-yellow-100) 55%, var(--color-neutral-50));
+  color: var(--color-secondary-900);
+}
+
+.badge-chip[data-tone="gold"] svg {
+  color: var(--color-orange-100);
+}
+
+/* The round medal used in badge collections. Locked medals are greyed out */
+.badge-medal {
+  --medal-from: var(--color-primary-200);
+  --medal-to: var(--color-primary-400);
+  --medal-ink: var(--color-secondary-800);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background:
+    radial-gradient(circle at 30% 25%, rgb(255 255 255 / 0.75), transparent 45%),
+    linear-gradient(145deg, var(--medal-from), var(--medal-to));
+  color: var(--medal-ink);
+  box-shadow:
+    inset 0 -3px 0 rgb(0 0 0 / 0.08),
+    0 8px 20px -10px color-mix(in srgb, var(--medal-to) 80%, transparent);
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.badge-medal[data-tone="secondary"] {
+  --medal-from: var(--color-secondary-300);
+  --medal-to: var(--color-secondary-800);
+  --medal-ink: var(--color-neutral-50);
+}
+
+.badge-medal[data-tone="tertiary"] {
+  --medal-from: var(--color-tertiary-200);
+  --medal-to: var(--color-tertiary-500);
+  --medal-ink: var(--color-tertiary-900);
+}
+
+.badge-medal[data-tone="gold"] {
+  --medal-from: var(--color-yellow-100);
+  --medal-to: var(--color-orange-100);
+  --medal-ink: var(--color-secondary-900);
+}
+
+.badge-medal[data-locked] {
+  --medal-from: var(--color-neutral-300);
+  --medal-to: var(--color-neutral-500);
+  --medal-ink: var(--color-neutral-800);
+  box-shadow: inset 0 -3px 0 rgb(0 0 0 / 0.05);
+}
+
+.group:hover .badge-medal:not([data-locked]) {
+  transform: rotate(-8deg) scale(1.06);
+}
+
+/* Bell popover: opens below the bell on desktop, as a sheet under the navbar on
+   phones */
+.notif-panel {
+  transform-origin: top right;
+  transition:
+    opacity 0.2s ease,
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.notif-panel[data-open="false"] {
+  opacity: 0;
+  transform: translateY(-6px) scale(0.98);
+  pointer-events: none;
+}
+
+@keyframes bell-ring {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  20% {
+    transform: rotate(14deg);
+  }
+  40% {
+    transform: rotate(-12deg);
+  }
+  60% {
+    transform: rotate(8deg);
+  }
+  80% {
+    transform: rotate(-4deg);
+  }
+}
+
+[data-bell][data-ringing] svg {
+  animation: bell-ring 0.8s ease;
+  transform-origin: 50% 10%;
+}
+
+/* Photo carousel on feed posts (static/js/feeds/feed.js) */
+.post-carousel {
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+}
+
+.post-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.post-carousel > * {
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
+}
+
+.carousel-dot[aria-current="true"] {
+  width: 1rem;
+  background: var(--color-neutral-50);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .badge-medal,
+  .notif-panel {
+    transition: none;
+  }
+
+  [data-bell][data-ringing] svg {
+    animation: none;
+  }
+}

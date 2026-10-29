@@ -1,25 +1,19 @@
 from functools import wraps
 
-from django.contrib import messages
-from django.shortcuts import redirect
+from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 
 from apps.core.permissions import is_admin
 
 
 def admin_required(view_func):
-    """
-    Restrict a view to Admin users.
-    """
+    """Function-based views: anonymous -> login (with next), non-admin -> 403."""
 
     @wraps(view_func)
+    @login_required
     def wrapper(request, *args, **kwargs):
-        if not request.user.is_authenticated:
-            return redirect("login")
-
         if not is_admin(request.user):
-            messages.error(request, "You do not have permission to access this page.")
-            return redirect("home")
-
+            raise PermissionDenied
         return view_func(request, *args, **kwargs)
 
     return wrapper

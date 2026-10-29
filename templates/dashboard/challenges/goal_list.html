@@ -1,0 +1,74 @@
+{% extends "dashboard/base.html" %}
+{% load static lucide component_tags ui_extras %}
+
+{% block title %}Target komunitas{% endblock %}
+
+{% block content %}
+<div class="flex flex-col gap-8">
+  <header class="flex flex-col gap-3">
+    <nav aria-label="Navigasi">
+      <ol class="flex flex-wrap items-center gap-1.5 font-sans text-sm">
+        <li><a href="{{ dashboard_home_url }}" class="rounded-md px-1 py-0.5 text-neutral-800 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">Dashboard</a></li>
+        <li aria-hidden="true" class="text-neutral-700">{% lucide "chevron-right" class="w-4 h-4" %}</li>
+        <li><a href="{{ back_url }}" class="rounded-md px-1 py-0.5 text-neutral-800 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">Challenge</a></li>
+        <li aria-hidden="true" class="text-neutral-700">{% lucide "chevron-right" class="w-4 h-4" %}</li>
+        <li><span aria-current="page" class="px-1 font-semibold text-primary-800">Target komunitas</span></li>
+      </ol>
+    </nav>
+    <div class="flex flex-wrap items-end justify-between gap-3">
+      <div class="flex flex-col gap-1">
+        <h1 class="font-display text-h3 leading-tight text-foreground sm:text-h2">Target komunitas</h1>
+        <p class="max-w-2xl font-sans text-b3 text-neutral-900">Satu target bersama untuk semua orang, tampil di beranda dan halaman challenge. Progres dihitung dari semua aktivitas selama periodenya, sama seperti target challenge.</p>
+      </div>
+      {% url 'dashboard:admin_goal_create' as create_url %}
+      {% component "button" text="Target baru" variant="primary" size="sm" icon_left="circle-plus" href=create_url / %}
+    </div>
+  </header>
+
+  {% if goals %}
+  <ul class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+    {% for item in goals %}
+    <li class="flex flex-col gap-4 rounded-2xl border border-neutral-400 bg-neutral-50 p-5">
+      <div class="flex items-start gap-3">
+        <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-100 text-primary-700" aria-hidden="true">{% lucide item.goal.goal_icon class="w-5 h-5" %}</span>
+        <div class="min-w-0 flex-1">
+          <div class="flex flex-wrap items-center gap-2">
+            <h2 class="font-sans text-base font-semibold text-foreground">{{ item.goal.title }}</h2>
+            {% include "challenges/_status_badge.html" with status=item.goal.status %}
+          </div>
+          <p class="mt-0.5 font-sans text-xs text-neutral-800">{{ item.goal.get_goal_type_display }} · {{ item.goal.start_date|date:"j M" }} – {{ item.goal.end_date|date:"j M Y" }}</p>
+        </div>
+      </div>
+      <div>
+        {% component "progress" value=item.percent label=item.goal.title / %}
+        <p class="mt-2 font-sans text-sm text-neutral-900"><strong class="text-secondary-900">{% if item.is_money %}Rp {% endif %}{{ item.current|rupiah }}</strong> dari {% if item.is_money %}Rp {% endif %}{{ item.target|rupiah }} ({{ item.percent }}%)</p>
+      </div>
+      <div class="mt-auto flex items-center justify-end gap-2 border-t border-neutral-400/60 pt-3">
+        {% url 'dashboard:admin_goal_update' item.goal.pk as edit_url %}
+        {% component "button" text="Edit" variant="neutral" size="xs" icon_left="pencil" href=edit_url / %}
+        <form method="post" action="{% url 'dashboard:admin_goal_delete' item.goal.pk %}">
+          {% csrf_token %}
+          {% component "button" type="submit" text="Hapus" variant="danger-ghost" size="xs" icon_left="trash-2" / %}
+        </form>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+    {% component "empty_state" icon="users-round" title="Belum ada target komunitas" description="Pasang target bersama, misalnya 2.000 artikel dibaca bulan ini, dan seluruh komunitas bisa melihat progresnya." %}
+      {% fill "actions" %}
+        {% component "button" text="Buat target pertama" variant="primary" size="md" icon_left="circle-plus" href=create_url / %}
+      {% endfill %}
+    {% endcomponent %}
+  {% endif %}
+</div>
+
+{% include "accounts/_messages.html" %}
+{% endblock %}
+
+{% block scripts %}
+<script type="module">
+  import { showMessagesAsToasts } from "{% static 'js/accounts/shared.js' %}";
+  showMessagesAsToasts();
+</script>
+{% endblock %}

@@ -1,0 +1,132 @@
+{% extends "dashboard/base.html" %}
+{% load static lucide component_tags ui_extras %}
+
+{% block title %}{{ member.display_name }}{% endblock %}
+
+{% block content %}
+<div class="flex flex-col gap-8">
+  <header class="flex flex-col gap-4">
+    <nav aria-label="Navigasi">
+      <ol class="flex flex-wrap items-center gap-1.5 font-sans text-sm">
+        <li><a href="{{ dashboard_home_url }}" class="rounded-md px-1 py-0.5 text-neutral-800 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">Dashboard</a></li>
+        <li aria-hidden="true" class="text-neutral-700">{% lucide "chevron-right" class="w-4 h-4" %}</li>
+        <li><a href="{% url 'dashboard:admin_user_list' %}" class="rounded-md px-1 py-0.5 text-neutral-800 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">Pengguna</a></li>
+        <li aria-hidden="true" class="text-neutral-700">{% lucide "chevron-right" class="w-4 h-4" %}</li>
+        <li><span aria-current="page" class="px-1 font-semibold text-primary-800">@{{ member.username }}</span></li>
+      </ol>
+    </nav>
+
+    <div class="flex flex-col gap-5 rounded-3xl border border-neutral-400 bg-neutral-50 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+      <div class="flex min-w-0 items-center gap-4">
+        {% component "avatar" src=member.avatar_url name=member.display_name size="xl" / %}
+        <div class="min-w-0">
+          <h1 class="flex flex-wrap items-center gap-2 font-display text-h4 leading-tight text-foreground sm:text-h3">
+            {{ member.display_name }}
+            {% if member.is_admin %}{% component "badge" text="Admin" variant="secondary" size="sm" icon="shield-check" / %}{% else %}{% component "badge" text="Pengguna" variant="neutral" size="sm" icon="user-round" / %}{% endif %}
+            {% if not member.is_active %}{% component "badge" text="Nonaktif" variant="outline" size="sm" icon="circle-slash" / %}{% endif %}
+          </h1>
+          <p class="mt-1 truncate font-sans text-sm text-neutral-900">@{{ member.username }} · <a href="mailto:{{ member.email }}" class="text-secondary-700 hover:underline">{{ member.email }}</a></p>
+          <p class="mt-1 font-sans text-xs text-neutral-800">
+            Gabung {{ member.date_joined|date:"j F Y" }} ·
+            {% if member.last_login %}terakhir masuk {{ member.last_login|timesince }} lalu{% else %}belum pernah masuk{% endif %}
+          </p>
+          {% if member.bio %}<p class="mt-2 max-w-xl font-sans text-sm text-neutral-900">{{ member.bio }}</p>{% endif %}
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2 sm:justify-end">
+        {% if guard %}
+        <p class="flex items-center gap-2 rounded-xl bg-neutral-200 px-3 py-2 font-sans text-xs text-neutral-900">{% lucide "lock" class="w-4 h-4 shrink-0" %}{{ guard }}</p>
+        {% else %}
+        {% include "dashboard/users/_actions.html" %}
+        {% endif %}
+      </div>
+    </div>
+  </header>
+
+  <section aria-labelledby="impactTitle" class="flex flex-col gap-4">
+    <h2 id="impactTitle" class="flex items-center gap-2 font-sans text-lg font-semibold text-foreground">
+      <span class="text-secondary-500">{% lucide "sprout" class="w-5 h-5" %}</span>
+      Aktivitas
+    </h2>
+    <dl class="grid grid-cols-2 gap-3 lg:grid-cols-4 sm:gap-4">
+      {% for stat in stats %}
+      {% include "dashboard/_metric.html" with icon=stat.icon label=stat.label value=stat.value prefix=stat.prefix hint=stat.hint tone=stat.tone %}
+      {% endfor %}
+    </dl>
+  </section>
+
+  <div class="grid grid-cols-1 gap-6 xl:grid-cols-3">
+    <section aria-labelledby="postsTitle" class="flex flex-col gap-3">
+      <h2 id="postsTitle" class="font-sans text-base font-semibold text-foreground">Postingan terbaru</h2>
+      {% if recent_posts %}
+      <ul class="flex flex-col gap-2">
+        {% for post in recent_posts %}
+        <li>
+          <a href="{% url 'feeds:detail' post.pk %}" target="_blank" rel="noopener" class="block rounded-2xl border border-neutral-400 bg-neutral-50 p-4 outline-none transition-all hover:border-neutral-500 hover:shadow-sm focus-visible:ring-2 focus-visible:ring-primary-500">
+            <p class="line-clamp-2 font-sans text-sm text-foreground">{{ post.content }}</p>
+            <p class="mt-2 flex items-center gap-3 font-sans text-xs text-neutral-800">
+              <span>{{ post.created_at|date:"j M Y" }}</span>
+              <span class="inline-flex items-center gap-1">{% lucide "heart" class="w-3.5 h-3.5" %}{{ post.like_count }}</span>
+              <span class="inline-flex items-center gap-1">{% lucide "message-circle" class="w-3.5 h-3.5" %}{{ post.comment_count }}</span>
+            </p>
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="rounded-2xl border border-dashed border-neutral-500 p-4 font-sans text-sm text-neutral-800">Belum ada postingan.</p>
+      {% endif %}
+    </section>
+
+    <section aria-labelledby="articlesTitle" class="flex flex-col gap-3">
+      <h2 id="articlesTitle" class="font-sans text-base font-semibold text-foreground">Artikel</h2>
+      {% if recent_articles %}
+      <ul class="flex flex-col gap-2">
+        {% for article in recent_articles %}
+        <li>
+          <a href="{% url 'articles:html-detail' article.slug %}" target="_blank" rel="noopener" class="flex flex-col gap-2 rounded-2xl border border-neutral-400 bg-neutral-50 p-4 outline-none transition-all hover:border-neutral-500 hover:shadow-sm focus-visible:ring-2 focus-visible:ring-primary-500">
+            <p class="line-clamp-2 font-sans text-sm font-semibold text-foreground">{{ article.title }}</p>
+            <div class="flex flex-wrap items-center gap-2">
+              {% include "articles/partials/status_badge.html" with status=article.status size="sm" %}
+              <span class="font-sans text-xs text-neutral-800">{{ article.updated_at|date:"j M Y" }}</span>
+            </div>
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="rounded-2xl border border-dashed border-neutral-500 p-4 font-sans text-sm text-neutral-800">Belum menulis artikel.</p>
+      {% endif %}
+    </section>
+
+    <section aria-labelledby="donationsTitle" class="flex flex-col gap-3">
+      <h2 id="donationsTitle" class="font-sans text-base font-semibold text-foreground">Donasi</h2>
+      {% if recent_donations %}
+      <ul class="flex flex-col gap-2">
+        {% for donation in recent_donations %}
+        <li>
+          <a href="{% url 'donations:verify' donation.pk %}" class="flex items-center justify-between gap-3 rounded-2xl border border-neutral-400 bg-neutral-50 p-4 outline-none transition-all hover:border-neutral-500 hover:shadow-sm focus-visible:ring-2 focus-visible:ring-primary-500">
+            <span class="min-w-0">
+              <span class="block truncate font-sans text-sm font-semibold text-foreground">{{ donation.campaign.title }}</span>
+              <span class="mt-1 block">{% include "donations/admin/_donation_status.html" with status=donation.status %}</span>
+            </span>
+            <span class="shrink-0 font-sans text-sm font-bold tabular-nums text-secondary-900">Rp {{ donation.amount|rupiah }}</span>
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="rounded-2xl border border-dashed border-neutral-500 p-4 font-sans text-sm text-neutral-800">Belum pernah berdonasi.</p>
+      {% endif %}
+    </section>
+  </div>
+</div>
+
+{% include "dashboard/_confirm_modal.html" %}
+{% include "accounts/_messages.html" %}
+{% endblock %}
+
+{% block scripts %}
+<script type="module" src="{% static 'js/dashboard/admin_list.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,29 @@
+<div
+  {% if id %}id="{{ id }}"{% endif %}
+  role="progressbar"
+  aria-label="{{ label }}"
+  aria-valuemin="0"
+  aria-valuemax="100"
+  aria-valuenow="{{ value_int }}"
+  class="{{ class_ }}"
+  data-progress
+  data-value="{{ width }}"
+>
+  <div
+    class="relative overflow-hidden rounded-full bg-secondary-100
+      {% if size == 'sm' %}h-1.5{% elif size == 'lg' %}h-3.5{% else %}h-2.5{% endif %}"
+  >
+    <div
+      data-progress-fill
+      class="progress-fill absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-secondary-300 to-primary-500 transition-[width] duration-700 ease-out"
+      style="width: {{ width }}%"
+    ></div>
+    {% if with_preview %}
+    <div
+      data-progress-preview
+      class="progress-preview absolute inset-y-0 rounded-full transition-[width,left] duration-500 ease-out"
+      style="left: {{ width }}%; width: {{ preview_width }}%"
+    ></div>
+    {% endif %}
+  </div>
+</div>

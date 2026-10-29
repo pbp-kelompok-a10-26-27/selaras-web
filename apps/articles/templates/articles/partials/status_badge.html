@@ -1,0 +1,5 @@
+{% load component_tags %}
+{% if status == "PUBLISHED" %}{% component "badge" text="Terbit" variant="secondary" size=size|default:"md" icon="globe" / %}
+{% elif status == "PENDING" %}{% component "badge" text="Menunggu review" variant="warning" size=size|default:"md" icon="hourglass" / %}
+{% elif status == "REJECTED" %}{% component "badge" text="Perlu revisi" variant="tertiary" size=size|default:"md" icon="message-square-warning" / %}
+{% else %}{% component "badge" text="Draf" variant="outline" size=size|default:"md" icon="file-pen" / %}{% endif %}

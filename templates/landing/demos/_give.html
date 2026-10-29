@@ -1,0 +1,73 @@
+{% load lucide %}
+{# Berdonasi demo: pick an amount and watch an example campaign fill up (static/js/landing/demos.js). No money moves. #}
+<div
+  class="landing-demo mt-8"
+  data-demo="give"
+  data-target="{{ give_demo.target }}"
+  data-raised="{{ give_demo.raised }}"
+  data-donors="{{ give_demo.donors }}"
+  data-per-seedling="{{ give_demo.per_seedling }}"
+  role="group"
+  aria-labelledby="demoGiveTitle"
+>
+  {% include "landing/demos/_head.html" with title="Simulasi donasi" title_id="demoGiveTitle" %}
+
+  <div class="mt-5 grid gap-6 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+    {# Example campaign #}
+    <div class="rounded-2xl border border-secondary-200/80 bg-neutral-50/80 p-5">
+      <p class="inline-flex items-center gap-1.5 rounded-full bg-secondary-100 px-2.5 py-0.5 font-sans text-[0.6875rem] font-semibold text-secondary-700">{% lucide "trees" class="w-3.5 h-3.5" %} Contoh kampanye</p>
+      <p class="mt-3 font-sans text-base font-semibold leading-snug text-secondary-900">{{ give_demo.title }}</p>
+
+      <div class="give-bar mt-4" role="progressbar" aria-label="Dana terkumpul" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ give_demo.percent }}" data-give-bar>
+        <span class="give-bar-raised" data-give-fill></span>
+        <span class="give-bar-preview" data-give-preview></span>
+      </div>
+      <p class="mt-2 flex flex-wrap items-baseline justify-between gap-x-3 font-sans text-xs text-secondary-700">
+        <span><strong class="text-sm font-semibold tabular-nums text-secondary-900" data-give-raised>{{ give_demo.raised_label }}</strong> dari {{ give_demo.target_label }}</span>
+        <span><span class="tabular-nums" data-give-donors>{{ give_demo.donors }}</span> donatur · <span class="tabular-nums" data-give-percent>{{ give_demo.percent }}</span>%</span>
+      </p>
+
+      <div class="mt-5 rounded-xl bg-primary-100/80 p-3">
+        <p class="font-sans text-xs text-secondary-800">Donasimu menanam <strong class="font-semibold text-secondary-900"><span class="tabular-nums" data-give-seedlings>5</span> bibit mangrove</strong></p>
+        <div class="mt-2 flex min-h-7 flex-wrap items-center gap-1 text-primary-700" aria-hidden="true" data-give-seeds>
+          {% for i in "0123456789" %}<span class="give-seed" data-give-seed>{% lucide "sprout" class="w-5 h-5" %}</span>{% endfor %}
+          <span class="font-sans text-xs font-semibold text-secondary-700" data-give-more></span>
+        </div>
+      </div>
+    </div>
+
+    {# Amount #}
+    <form class="flex flex-col gap-4" data-give-form>
+      <fieldset>
+        <legend class="mb-2 font-sans text-sm font-semibold text-secondary-900">Pilih nominal</legend>
+        <div class="grid grid-cols-4 gap-1.5">
+          {% for amount, label in give_demo.amounts %}
+          <label class="demo-choice min-h-11 px-1 text-xs has-checked:border-secondary-700 has-checked:bg-secondary-900 has-checked:text-neutral-50 sm:text-sm">
+            <input type="radio" name="amount" value="{{ amount }}" class="sr-only" {% if forloop.counter == 2 %}checked{% endif %} />{{ label }}
+          </label>
+          {% endfor %}
+        </div>
+      </fieldset>
+      <div>
+        <div class="flex items-baseline justify-between gap-2 font-sans text-sm">
+          <label for="giveAmount" class="text-secondary-800">Atau geser nominalnya</label>
+          <output for="giveAmount" class="font-semibold tabular-nums text-secondary-900" data-give-amount>Rp 25.000</output>
+        </div>
+        <input id="giveAmount" type="range" min="5000" max="500000" step="5000" value="25000" class="landing-range mt-1 w-full cursor-pointer" />
+      </div>
+      <button type="submit" class="demo-primary min-h-12" data-give-submit>{% lucide "hand-heart" class="w-5 h-5" %} <span data-give-submit-text>Donasi Rp 25.000</span></button>
+      <p class="flex items-start gap-2 font-sans text-xs text-secondary-700">{% lucide "lock" class="mt-0.5 w-3.5 h-3.5 shrink-0" %} Ini hanya simulasi. Tidak ada uang yang ditarik.</p>
+    </form>
+  </div>
+
+  <div class="give-receipt" data-give-receipt hidden aria-live="polite">
+    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-300 text-secondary-900">{% lucide "party-popper" class="w-5 h-5" %}</span>
+    <div class="min-w-0 flex-1">
+      <p class="font-sans text-sm font-semibold text-neutral-50" data-give-receipt-title>Terima kasih!</p>
+      <p class="font-sans text-xs text-secondary-200" data-give-receipt-text></p>
+    </div>
+    {% if urls.donations %}
+    <a href="{{ urls.donations }}" class="shrink-0 rounded-lg px-2 py-1 font-sans text-xs font-semibold text-primary-300 underline-offset-4 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-primary-300">Donasi sungguhan</a>
+    {% endif %}
+  </div>
+</div>

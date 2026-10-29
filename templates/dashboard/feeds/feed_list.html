@@ -1,0 +1,137 @@
+{% extends "dashboard/base.html" %}
+{% load static lucide component_tags %}
+
+{% block title %}Feeds{% endblock %}
+
+{% block content %}
+<div class="flex flex-col gap-8" id="adminFeeds">
+  <header class="flex flex-col gap-3">
+    <nav aria-label="Navigasi">
+      <ol class="flex flex-wrap items-center gap-1.5 font-sans text-sm">
+        <li><a href="{{ dashboard_home_url }}" class="rounded-md px-1 py-0.5 text-neutral-800 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">Dashboard</a></li>
+        <li aria-hidden="true" class="text-neutral-700">{% lucide "chevron-right" class="w-4 h-4" %}</li>
+        <li><span aria-current="page" class="px-1 font-semibold text-primary-800">Feeds</span></li>
+      </ol>
+    </nav>
+    <div class="flex flex-wrap items-end justify-between gap-3">
+      <div class="flex flex-col gap-1">
+        <h1 class="font-display text-h3 leading-tight text-foreground sm:text-h2">Feeds</h1>
+        <p class="max-w-2xl font-sans text-b3 text-neutral-900">Jaga feed tetap aman dan nyaman. Hapus postingan atau komentar yang melanggar, penulisnya akan dapat notifikasi.</p>
+      </div>
+      {% url 'feeds:list' as public_url %}
+      {% component "button" text="Lihat feed" variant="neutral" size="sm" icon_left="external-link" href=public_url attrs='target="_blank" rel="noopener"' / %}
+    </div>
+  </header>
+
+  <section aria-label="Statistik feed">
+    <dl class="grid grid-cols-2 gap-3 lg:grid-cols-4 sm:gap-4">
+      {% include "dashboard/_metric.html" with icon="message-square-text" label="Postingan" value=metrics.posts hint="semua waktu" tone="primary" %}
+      {% include "dashboard/_metric.html" with icon="trending-up" label="Minggu ini" value=metrics.posts_week hint="postingan baru" tone="info" %}
+      {% include "dashboard/_metric.html" with icon="message-circle" label="Komentar" value=metrics.comments hint="termasuk balasan" tone="warning" %}
+      {% include "dashboard/_metric.html" with icon="heart" label="Suka" value=metrics.likes hint="di semua postingan" tone="danger" %}
+    </dl>
+  </section>
+
+  <section aria-label="Cari dan saring" class="flex flex-col gap-4">
+    <nav aria-label="Jenis konten" class="flex gap-1 self-start rounded-xl border border-neutral-400 bg-neutral-50 p-1">
+      {% for tab in tabs %}
+      <a href="{{ tab.url }}" {% if tab.active %}aria-current="page"{% endif %} class="inline-flex min-h-9 items-center gap-2 rounded-lg px-4 font-sans text-sm font-semibold outline-none transition-colors focus-visible:ring-2 focus-visible:ring-primary-500 {% if tab.active %}bg-secondary-700 text-neutral-50{% else %}text-secondary-700 hover:bg-neutral-300{% endif %}">
+        {% if tab.key == "posts" %}{% lucide "message-square-text" class="w-4 h-4" %}{% else %}{% lucide "message-circle" class="w-4 h-4" %}{% endif %}{{ tab.label }}
+      </a>
+      {% endfor %}
+    </nav>
+
+    <form method="GET" action="{% url 'dashboard:admin_feed_list' %}" data-autosubmit class="grid grid-cols-1 items-end gap-3 sm:grid-cols-2 {% if params.tab == 'posts' %}xl:grid-cols-[minmax(0,2fr)_repeat(2,minmax(0,1fr))]{% else %}xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]{% endif %}">
+      <input type="hidden" name="tab" value="{{ params.tab }}">
+      <search class="flex flex-col sm:col-span-2 xl:col-span-1">
+        {% component "input" type="search" id="adminFeedSearch" name="search" label="Cari isi atau penulis" placeholder=" " icon="search" value=params.search attrs='maxlength="100"' / %}
+      </search>
+      {% component "dropdown" id="adminFeedPeriod" name="period" label="Waktu" placeholder=period_label options=period_options initial_value=params.period default_label=period_label / %}
+      {% if params.tab == "posts" %}
+      {% component "dropdown" id="adminFeedSort" name="sort" label="Urutkan" placeholder=sort_label options=sort_options initial_value=params.sort default_label=sort_label / %}
+      {% endif %}
+    </form>
+    {% with count=page_obj.paginator.count %}
+    {% if params.tab == "posts" %}
+    {% include "dashboard/_filter_chips.html" with count_text=count|stringformat:"d"|add:" postingan" %}
+    {% else %}
+    {% include "dashboard/_filter_chips.html" with count_text=count|stringformat:"d"|add:" komentar" %}
+    {% endif %}
+    {% endwith %}
+  </section>
+
+  <section aria-labelledby="feedItemsTitle" class="flex flex-col gap-3">
+    <h2 id="feedItemsTitle" class="sr-only">{% if params.tab == "posts" %}Daftar postingan{% else %}Daftar komentar{% endif %}</h2>
+
+    {% if page_obj.object_list %}
+    <ul class="flex flex-col gap-2">
+      {% for item in page_obj %}
+      <li class="flex flex-col gap-3 rounded-2xl border border-neutral-400 bg-neutral-50 p-4 transition-all hover:border-neutral-500 sm:flex-row sm:items-start sm:p-5">
+        <div class="flex min-w-0 flex-1 items-start gap-3">
+          {% component "avatar" src=item.author.avatar_url name=item.author.display_name size="md" / %}
+          <div class="min-w-0 flex-1">
+            <p class="flex flex-wrap items-center gap-x-2 gap-y-1 font-sans text-xs text-neutral-800">
+              <a href="{% url 'dashboard:admin_user_detail' item.author.pk %}" class="font-sans text-sm font-bold text-foreground hover:text-secondary-700">{{ item.author.display_name }}</a>
+              <span>@{{ item.author.username }}</span>
+              <span aria-hidden="true">·</span>
+              <time datetime="{{ item.created_at|date:'c' }}" title="{{ item.created_at|date:'j M Y, H:i' }}">{{ item.created_at|timesince }} lalu</time>
+            </p>
+
+            {% if params.tab == "posts" %}
+            <p class="mt-1.5 line-clamp-3 whitespace-pre-wrap break-words font-sans text-sm text-foreground">{{ item.content }}</p>
+            <p class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 font-sans text-xs font-semibold tabular-nums text-secondary-800">
+              <span class="inline-flex items-center gap-1">{% lucide "heart" class="w-3.5 h-3.5 text-secondary-600" %}{{ item.like_count }} suka</span>
+              <span class="inline-flex items-center gap-1">{% lucide "message-circle" class="w-3.5 h-3.5 text-secondary-600" %}{{ item.comment_count }} komentar</span>
+              {% if item.image_count %}<span class="inline-flex items-center gap-1">{% lucide "image" class="w-3.5 h-3.5 text-secondary-600" %}{{ item.image_count }} foto</span>{% endif %}
+              {% if item.challenge %}<span class="inline-flex max-w-full items-center gap-1 truncate">{% lucide "flame" class="w-3.5 h-3.5 text-primary-700" %}{{ item.challenge.title }}</span>{% endif %}
+            </p>
+            {% else %}
+            <p class="mt-1.5 line-clamp-3 break-words font-sans text-sm text-foreground">{% if item.parent %}<span class="font-semibold text-secondary-700">@{{ item.parent.author.username }}</span> {% endif %}{{ item.content }}</p>
+            <a href="{% url 'feeds:detail' item.post_id %}#comment-{{ item.pk }}" target="_blank" rel="noopener" class="mt-2 flex items-start gap-2 rounded-xl bg-neutral-200 px-3 py-2 font-sans text-xs text-neutral-900 outline-none transition-colors hover:bg-neutral-300 focus-visible:ring-2 focus-visible:ring-primary-500">
+              {% lucide "corner-down-right" class="w-3.5 h-3.5 shrink-0 mt-0.5" %}
+              <span class="line-clamp-1">Di postingan {{ item.post.author.display_name }}: {{ item.post.content|truncatechars:90 }}</span>
+            </a>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="flex shrink-0 items-center justify-end gap-2 border-t border-neutral-300 pt-3 sm:border-t-0 sm:pt-0">
+          {% if params.tab == "posts" %}
+          {% url 'feeds:detail' item.pk as detail_url %}
+          {% component "button" text="Lihat" variant="neutral" size="xs" icon_left="external-link" href=detail_url attrs='target="_blank" rel="noopener"' / %}
+          {% url 'dashboard:admin_feed_post_delete' item.pk as delete_url %}
+          <button type="button" data-modal-open="adminConfirmModal" aria-haspopup="dialog" title="Hapus postingan" aria-label="Hapus postingan {{ item.author.display_name }}"
+            data-confirm-action="{{ delete_url }}" data-confirm-label="Hapus postingan"
+            data-confirm-title="Hapus postingan ini?" data-confirm-body="Postingan {{ item.author.display_name }} akan dihapus beserta foto, komentar, dan sukanya. Tindakan ini tidak bisa dibatalkan."
+            data-confirm-note="reason" data-confirm-note-label="Alasan penghapusan"
+            class="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border border-red-100/40 text-red-100 outline-none transition-colors hover:border-red-100 hover:bg-red-100/10 focus-visible:ring-2 focus-visible:ring-primary-500">{% lucide "trash-2" class="w-4 h-4" %}</button>
+          {% else %}
+          {% url 'dashboard:admin_feed_comment_delete' item.pk as delete_url %}
+          <button type="button" data-modal-open="adminConfirmModal" aria-haspopup="dialog" title="Hapus komentar" aria-label="Hapus komentar {{ item.author.display_name }}"
+            data-confirm-action="{{ delete_url }}" data-confirm-label="Hapus komentar"
+            data-confirm-title="Hapus komentar ini?" data-confirm-body="Komentar {{ item.author.display_name }} dan semua balasannya akan dihapus permanen."
+            data-confirm-note="reason" data-confirm-note-label="Alasan penghapusan"
+            class="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border border-red-100/40 text-red-100 outline-none transition-colors hover:border-red-100 hover:bg-red-100/10 focus-visible:ring-2 focus-visible:ring-primary-500">{% lucide "trash-2" class="w-4 h-4" %}</button>
+          {% endif %}
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+
+    {% component "pagination" page_obj=page_obj class_="mt-2" / %}
+
+    {% else %}
+    {% component "empty_state" icon="message-square-dashed" title="Belum ada yang cocok" description="Coba kata kunci atau rentang waktu lain." %}
+      {% fill "actions" %}{% component "button" text="Hapus filter" variant="neutral" size="sm" icon_left="rotate-ccw" href=reset_url / %}{% endfill %}
+    {% endcomponent %}
+    {% endif %}
+  </section>
+</div>
+
+{% include "dashboard/_confirm_modal.html" %}
+{% include "accounts/_messages.html" %}
+{% endblock %}
+
+{% block scripts %}
+<script type="module" src="{% static 'js/dashboard/admin_list.js' %}"></script>
+{% endblock %}

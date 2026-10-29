@@ -1,0 +1,85 @@
+{% load component_tags lucide ui_extras %}
+{% comment %}
+One comment or reply. Optional: post_author_id (marks the post's author), is_reply,
+thread_id (the top-level comment a reply belongs to; "Balas" answers that thread).
+{% endcomment %}
+{% with author_name=comment.author.display_name %}
+<article id="comment-{{ comment.id }}" class="flex scroll-mt-32 gap-3 rounded-2xl transition-colors duration-700 target:bg-primary-100/60" data-comment data-comment-id="{{ comment.id }}">
+  {% component "avatar" src=comment.author.avatar_url name=author_name size="sm" / %}
+  <div class="min-w-0 flex-1">
+    <div class="rounded-2xl rounded-tl-md border border-primary-200 bg-primary-50 px-4 py-3">
+      <div class="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+        {% component "user_name" user=comment.author name_class="font-sans text-sm font-semibold text-foreground" / %}
+        {% if comment.author_id == post_author_id %}{% component "badge" text="Penulis" variant="primary" size="sm" / %}{% endif %}
+      </div>
+      <p class="mt-0.5 whitespace-pre-wrap break-words font-sans text-sm leading-relaxed text-neutral-900">{{ comment.content|mentions }}</p>
+    </div>
+    <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 px-2 font-sans text-b4 text-neutral-800">
+      <time datetime="{{ comment.created_at|date:'c' }}" title="{{ comment.created_at|date:'j M Y, H:i' }}" data-relative>{{ comment.created_at|date:"j M Y, H:i" }}</time>
+      {% if comment.is_edited %}<span>diedit</span>{% endif %}
+
+      {% if user.is_authenticated %}
+      <form action="{% url 'feeds:comment_like' comment.id %}" method="post" class="inline-flex items-center" data-like-form data-like-subject="komentar" data-api-url="{% url 'feeds_api:comment-like' comment.id %}">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="{% if comment.liked_by_me %}unlike{% else %}like{% endif %}">
+        <button
+          type="submit"
+          class="post-like inline-flex min-h-8 cursor-pointer items-center gap-1 rounded-lg px-1.5 font-semibold text-secondary-700 outline-none transition-colors hover:bg-tertiary-300/30 focus-visible:ring-2 focus-visible:ring-primary-500 active:scale-95"
+          aria-pressed="{{ comment.liked_by_me|yesno:'true,false' }}"
+          aria-label="{% if comment.liked_by_me %}Batalkan suka{% else %}Sukai{% endif %} komentar ini"
+        >
+          {% lucide "heart" class="w-3.5 h-3.5 transition-transform" aria_hidden="true" %}
+          <span data-like-label class="sr-only">{% if comment.liked_by_me %}Disukai{% else %}Suka{% endif %}</span>
+          <span class="tabular-nums" data-like-count>{{ comment.like_count|default:0 }}</span>
+        </button>
+      </form>
+      {% endif %}
+
+      {% if comment.like_count %}
+      <button type="button" data-likers-url="{% url 'feeds:comment_likers' comment.id %}" data-likers-title="Menyukai komentar ini" aria-haspopup="dialog" class="cursor-pointer rounded-md font-semibold outline-none transition-colors hover:text-secondary-900 hover:underline focus-visible:ring-2 focus-visible:ring-primary-500">
+        {{ comment.like_count }} suka
+      </button>
+      {% endif %}
+
+      {% if can_comment %}
+      <button
+        type="button"
+        data-reply-to="{{ thread_id|default:comment.id }}"
+        data-reply-mention="{% if is_reply %}{{ comment.author.username }}{% endif %}"
+        data-reply-name="{{ author_name }}"
+        aria-controls="reply-form-{{ thread_id|default:comment.id }}"
+        class="inline-flex cursor-pointer items-center gap-1 rounded-md font-semibold text-secondary-700 outline-none transition-colors hover:text-secondary-900 hover:underline focus-visible:ring-2 focus-visible:ring-primary-500"
+      >
+        {% lucide "reply" class="w-3.5 h-3.5" aria_hidden="true" %}Balas
+      </button>
+      {% endif %}
+
+      {% if user.role == "admin" or comment.author_id == user.id %}
+      <button
+        type="button"
+        data-modal-open="delete-comment-modal-{{ comment.id }}"
+        aria-haspopup="dialog"
+        class="cursor-pointer rounded-md font-semibold text-red-100 outline-none transition-colors hover:underline focus-visible:ring-2 focus-visible:ring-primary-500"
+      >
+        Hapus komentar
+      </button>
+      {% endif %}
+    </div>
+  </div>
+</article>
+{% endwith %}
+
+{% if user.role == "admin" or comment.author_id == user.id %}
+  {% component "modal" id="delete-comment-modal-{{ comment.id }}" title="Hapus komentar?" size="sm" %}
+    {% fill "content" %}
+      <p class="font-sans text-sm text-neutral-900">{% if is_reply %}Balasan ini akan dihapus.{% else %}Komentar ini akan dihapus beserta semua balasannya.{% endif %} Tindakan ini tidak dapat dibatalkan.</p>
+    {% endfill %}
+    {% fill "footer" %}
+      <form action="{% url 'feeds:comment_delete' comment.id %}" method="post" class="flex w-full items-center justify-end gap-3">
+        {% csrf_token %}
+        {% component "button" text="Batal" variant="neutral" size="sm" attrs="data-modal-close data-modal-autofocus" / %}
+        {% component "button" type="submit" text="Ya, hapus" variant="danger" size="sm" icon_left="trash-2" / %}
+      </form>
+    {% endfill %}
+  {% endcomponent %}
+{% endif %}

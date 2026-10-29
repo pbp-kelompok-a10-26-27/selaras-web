@@ -1,0 +1,7 @@
+{% load component_tags %}
+{# Shared "who liked this" dialog; feed.js fills it from a data-likers-url #}
+{% component "modal" id="likers-modal" title="Disukai oleh" size="sm" %}
+  {% fill "content" %}
+  <div data-likers-body aria-live="polite" class="-mx-2 -my-2 min-h-24"></div>
+  {% endfill %}
+{% endcomponent %}

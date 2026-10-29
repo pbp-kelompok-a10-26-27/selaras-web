@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% load static component_tags lucide %}
+
+{% block title %}Detail Postingan · SELARAS{% endblock %}
+
+{% block content %}
+<div class="relative isolate">
+  <div class="page-aura" aria-hidden="true"></div>
+
+  <main id="feedPage" class="mx-auto w-full max-w-3xl space-y-6 px-4 pb-24 pt-36 sm:px-6 sm:pt-40">
+    <nav aria-label="Kembali">
+      {% url 'feeds:list' as list_url %}
+      {% component "button" text="Kembali ke feed" variant="neutral-ghost" size="sm" icon_left="arrow-left" href=list_url / %}
+    </nav>
+
+    {% include "feeds/partials/post_card.html" with post=post return_to="detail" %}
+
+    <section id="comments" class="scroll-mt-32 rounded-2xl border border-neutral-400 bg-neutral-50 p-5 sm:p-8">
+      <h2 class="feed-comments-heading mb-6 flex items-center gap-2 font-display text-h5 text-foreground">
+        <span class="text-secondary-500" aria-hidden="true">{% lucide "messages-square" class="w-5 h-5" %}</span>
+        Komentar
+        <span class="feed-comment-count font-sans text-b3 text-neutral-800">({{ post.comment_count }})</span>
+      </h2>
+
+      {% if can_comment %}
+      <form
+        action="{% url 'feeds:comment_create' post.id %}"
+        method="post"
+        class="mb-8 flex items-start gap-3"
+        data-submit-loading
+      >
+        {% csrf_token %}
+        {% component "avatar" src=user.avatar_url name=user.display_name size="sm" class_="mt-1" / %}
+        <div class="min-w-0 flex-1 space-y-3">
+          {% component "textarea" id=comment_form.content.auto_id name=comment_form.content.html_name label="Tambahkan komentar" value=comment_form.content.value rows=4 maxlength=500 required=True errors=comment_form.content.errors class_="feed-comment-textarea" / %}
+          <div class="flex items-center justify-end gap-3">
+            <p class="hidden font-sans text-b4 text-neutral-800 sm:block">Ctrl + Enter untuk mengirim</p>
+            {% component "button" type="submit" text="Kirim komentar" variant="secondary" size="md" icon_left="send" / %}
+          </div>
+        </div>
+      </form>
+      {% endif %}
+
+      <div class="space-y-6">
+        {% for comment in comments %}
+        {% with replies=comment.replies.all %}
+        <div class="scroll-reveal space-y-3" style="--i: {{ forloop.counter0 }}" data-thread="{{ comment.id }}">
+          {% include "feeds/partials/comment_item.html" with comment=comment post_author_id=post.author_id thread_id=comment.id %}
+          {% if replies %}
+          <div class="ml-5 space-y-3 border-l-2 border-primary-300 pl-4 sm:ml-10" data-replies>
+            {% for reply in replies %}
+            <div {% if forloop.counter > 2 %}data-reply-extra{% endif %}>
+              {% include "feeds/partials/comment_item.html" with comment=reply post_author_id=post.author_id is_reply=True thread_id=comment.id %}
+            </div>
+            {% endfor %}
+            {% if replies|length > 2 %}
+            <button type="button" data-replies-toggle data-hidden-count="{{ replies|length|add:'-2' }}" class="hidden cursor-pointer items-center gap-2 rounded-md font-sans text-b4 font-semibold text-secondary-700 outline-none hover:text-secondary-900 focus-visible:ring-2 focus-visible:ring-primary-500" aria-expanded="false">
+              <span class="h-px w-6 bg-neutral-600" aria-hidden="true"></span><span data-replies-toggle-label>Lihat {{ replies|length|add:"-2" }} balasan lainnya</span>
+            </button>
+            {% endif %}
+          </div>
+          {% endif %}
+
+          {% if can_comment %}
+          <form
+            id="reply-form-{{ comment.id }}"
+            action="{% url 'feeds:reply_create' comment.id %}"
+            method="post"
+            class="ml-5 hidden items-start gap-2 sm:ml-10 [&.is-open]:flex"
+            data-reply-form
+            data-submit-loading
+          >
+            {% csrf_token %}
+            {% component "avatar" src=user.avatar_url name=user.display_name size="xs" class_="mt-2.5" / %}
+            <div class="min-w-0 flex-1">
+              <p class="mb-1.5 flex items-center gap-1.5 font-sans text-xs text-neutral-800">
+                Membalas <strong class="font-semibold text-secondary-800" data-reply-target>{{ comment.author.display_name }}</strong>
+                <button type="button" data-reply-cancel class="ml-1 cursor-pointer rounded font-semibold text-secondary-700 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">Batal</button>
+              </p>
+              <div class="flex items-end gap-2">
+                <label for="reply-input-{{ comment.id }}" class="sr-only">Tulis balasan</label>
+                <textarea
+                  id="reply-input-{{ comment.id }}"
+                  name="content"
+                  rows="1"
+                  maxlength="500"
+                  required
+                  placeholder="Tulis balasan..."
+                  class="block max-h-40 min-h-10 w-full resize-none rounded-xl border border-neutral-400 bg-neutral-50 px-3.5 py-2.5 font-sans text-sm text-secondary-900 outline-none transition-colors placeholder:text-neutral-700 focus:border-secondary-600 focus:ring-1 focus:ring-secondary-600"
+                  data-reply-input
+                ></textarea>
+                {% component "button" type="submit" text="Kirim" variant="secondary" size="sm" icon_left="send" / %}
+              </div>
+            </div>
+          </form>
+          {% endif %}
+        </div>
+        {% endwith %}
+        {% empty %}
+        <div class="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-neutral-500 px-6 py-10 text-center">
+          <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-100 text-primary-700" aria-hidden="true">{% lucide "message-circle-heart" class="w-6 h-6" %}</span>
+          <p class="font-display text-h6 text-foreground">Belum ada komentar</p>
+          <p class="font-sans text-sm text-neutral-900">Jadilah yang pertama berkomentar.</p>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+  </main>
+</div>
+
+{% include "feeds/partials/likers_modal.html" %}
+{% include "accounts/_messages.html" %}
+{% endblock %}
+
+{% block extra_head %}
+<noscript><style>.scroll-reveal { opacity: 1; transform: none; }</style></noscript>
+{% endblock %}
+
+{% block scripts %}
+<script type="module" src="{% static 'js/feeds/feed.js' %}"></script>
+{% endblock %}

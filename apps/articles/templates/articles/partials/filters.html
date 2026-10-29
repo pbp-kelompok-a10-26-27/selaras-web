@@ -1,0 +1,64 @@
+{% load component_tags lucide %}
+{% comment %}
+Category, topic and (admin) status filters. Every option is a real link built by the view, so the
+filters work without JavaScript; static/js/articles/list.js swaps this block after each fetch.
+{% endcomment %}
+<div class="space-y-4">
+  <div class="flex flex-wrap items-center gap-2" role="group" aria-label="Kategori">
+    <span class="mr-1 w-16 shrink-0 font-sans text-b4 font-semibold text-neutral-800">Kategori</span>
+    {% if not filters.category %}
+      {% component "button" href=all_categories_url text="Semua" variant="neutral" size="sm" selected=True attrs="data-articles-link" / %}
+    {% else %}
+      {% component "button" href=all_categories_url text="Semua" variant="neutral" size="sm" attrs="data-articles-link" / %}
+    {% endif %}
+    {% for category in categories %}
+      {% if category.active %}
+        {% component "button" href=category.url text=category.name variant="neutral" size="sm" selected=True attrs="data-articles-link" / %}
+      {% else %}
+        {% component "button" href=category.url text=category.name variant="neutral" size="sm" attrs="data-articles-link" / %}
+      {% endif %}
+    {% empty %}
+      <span class="font-sans text-sm text-neutral-800">Kategori artikel akan muncul di sini.</span>
+    {% endfor %}
+  </div>
+
+  <div class="flex flex-wrap items-center gap-1.5 border-t border-neutral-400/60 pt-4" role="group" aria-label="Topik" data-tag-group>
+    <span class="mr-1 w-16 shrink-0 font-sans text-b4 font-semibold text-neutral-800">Topik</span>
+    {% if filters.tag %}
+    <a href="{{ all_tags_url }}" data-articles-link class="inline-flex min-h-8 items-center gap-1 rounded-full border border-neutral-500 bg-neutral-50 px-3 font-sans text-b4 font-semibold text-secondary-800 outline-none transition-colors hover:bg-neutral-300 focus-visible:ring-2 focus-visible:ring-primary-500">
+      {% lucide "x" class="w-3.5 h-3.5" aria_hidden="true" %}Semua tag
+    </a>
+    {% endif %}
+    {% for tag in tags %}
+    <a
+      href="{{ tag.url }}"
+      data-articles-link
+      {% if forloop.counter > 10 and not tag.active %}data-tag-extra{% endif %}
+      {% if tag.active %}aria-current="true"{% endif %}
+      class="inline-flex min-h-8 items-center rounded-full border px-3 font-sans text-b4 font-semibold outline-none transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary-500
+        {% if tag.active %}border-secondary-700 bg-secondary-700 text-neutral-50{% else %}border-neutral-400 bg-neutral-50 text-secondary-700 hover:-translate-y-0.5 hover:border-secondary-300 hover:text-secondary-900{% endif %}"
+    >#{{ tag.name }}</a>
+    {% empty %}
+    <span class="font-sans text-sm text-neutral-800">Tag pada artikel yang tersedia akan muncul di sini.</span>
+    {% endfor %}
+    {% if tags|length > 10 %}
+    <button type="button" hidden data-tag-toggle aria-expanded="false" class="inline-flex min-h-8 cursor-pointer items-center gap-1 rounded-full px-3 font-sans text-b4 font-semibold text-secondary-600 outline-none transition-colors hover:text-secondary-900 focus-visible:ring-2 focus-visible:ring-primary-500">
+      <span data-tag-toggle-label>Lihat semua topik</span>{% lucide "chevron-down" class="w-3.5 h-3.5 transition-transform" aria_hidden="true" %}
+    </button>
+    {% endif %}
+  </div>
+
+  {% if is_admin %}
+  <div class="flex flex-wrap items-center gap-2 border-t border-neutral-400/60 pt-4" role="group" aria-label="Status artikel">
+    <span class="mr-1 w-16 shrink-0 font-sans text-b4 font-semibold text-neutral-800">Status</span>
+    {% for item in status_filters %}
+      {% if item.active %}
+        {% component "button" href=item.url text=item.label variant="neutral" size="sm" icon_left=item.icon selected=True attrs="data-articles-link" / %}
+      {% else %}
+        {% component "button" href=item.url text=item.label variant="neutral" size="sm" icon_left=item.icon attrs="data-articles-link" / %}
+      {% endif %}
+    {% endfor %}
+    <a href="{% url 'articles:categories' %}" class="ml-auto inline-flex items-center gap-1.5 rounded-lg px-2 py-1 font-sans text-b4 font-semibold text-secondary-700 hover:text-secondary-900 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">Kelola kategori</a>
+  </div>
+  {% endif %}
+</div>

@@ -1,0 +1,171 @@
+{% load lucide %}
+
+{# Mobile & tablet top bar (below lg): brand + button that opens the drawer #}
+<header class="sticky top-0 z-30 flex h-16 items-center justify-between gap-3 border-b border-neutral-400 bg-neutral-50/90 px-4 backdrop-blur-xl sm:px-6 lg:hidden">
+  <a href="{{ home_url }}" class="flex items-center gap-3 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
+    <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-primary-500 font-display text-base text-secondary-900">S</span>
+    <span class="font-display text-lg leading-none text-secondary-900">{{ brand }}</span>
+    <span class="rounded-full border border-secondary-200 bg-secondary-100 px-2 py-0.5 font-sans text-[0.6875rem] font-semibold text-secondary-700">{{ brand_caption }}</span>
+  </a>
+  <button
+    type="button"
+    data-sidebar-open
+    aria-controls="{{ id }}"
+    aria-expanded="false"
+    aria-label="Buka navigasi"
+    class="flex h-11 w-11 cursor-pointer items-center justify-center rounded-xl text-secondary-800 transition-colors hover:bg-neutral-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+  >
+    {% lucide "menu" class="w-6 h-6" %}
+  </button>
+</header>
+
+{# Backdrop behind the mobile drawer #}
+<div
+  data-sidebar-backdrop
+  aria-hidden="true"
+  class="pointer-events-none fixed inset-0 z-40 bg-neutral-900/50 opacity-0 backdrop-blur-sm transition-opacity duration-300 data-[open]:pointer-events-auto data-[open]:opacity-100 motion-reduce:transition-none lg:hidden"
+></div>
+
+{# Sidebar: off-canvas drawer below lg, fixed column on lg+ (collapsible to icons) #}
+<aside
+  id="{{ id }}"
+  data-sidebar
+  aria-label="Navigasi admin"
+  class="fixed inset-y-0 left-0 z-50 flex w-72 max-w-[85vw] -translate-x-full flex-col border-r border-neutral-400 bg-neutral-50 shadow-2xl transition-[translate,width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] data-[open]:translate-x-0 motion-reduce:transition-none lg:w-64 lg:translate-x-0 lg:shadow-none lg:sidebar-collapsed:w-20 {{ class_ }}"
+>
+  {# Brand #}
+  <div class="flex h-16 shrink-0 items-center justify-between gap-2 px-4 lg:h-20 lg:sidebar-collapsed:justify-center lg:sidebar-collapsed:px-0">
+    <a href="{{ home_url }}" class="group/brand flex min-w-0 items-center gap-3 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
+      <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-500 font-display text-lg text-secondary-900 shadow-sm transition-transform duration-300 group-hover/brand:-rotate-6 group-hover/brand:scale-105 motion-reduce:transition-none">S</span>
+      <span class="flex min-w-0 flex-col lg:sidebar-collapsed:sr-only">
+        <span class="truncate font-display text-xl leading-none text-secondary-900">{{ brand }}</span>
+        <span class="mt-1 font-sans text-[0.6875rem] font-semibold uppercase tracking-wider text-neutral-800">{{ brand_caption }} dashboard</span>
+      </span>
+    </a>
+
+    {# Close (mobile drawer only) #}
+    <button
+      type="button"
+      data-sidebar-close
+      aria-label="Tutup navigasi"
+      class="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-xl text-neutral-800 transition-colors hover:bg-neutral-300 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 lg:hidden"
+    >
+      {% lucide "x" class="w-5 h-5" %}
+    </button>
+  </div>
+
+  {# Collapse toggle (desktop), sitting on the sidebar's edge #}
+  <button
+    type="button"
+    data-sidebar-toggle
+    aria-controls="{{ id }}"
+    aria-expanded="true"
+    aria-label="Ciutkan sidebar"
+    title="Ciutkan sidebar"
+    class="absolute top-7 -right-3.5 hidden h-7 w-7 cursor-pointer items-center justify-center rounded-full border border-neutral-400 bg-neutral-50 text-neutral-800 shadow-sm transition-colors hover:border-neutral-500 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 lg:flex"
+  >
+    <span class="transition-transform duration-300 lg:sidebar-collapsed:rotate-180 motion-reduce:transition-none">{% lucide "chevrons-left" class="w-4 h-4" %}</span>
+  </button>
+
+  {# Navigation. Collapsed, the list fits without scrolling, so overflow is opened up for the hover labels. #}
+  <nav class="flex-1 overflow-y-auto px-3 pb-4 lg:sidebar-collapsed:overflow-visible">
+    {% for section in sections %}
+      {% if section.label %}
+      <p class="px-3 pt-5 pb-2 font-sans text-[0.6875rem] font-semibold uppercase tracking-wider text-neutral-800 lg:sidebar-collapsed:sr-only">{{ section.label }}</p>
+      {% endif %}
+      <ul class="flex flex-col gap-1 {% if not section.label %}pt-2{% endif %}">
+        {% for item in section.items %}
+        <li>
+          {% if item.href %}
+          <a
+            href="{{ item.href }}"
+            data-sidebar-link
+            data-sidebar-key="{{ item.key }}"
+            {% if item.active %}aria-current="page"{% endif %}
+            class="group/link relative flex min-h-11 items-center gap-3 rounded-xl px-3 font-sans text-sm font-semibold text-secondary-700 outline-none transition-colors duration-200 hover:bg-neutral-300 hover:text-secondary-900 focus-visible:ring-2 focus-visible:ring-primary-500 aria-[current=page]:bg-primary-100 aria-[current=page]:text-secondary-900 lg:sidebar-collapsed:justify-center lg:sidebar-collapsed:px-0"
+          >
+            {# Active indicator on the sidebar's left edge #}
+            <span aria-hidden="true" class="absolute top-1/2 -left-3 h-6 w-1 -translate-y-1/2 rounded-r-full bg-primary-500 opacity-0 transition-opacity group-aria-[current=page]/link:opacity-100"></span>
+
+            <span class="relative shrink-0 text-secondary-500 transition-colors group-hover/link:text-secondary-700 group-aria-[current=page]/link:text-primary-700">
+              {% lucide item.icon class="w-5 h-5" %}
+              {% if item.badge is not None %}
+              {# Collapsed: the count becomes a dot on the icon #}
+              <span aria-hidden="true" data-sidebar-badge-dot {% if not item.badge %}hidden{% endif %} class="absolute -top-1 -right-1 hidden h-2.5 w-2.5 rounded-full border-2 border-neutral-50 bg-orange-100 lg:sidebar-collapsed:block"></span>
+              {% endif %}
+            </span>
+
+            <span class="min-w-0 flex-1 truncate lg:sidebar-collapsed:sr-only">{{ item.label }}</span>
+
+            {# A badge of 0 is rendered hidden, so window.setSidebarBadge() can show it later without a reload #}
+            {% if item.badge is not None %}
+            <span aria-hidden="true" data-sidebar-badge-count {% if not item.badge %}hidden{% endif %} class="ml-auto rounded-full bg-orange-100/20 px-2 py-0.5 font-sans text-[0.6875rem] font-bold tabular-nums text-secondary-900 lg:sidebar-collapsed:hidden" title="{{ item.badge_label }}">{{ item.badge }}</span>
+            <span class="sr-only" data-sidebar-badge-label>{% if item.badge %}({{ item.badge_label }}){% endif %}</span>
+            {% endif %}
+
+            {# Label flyout while collapsed (desktop); decorative, the sr-only label above is what's announced #}
+            <span aria-hidden="true" class="pointer-events-none absolute left-full z-50 ml-4 hidden -translate-x-1 whitespace-nowrap rounded-xl bg-neutral-900 px-3 py-1.5 font-sans text-xs font-semibold text-neutral-50 opacity-0 shadow-xl transition-all duration-200 group-hover/link:translate-x-0 group-hover/link:opacity-100 group-focus-visible/link:translate-x-0 group-focus-visible/link:opacity-100 lg:sidebar-collapsed:block">
+              {{ item.label }}<span data-sidebar-badge-flyout>{% if item.badge %} · {{ item.badge }}{% endif %}</span>
+            </span>
+          </a>
+          {% else %}
+          {# Section without a page yet: visible so the structure is clear, but not a dead link #}
+          <span
+            aria-disabled="true"
+            title="{{ item.label }}: segera hadir"
+            class="group/link relative flex min-h-11 cursor-not-allowed items-center gap-3 rounded-xl px-3 font-sans text-sm font-semibold text-neutral-800 lg:sidebar-collapsed:justify-center lg:sidebar-collapsed:px-0"
+          >
+            <span class="shrink-0 opacity-60">{% lucide item.icon class="w-5 h-5" %}</span>
+            <span class="min-w-0 flex-1 truncate opacity-70 lg:sidebar-collapsed:sr-only">{{ item.label }}</span>
+            <span class="rounded-full border border-neutral-500 px-2 py-0.5 font-sans text-[0.625rem] font-semibold uppercase tracking-wider text-neutral-800 lg:sidebar-collapsed:sr-only">Segera</span>
+            <span aria-hidden="true" class="pointer-events-none absolute left-full z-50 ml-4 hidden whitespace-nowrap rounded-xl bg-neutral-900 px-3 py-1.5 font-sans text-xs font-semibold text-neutral-50 opacity-0 shadow-xl transition-opacity duration-200 group-hover/link:opacity-100 lg:sidebar-collapsed:block">
+              {{ item.label }} · Segera
+            </span>
+          </span>
+          {% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+    {% endfor %}
+  </nav>
+
+  {# Footer: back to site, signed-in admin, logout #}
+  <div class="flex shrink-0 flex-col gap-1 border-t border-neutral-400 p-3">
+    <a
+      href="{{ site_url }}"
+      class="group/link relative flex min-h-11 items-center gap-3 rounded-xl px-3 font-sans text-sm font-semibold text-secondary-700 outline-none transition-colors hover:bg-neutral-300 hover:text-secondary-900 focus-visible:ring-2 focus-visible:ring-primary-500 lg:sidebar-collapsed:justify-center lg:sidebar-collapsed:px-0"
+    >
+      <span class="shrink-0 text-secondary-500">{% lucide "external-link" class="w-5 h-5" %}</span>
+      <span class="truncate lg:sidebar-collapsed:sr-only">Lihat situs</span>
+      <span aria-hidden="true" class="pointer-events-none absolute left-full z-50 ml-4 hidden whitespace-nowrap rounded-xl bg-neutral-900 px-3 py-1.5 font-sans text-xs font-semibold text-neutral-50 opacity-0 shadow-xl transition-opacity duration-200 group-hover/link:opacity-100 group-focus-visible/link:opacity-100 lg:sidebar-collapsed:block">Lihat situs</span>
+    </a>
+
+    {% if user_name %}
+    <a
+      href="{{ profile_url }}"
+      {% if profile_active %}aria-current="page"{% endif %}
+      class="group/link relative mt-1 flex items-center gap-3 rounded-xl p-2.5 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-primary-500 lg:sidebar-collapsed:justify-center lg:sidebar-collapsed:bg-transparent lg:sidebar-collapsed:p-1 {% if profile_active %}bg-primary-200 ring-1 ring-primary-300{% else %}bg-neutral-300 hover:bg-primary-100{% endif %}"
+      title="{{ user_name }} · Profil kamu"
+    >
+      <span aria-hidden="true" data-user-avatar data-initials="{{ user_initials }}" class="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary-200 font-sans text-xs font-semibold text-primary-900">{% if user_avatar_url %}<img src="{{ user_avatar_url }}" alt="" class="h-full w-full object-cover" />{% else %}{{ user_initials }}{% endif %}</span>
+      <span class="flex min-w-0 flex-col lg:sidebar-collapsed:sr-only">
+        <span class="truncate font-sans text-sm font-semibold text-foreground">{{ user_name }}</span>
+        <span class="truncate font-sans text-xs text-neutral-800">{{ user_role }} · Lihat profil</span>
+      </span>
+      <span aria-hidden="true" class="ml-auto shrink-0 text-secondary-500 transition-transform duration-200 group-hover/link:translate-x-0.5 lg:sidebar-collapsed:hidden">{% lucide "chevron-right" class="w-4 h-4" %}</span>
+    </a>
+    {% endif %}
+
+    <form method="post" action="{{ logout_url }}">
+      <input type="hidden" name="csrfmiddlewaretoken" value="{{ logout_csrf_token }}" />
+      <button
+        type="submit"
+        class="group/link relative flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-xl px-3 font-sans text-sm font-semibold text-red-100 outline-none transition-colors hover:bg-red-100/10 focus-visible:ring-2 focus-visible:ring-primary-500 lg:sidebar-collapsed:justify-center lg:sidebar-collapsed:px-0"
+      >
+        <span class="shrink-0">{% lucide "log-out" class="w-5 h-5" %}</span>
+        <span class="truncate lg:sidebar-collapsed:sr-only">Keluar</span>
+        <span aria-hidden="true" class="pointer-events-none absolute left-full z-50 ml-4 hidden whitespace-nowrap rounded-xl bg-neutral-900 px-3 py-1.5 font-sans text-xs font-semibold text-neutral-50 opacity-0 shadow-xl transition-opacity duration-200 group-hover/link:opacity-100 group-focus-visible/link:opacity-100 lg:sidebar-collapsed:block">Keluar</span>
+      </button>
+    </form>
+  </div>
+</aside>

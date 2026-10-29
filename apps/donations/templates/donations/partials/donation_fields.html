@@ -1,0 +1,68 @@
+{% load component_tags lucide %}
+{% comment %}
+Fields shared by "new donation" and "edit donation": amount (quick chips + input) and proof.
+Needs `form`; `proof_available` is set when editing a donation that already has proof.
+Behaviour: static/js/donations/form.js
+{% endcomment %}
+{% if form.non_field_errors %}
+<div role="alert" class="flex items-start gap-2 rounded-xl border border-tertiary-400 bg-tertiary-50 p-3 font-sans text-sm text-tertiary-900">
+  {% lucide "circle-alert" class="w-4 h-4 mt-0.5 shrink-0" %}
+  <div>{% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}</div>
+</div>
+{% endif %}
+
+<fieldset class="min-w-0 space-y-3">
+  <legend class="font-sans text-sm font-semibold text-secondary-800">Nominal donasi</legend>
+  <div class="grid grid-cols-2 gap-2 sm:grid-cols-4" role="group" aria-label="Pilih nominal cepat">
+    <button
+      type="button"
+      data-amount-chip="25000"
+      aria-pressed="false"
+      class="min-h-12 cursor-pointer rounded-xl border border-neutral-400 bg-neutral-50 px-3 font-sans text-sm font-semibold text-secondary-800 outline-none transition-all duration-200 hover:-translate-y-0.5 hover:border-secondary-300 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 active:scale-95 aria-pressed:border-secondary-900 aria-pressed:bg-secondary-900 aria-pressed:text-neutral-50"
+    >Rp 25.000</button>
+    <button
+      type="button"
+      data-amount-chip="50000"
+      aria-pressed="false"
+      class="min-h-12 cursor-pointer rounded-xl border border-neutral-400 bg-neutral-50 px-3 font-sans text-sm font-semibold text-secondary-800 outline-none transition-all duration-200 hover:-translate-y-0.5 hover:border-secondary-300 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 active:scale-95 aria-pressed:border-secondary-900 aria-pressed:bg-secondary-900 aria-pressed:text-neutral-50"
+    >Rp 50.000</button>
+    <button
+      type="button"
+      data-amount-chip="100000"
+      aria-pressed="false"
+      class="min-h-12 cursor-pointer rounded-xl border border-neutral-400 bg-neutral-50 px-3 font-sans text-sm font-semibold text-secondary-800 outline-none transition-all duration-200 hover:-translate-y-0.5 hover:border-secondary-300 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 active:scale-95 aria-pressed:border-secondary-900 aria-pressed:bg-secondary-900 aria-pressed:text-neutral-50"
+    >Rp 100.000</button>
+    <button
+      type="button"
+      data-amount-chip="250000"
+      aria-pressed="false"
+      class="min-h-12 cursor-pointer rounded-xl border border-neutral-400 bg-neutral-50 px-3 font-sans text-sm font-semibold text-secondary-800 outline-none transition-all duration-200 hover:-translate-y-0.5 hover:border-secondary-300 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 active:scale-95 aria-pressed:border-secondary-900 aria-pressed:bg-secondary-900 aria-pressed:text-neutral-50"
+    >Rp 250.000</button>
+  </div>
+
+  {% component "input" type="number" id=form.amount.auto_id name=form.amount.html_name label="Atau isi nominal lain (Rp)" placeholder=" " icon="banknote" value=form.amount.value required=True errors=form.amount.errors attrs='min="0.01" step="0.01" inputmode="decimal" data-amount-input' / %}
+
+  <p class="flex items-center gap-2 px-1 font-sans text-sm text-neutral-900" aria-live="polite">
+    {% lucide "hand-heart" class="w-4 h-4 text-secondary-500" aria_hidden="true" %}
+    <span>Kamu akan berdonasi <strong class="text-secondary-900" data-amount-readout>Rp 0</strong></span>
+  </p>
+</fieldset>
+
+<div class="space-y-3">
+  {% component "textarea" id=form.message.auto_id name=form.message.html_name label="Pesan semangat (opsional)" value=form.message.value rows=3 maxlength=280 errors=form.message.errors / %}
+  <label for="{{ form.is_anonymous.auto_id }}" class="flex cursor-pointer items-start gap-3 rounded-2xl border border-neutral-400 bg-neutral-100 p-4 transition-colors hover:border-secondary-300 has-checked:border-secondary-700 has-checked:bg-secondary-50">
+    <input type="checkbox" id="{{ form.is_anonymous.auto_id }}" name="{{ form.is_anonymous.html_name }}" {% if form.is_anonymous.value %}checked{% endif %} class="mt-0.5 h-5 w-5 shrink-0 cursor-pointer rounded-md accent-secondary-700" data-anonymous-toggle>
+    <span>
+      <span class="flex items-center gap-1.5 font-sans text-sm font-semibold text-secondary-900">{% lucide "venetian-mask" class="w-4 h-4" aria_hidden="true" %}Sembunyikan nama saya</span>
+      <span class="mt-0.5 block font-sans text-b4 text-neutral-900">Di daftar donatur kamu tampil sebagai “Orang baik”. Admin tetap melihat namamu untuk verifikasi.</span>
+    </span>
+  </label>
+</div>
+
+<div class="space-y-2">
+  <p class="font-sans text-sm font-semibold text-secondary-800">Bukti transfer</p>
+  {% if proof_available %}
+  <p class="font-sans text-sm text-neutral-900">Bukti saat ini tersedia. Unggah file baru hanya jika ingin menggantinya.</p>
+  {% endif %}
+  {% component "file_drop" id=form.proof.auto_id name=form.proof.html_name icon="receipt" title="Unggah bukti transfer" hint="Gambar (JPG, PNG, WebP, dll.) atau PDF, maksimal 5 MB" accept=".bmp,.gif,.jpg,.jpeg,.png,.tif,.tiff,.webp,.pdf" max_mb=5 required=form.proof.field.required errors=form.proof.errors / %}
+</div>

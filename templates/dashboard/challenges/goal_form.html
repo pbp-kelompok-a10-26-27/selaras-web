@@ -1,0 +1,45 @@
+{% extends "dashboard/base.html" %}
+{% load static lucide component_tags %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="flex max-w-3xl flex-col gap-6">
+  <header class="flex flex-col gap-3">
+    <nav aria-label="Navigasi">
+      <ol class="flex flex-wrap items-center gap-1.5 font-sans text-sm">
+        <li><a href="{{ dashboard_home_url }}" class="rounded-md px-1 py-0.5 text-neutral-800 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">Dashboard</a></li>
+        <li aria-hidden="true" class="text-neutral-700">{% lucide "chevron-right" class="w-4 h-4" %}</li>
+        <li><a href="{{ back_url }}" class="rounded-md px-1 py-0.5 text-neutral-800 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">Target komunitas</a></li>
+        <li aria-hidden="true" class="text-neutral-700">{% lucide "chevron-right" class="w-4 h-4" %}</li>
+        <li><span aria-current="page" class="px-1 font-semibold text-primary-800">{% if goal %}Edit{% else %}Baru{% endif %}</span></li>
+      </ol>
+    </nav>
+    <h1 class="font-display text-h3 leading-tight text-foreground sm:text-h2">{{ title }}</h1>
+  </header>
+
+  <form method="post" class="flex flex-col gap-6">
+    {% csrf_token %}
+    <section class="flex flex-col gap-5 rounded-2xl border border-neutral-400 bg-neutral-50 p-5 sm:p-8" aria-label="Detail target">
+      {% for field in form %}
+      {% if field.name != "is_published" %}
+      <div class="flex flex-col gap-1.5">
+        <label for="{{ field.id_for_label }}" class="font-sans text-sm font-semibold text-foreground">{{ field.label }}{% if field.field.required %} <span class="text-tertiary-700" aria-hidden="true">*</span>{% endif %}</label>
+        {{ field }}
+        {% if field.name == "target" %}<p class="font-sans text-xs text-neutral-800">Untuk "Jumlah donasi" isi dalam rupiah, selain itu berupa jumlah.</p>{% endif %}
+        {% if field.errors %}<p class="font-sans text-xs font-medium text-tertiary-700">{{ field.errors.0 }}</p>{% endif %}
+      </div>
+      {% endif %}
+      {% endfor %}
+      <label class="flex items-center gap-3 border-t border-neutral-300 pt-4">
+        {{ form.is_published }}
+        <span class="font-sans text-sm font-semibold text-foreground">{{ form.is_published.label }}</span>
+      </label>
+    </section>
+    <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+      {% component "button" text="Batal" variant="neutral" size="md" href=back_url / %}
+      {% component "button" text="Simpan target" variant="primary" size="md" type="submit" icon_left="save" / %}
+    </div>
+  </form>
+</div>
+{% endblock %}

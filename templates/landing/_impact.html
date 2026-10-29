@@ -1,0 +1,97 @@
+{% load lucide %}
+{# Impact estimator: a jar that fills with what one habit saves (static/js/landing/impact.js).
+   Without JS it still shows the default estimate. #}
+<section id="dampak" aria-labelledby="impactTitle" class="relative mx-auto max-w-7xl px-4 pb-16 sm:px-8 lg:px-12 lg:pb-24">
+  <div class="impact-board" data-reveal>
+    <div class="grid gap-10 p-5 sm:p-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.92fr)] lg:gap-14 xl:p-12">
+      <form class="flex min-w-0 flex-col gap-9" data-impact aria-describedby="impactNote">
+        <header class="flex flex-col gap-3">
+          <p class="font-sans text-xs font-semibold uppercase tracking-[0.24em] text-secondary-500">Perkiraan dampak</p>
+          <h2 id="impactTitle" class="font-display text-[clamp(1.9rem,4vw,3rem)] leading-[1.05] text-secondary-900">Kecil buatmu, besar kalau bersama.</h2>
+          <p class="max-w-md font-sans text-sm text-secondary-800">Pilih satu kebiasaan, atur waktunya, ajak orang lain, lalu lihat toplesnya terisi.</p>
+        </header>
+
+        {# 1. Habit: paper labels, like the one stuck on the jar #}
+        <fieldset class="min-w-0">
+          <legend class="impact-step"><span>1</span>Pilih kebiasaan</legend>
+          <div class="grid grid-cols-2 gap-3">
+            {% for habit in habits %}
+            <label class="impact-sticker" data-tilt-index="{{ forloop.counter0 }}">
+              <input type="radio" name="habit" value="{{ habit.key }}" class="sr-only" {% if forloop.first %}checked{% endif %} />
+              <span class="impact-sticker-icon">{% lucide habit.icon class="w-5 h-5" %}</span>
+              <span class="min-w-0 leading-tight">{{ habit.label }}</span>
+            </label>
+            {% endfor %}
+          </div>
+        </fieldset>
+
+        {# 2. Duration: a measuring tape #}
+        <fieldset class="min-w-0">
+          <legend class="impact-step"><span>2</span>Berapa lama?</legend>
+          <div class="flex items-baseline justify-between gap-3">
+            <label for="impactDays" class="font-sans text-sm text-secondary-800">Geser pita ukurnya</label>
+            <output for="impactDays" class="font-display text-2xl leading-none text-secondary-900" data-impact-days-out>30 hari</output>
+          </div>
+          <div class="impact-tape mt-3">
+            <input id="impactDays" name="days" type="range" min="1" max="365" value="30" class="impact-tape-input" aria-valuetext="30 hari" />
+          </div>
+          <div class="mt-3 flex flex-wrap gap-1.5">
+            {% for value, label in impact_days %}
+            <button type="button" class="impact-quick" data-impact-days="{{ value }}" aria-pressed="{% if value == 30 %}true{% else %}false{% endif %}">{{ label }}</button>
+            {% endfor %}
+          </div>
+        </fieldset>
+
+        {# 3. People: a small crowd that lights up #}
+        <fieldset class="min-w-0">
+          <legend class="impact-step"><span>3</span>Bersama siapa?</legend>
+          <div class="flex items-baseline justify-between gap-3">
+            <label for="impactPeople" class="font-sans text-sm text-secondary-800">Tambah orang</label>
+            <output for="impactPeople" class="font-display text-2xl leading-none text-secondary-900" data-impact-people-out>1 orang</output>
+          </div>
+          <div class="impact-crowd mt-3" data-impact-crowd aria-hidden="true">
+            {% for i in "01234567890123456789012345678901234567890123456789" %}<span></span>{% endfor %}
+          </div>
+          <p class="mt-1.5 font-sans text-[0.6875rem] text-secondary-600" data-impact-crowd-key aria-hidden="true">1 titik = 1 orang</p>
+          {# Logarithmic: 0 = 1 person, 300 = 1.000 people (impact.js) #}
+          <input id="impactPeople" type="range" min="0" max="300" value="0" class="landing-range mt-2 w-full cursor-pointer" aria-valuetext="1 orang" />
+          <div class="mt-2 flex flex-wrap gap-1.5">
+            {% for value, label in impact_people %}
+            <button type="button" class="impact-quick" data-impact-people="{{ value }}" aria-pressed="{% if value == 1 %}true{% else %}false{% endif %}">{{ label }}</button>
+            {% endfor %}
+          </div>
+        </fieldset>
+      </form>
+
+      {# Result: the jar #}
+      <div class="impact-stage lg:sticky lg:top-28 lg:self-start" data-impact-stage>
+        <div class="impact-jar-wrap">
+          <div class="impact-lid" aria-hidden="true"></div>
+          <div class="impact-jar" data-impact-jar aria-hidden="true">
+            <div class="impact-fill" data-impact-fill data-habit="tumbler">
+              <svg class="impact-wave" viewBox="0 0 240 20" preserveAspectRatio="none"><path d="M0 10 Q 30 0 60 10 T 120 10 T 180 10 T 240 10 V 20 H 0 Z" fill="currentColor" /></svg>
+            </div>
+            <div class="absolute inset-0" data-impact-drops></div>
+            <span class="impact-shine"></span>
+            <span class="impact-marks"><i></i><i></i><i></i><i></i></span>
+          </div>
+          <p class="impact-label" data-impact-label aria-hidden="true">{{ habits.0.label }}</p>
+        </div>
+
+        <div class="relative z-10 text-center" aria-live="polite" aria-atomic="true">
+          <p class="impact-number" data-impact-value>30</p>
+          <p class="font-sans text-base font-semibold text-secondary-900" data-impact-unit>{{ habits.0.unit }}</p>
+          <p class="mx-auto mt-1 max-w-xs font-sans text-sm text-secondary-700" data-impact-note>{{ habits.0.note }}</p>
+        </div>
+
+        <div class="impact-compare">
+          <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-secondary-900 text-primary-300">{% lucide "ruler" class="w-4 h-4" %}</span>
+          <p class="font-sans text-sm text-secondary-800" data-impact-compare>Jika ditumpuk, setinggi 6 m, kira-kira setinggi rumah dua lantai.</p>
+        </div>
+        <p id="impactNote" class="text-center font-sans text-[0.6875rem] text-secondary-600">Angka ini perkiraan kasar untuk ilustrasi, bukan hasil pengukuran.</p>
+      </div>
+    </div>
+  </div>
+
+  {% for habit in habits %}<template data-impact-icon="{{ habit.key }}">{% lucide habit.icon class="w-full h-full" %}</template>{% endfor %}
+</section>

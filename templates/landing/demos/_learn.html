@@ -1,0 +1,48 @@
+{% load lucide %}
+{# Belajar demo: fact-or-myth cards. Swipe, click or use the arrow keys (static/js/landing/demos.js) #}
+<div class="landing-demo mt-8" data-demo="learn" role="group" aria-labelledby="demoLearnTitle">
+  {% include "landing/demos/_head.html" with title="Fakta atau mitos?" title_id="demoLearnTitle" %}
+  <p class="mt-1 font-sans text-sm text-secondary-700">Uji pengetahuanmu dengan empat pernyataan singkat, seperti kuis di akhir setiap artikel.</p>
+
+  <div class="mt-6 grid gap-6 md:grid-cols-[minmax(0,1fr)_15rem] md:items-center">
+    <div class="quiz-deck" data-quiz-deck>
+      {% for item in learn_quiz %}
+      <article class="quiz-card" data-quiz-card data-answer="{{ item.answer }}" aria-label="Pernyataan {{ forloop.counter }} dari {{ learn_quiz|length }}">
+        <span class="quiz-stamp quiz-stamp-myth" aria-hidden="true">Mitos</span>
+        <span class="quiz-stamp quiz-stamp-fact" aria-hidden="true">Fakta</span>
+        <p class="font-sans text-xs font-semibold uppercase tracking-[0.18em] text-secondary-500">Pernyataan {{ forloop.counter }}/{{ learn_quiz|length }}</p>
+        <p class="mt-3 font-display text-[clamp(1.25rem,2.4vw,1.6rem)] leading-snug text-secondary-900">{{ item.text }}</p>
+        <div class="quiz-result" data-quiz-result>
+          <p class="flex items-center gap-2 font-sans text-sm font-semibold" data-quiz-verdict></p>
+          <p class="mt-1 font-sans text-sm text-secondary-800">{{ item.why }}</p>
+        </div>
+      </article>
+      {% endfor %}
+
+      <div class="quiz-end" data-quiz-end hidden>
+        <span class="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-200 text-secondary-800">{% lucide "sparkles" class="w-7 h-7" %}</span>
+        <p class="mt-4 font-display text-3xl text-secondary-900">Skor <span data-quiz-score>0</span>/{{ learn_quiz|length }}</p>
+        <p class="mt-1 max-w-xs font-sans text-sm text-secondary-700" data-quiz-message></p>
+        {% if urls.articles %}
+        <a href="{{ urls.articles }}" class="landing-link group mt-3">Baca artikelnya <span class="transition-transform group-hover:translate-x-1">{% lucide "arrow-right" class="w-4 h-4" %}</span></a>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-4">
+      <div class="grid grid-cols-2 gap-2" data-quiz-answers>
+        <button type="button" data-quiz-answer="mitos" class="demo-choice">{% lucide "thumbs-down" class="w-4 h-4" %} Mitos</button>
+        <button type="button" data-quiz-answer="fakta" class="demo-choice">{% lucide "thumbs-up" class="w-4 h-4" %} Fakta</button>
+      </div>
+      <button type="button" data-quiz-next hidden class="demo-primary"><span data-quiz-next-text>Pernyataan berikutnya</span> {% lucide "arrow-right" class="w-4 h-4" %}</button>
+      <p class="flex items-start gap-2 font-sans text-xs text-secondary-700">
+        {% lucide "move-horizontal" class="mt-0.5 w-4 h-4 shrink-0 text-secondary-500" %}
+        <span>Geser kartu ke kiri untuk <strong class="font-semibold text-secondary-900">mitos</strong>, ke kanan untuk <strong class="font-semibold text-secondary-900">fakta</strong>, atau tekan ← dan →.</span>
+      </p>
+      <ol class="flex gap-1.5" aria-label="Progres kuis" data-quiz-dots>
+        {% for item in learn_quiz %}<li class="quiz-dot" data-state="todo"><span class="sr-only">Pernyataan {{ forloop.counter }}</span></li>{% endfor %}
+      </ol>
+      <p class="sr-only" aria-live="polite" data-quiz-live></p>
+    </div>
+  </div>
+</div>

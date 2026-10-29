@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% load static component_tags lucide %}
+
+{% block title %}Donasi · SELARAS{% endblock %}
+
+{% block extra_head %}
+<noscript><style>.scroll-reveal { opacity: 1; transform: none; }</style></noscript>
+{% endblock %}
+
+{% block content %}
+<div class="relative isolate">
+  <div class="page-aura" aria-hidden="true"></div>
+
+  <main
+    id="donationsPage"
+    class="mx-auto w-full max-w-7xl px-4 pb-24 pt-36 sm:px-6 sm:pt-40 lg:px-8"
+    data-list-url="{% url 'donations:campaign_list' %}"
+    data-status="{{ status_filter }}"
+  >
+    <header class="mb-10 grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:items-stretch lg:gap-10">
+      <div class="flex flex-col justify-center">
+        <div>{% component "badge" text="Aksi lingkungan" variant="primary" icon="hand-heart" / %}</div>
+        <h1 class="mt-4 font-display text-h3 leading-tight text-foreground sm:text-h2">Dukung perubahan yang tumbuh.</h1>
+        <p class="mt-3 max-w-xl font-sans text-b3 text-neutral-900">
+          Pilih kampanye lingkungan dan bantu mewujudkan langkah kecil yang berdampak. Setiap donasi diverifikasi agar progresnya bisa dipercaya.
+        </p>
+        <div class="mt-6 flex flex-wrap items-center gap-3">
+          {% if user.is_authenticated %}
+          {% url 'donations:history' as history_url %}
+          {% component "button" href=history_url text="Riwayat donasiku" variant="neutral" size="md" icon_left="history" / %}
+          {% endif %}
+          {% if is_admin %}
+          {% url 'donations:campaign_create' as create_url %}
+          {% url 'donations:verification_queue' as queue_url %}
+          {% component "button" href=create_url text="Buat kampanye" variant="primary" size="md" icon_left="plus" / %}
+          {% component "button" href=queue_url text="Tinjau donasi" variant="neutral" size="md" icon_left="clipboard-check" / %}
+          {% endif %}
+        </div>
+      </div>
+
+      <section aria-labelledby="stepsTitle" class="relative overflow-hidden rounded-3xl bg-secondary-900 p-6 text-neutral-50 sm:p-8">
+        <span class="pointer-events-none absolute -right-16 -top-20 aspect-square w-64 rounded-full border border-secondary-700/70" aria-hidden="true"></span>
+        <span class="pointer-events-none absolute -right-4 -top-8 aspect-square w-36 rounded-full border border-secondary-700/70" aria-hidden="true"></span>
+        <h2 id="stepsTitle" class="relative font-display text-h5">Berdonasi dalam 3 langkah</h2>
+        <ol class="relative mt-5 space-y-4 font-sans text-sm">
+          <li class="flex items-start gap-3">
+            <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-300 font-semibold text-secondary-900">1</span>
+            <span><strong class="block text-neutral-50">Pilih kampanye</strong><span class="text-secondary-200">Baca tujuan dan target penggalangannya.</span></span>
+          </li>
+          <li class="flex items-start gap-3">
+            <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-300 font-semibold text-secondary-900">2</span>
+            <span><strong class="block text-neutral-50">Catat donasi &amp; unggah bukti</strong><span class="text-secondary-200">Masukkan nominal dan bukti transfer.</span></span>
+          </li>
+          <li class="flex items-start gap-3">
+            <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-300 font-semibold text-secondary-900">3</span>
+            <span><strong class="block text-neutral-50">Diverifikasi admin</strong><span class="text-secondary-200">Setelah disetujui, donasimu menambah progres kampanye.</span></span>
+          </li>
+        </ol>
+      </section>
+    </header>
+
+    <section aria-label="Cari dan filter kampanye" class="mb-6 rounded-2xl border border-neutral-400 bg-neutral-50 p-4 sm:p-5">
+      <form id="donationsFilterForm" method="get" action="{% url 'donations:campaign_list' %}" class="flex flex-col gap-3 sm:flex-row sm:items-start">
+        <search class="min-w-0 flex-1">
+          {% component "input" type="search" id="donationsSearch" name="search" label="Cari berdasarkan judul atau deskripsi" placeholder=" " icon="search" value=search attrs='maxlength="100"' / %}
+        </search>
+        {% if status_filter %}<input type="hidden" name="status" value="{{ status_filter }}" id="donationsStatus">{% else %}<input type="hidden" name="status" value="" id="donationsStatus">{% endif %}
+        {% component "button" type="submit" text="Cari" variant="secondary" size="lg" icon_left="search" / %}
+      </form>
+
+      {% if is_admin %}
+      <div class="mt-4 flex flex-wrap items-center gap-2 border-t border-neutral-400/60 pt-4" role="group" aria-label="Filter status kampanye">
+        <span class="mr-1 font-sans text-b4 font-semibold text-neutral-800">Status</span>
+        {% if status_filter == "" %}
+          {% component "button" href="?" text="Semua" variant="neutral" size="sm" selected=True attrs='data-status-filter=""' / %}
+        {% else %}
+          {% component "button" href="?" text="Semua" variant="neutral" size="sm" attrs='data-status-filter=""' / %}
+        {% endif %}
+        {% for value, label in status_choices %}
+          {% if status_filter == value %}
+            {% component "button" href="?status="|add:value text=label variant="neutral" size="sm" selected=True attrs='data-status-filter="'|add:value|add:'"' / %}
+          {% else %}
+            {% component "button" href="?status="|add:value text=label variant="neutral" size="sm" attrs='data-status-filter="'|add:value|add:'"' / %}
+          {% endif %}
+        {% endfor %}
+      </div>
+      {% endif %}
+    </section>
+
+    <p id="donationsResultCount" class="mb-5 font-sans text-sm text-neutral-800" role="status" aria-live="polite">
+      {{ campaigns|length }} kampanye
+    </p>
+
+    <section id="donationsGrid" aria-label="Daftar kampanye" tabindex="-1" class="outline-none transition-opacity duration-200 aria-busy:opacity-60">
+      {% include "donations/partials/campaign_grid.html" %}
+    </section>
+
+    <template id="tpl-donations-skeleton">
+      <div class="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3" aria-hidden="true">
+        {% for i in "123456" %}{% component "skeleton" variant="rect" height="h-80" rounded="rounded-3xl" / %}{% endfor %}
+      </div>
+    </template>
+  </main>
+</div>
+
+{% include "accounts/_messages.html" %}
+{% endblock %}
+
+{% block scripts %}
+<script type="module" src="{% static 'js/donations/list.js' %}"></script>
+{% endblock %}

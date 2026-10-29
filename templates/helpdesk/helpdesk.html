@@ -1,0 +1,253 @@
+{% extends 'base.html' %} {% load static lucide component_tags %} {% block title
+%}Bantuan · SELARAS{% endblock %} {% block content %}
+<main
+  class="min-h-screen mt-40 flex flex-col items-center justify-center px-4 sm:px-8 lg:px-20 mx-auto overflow-hidden max-w-[1440px]"
+>
+  <section class="flex flex-col w-full">
+    <h1 class="text-h1 text-center">Ada yang bisa kami bantu?</h1>
+    <h2 class="text-h5 font-sans text-center">
+      Sampaikan keluhan, laporan bug, atau apa pun yang mengganggumu. Kami siap bantu.
+    </h2>
+
+    <div class="mt-5 flex w-full flex-wrap items-center justify-between gap-3">
+    <nav aria-label="Navigasi">
+      <ol class="flex flex-wrap items-center gap-1.5 font-sans text-sm">
+        <li>
+          <a
+            href="{% url 'helpdesk:ticket_list' %}"
+            class="rounded-md px-1 py-0.5 text-neutral-800 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+            >Bantuan</a
+          >
+        </li>
+        <li aria-hidden="true" class="text-neutral-700">
+          {% lucide "chevron-right" class="w-4 h-4" %}
+        </li>
+        <li>
+          <a
+            href="{% url 'helpdesk:ticket_list' %}"
+            class="rounded-md px-1 py-0.5 text-primary-800 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+            >Tiket</a
+          >
+        </li>
+      </ol>
+    </nav>
+
+      {% component "button" id="createTicketButton" text="Buat tiket" variant="secondary" icon_left="plus" class_="max-sm:w-full" attrs='data-modal-open="createTicketModal" aria-haspopup="dialog"' / %}
+    </div>
+
+    <div
+      class="mt-10 w-full"
+      id="ticketStats"
+      data-stats-url="{% url 'helpdesk:ticket_stats_api' %}"
+    ></div>
+
+
+    <div
+      class="grid w-full grid-cols-1 items-end gap-4 mt-10 sm:grid-cols-3 lg:grid-cols-[minmax(0,2fr)_repeat(3,minmax(0,1fr))]"
+    >
+      <search class="flex flex-col sm:col-span-3 lg:col-span-1">
+        {% component "input" type="search" id="ticketsSearch" name="search" label="Cari judul atau deskripsi" placeholder=" " icon="search" value=query.search attrs='maxlength="100"' / %}
+      </search>
+
+      {% component "dropdown" with id="tickets-status-dropdown" label="Status"
+      placeholder="Semua status" name="status" options=status_options
+      initial_value=query.status default_label=status_label / %}
+
+      {% component "dropdown" with id="tickets-priority-dropdown"
+      label="Prioritas" placeholder="Semua prioritas" name="priority"
+      options=priority_options initial_value=query.priority
+      default_label=priority_label / %}
+
+      {% component "dropdown" with id="tickets-sorting-dropdown" label="Urutkan"
+      placeholder="Terbaru" name="sort" options=sorting_options
+      initial_value=query.sort default_label=sort_label / %}
+    </div>
+
+    <div class="mt-4 flex w-full flex-wrap items-center justify-between gap-3">
+      <div
+        id="ticketsActiveFilters"
+        class="flex flex-wrap items-center gap-2"
+        role="group"
+        aria-label="Filter aktif"
+      ></div>
+      <p
+        id="ticketsResultCount"
+        class="font-sans text-sm text-neutral-800"
+        role="status"
+        aria-live="polite"
+      ></p>
+    </div>
+  </section>
+
+  <section
+    class="grid lg:grid-cols-3 mt-6 md:grid-cols-2 grid-cols-1 items-stretch gap-4 sm:gap-6 w-full scroll-mt-32 outline-none transition-opacity duration-200 aria-busy:opacity-60"
+    data-tickets-url="{% url 'helpdesk:ticket_list_api' %}"
+    id="ticketsContainer"
+    tabindex="-1"
+    aria-label="Daftar tiket"
+  >
+    {% for i in "123" %}
+    <div aria-hidden="true">{% component "skeleton" variant="rect" height="h-72" rounded="rounded-2xl" / %}</div>
+    {% endfor %}
+  </section>
+
+  <div id="ticketsPagination" class="mt-8 w-full"></div>
+
+  <template id="tpl-stats-skeleton">
+    <div class="grid gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]" aria-hidden="true">
+      <div class="flex flex-col gap-4 rounded-3xl border border-neutral-400 bg-neutral-300 p-4 sm:p-6">
+        {% component "skeleton" variant="rect" width="w-40" height="h-9" rounded="rounded-xl" / %}
+        <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
+          {% for i in "1234" %}
+          {% component "skeleton" variant="rect" height="h-36" rounded="rounded-2xl" / %}
+          {% endfor %}
+        </div>
+      </div>
+      <div class="flex flex-col gap-4 rounded-3xl border border-neutral-400 bg-neutral-300 p-4 sm:p-6">
+        {% component "skeleton" variant="rect" width="w-32" height="h-9" rounded="rounded-xl" / %}
+        {% component "skeleton" variant="rect" height="h-3" rounded="rounded-full" / %}
+        {% for i in "123" %}
+        {% component "skeleton" variant="rect" height="h-11" rounded="rounded-xl" / %}
+        {% endfor %}
+      </div>
+    </div>
+  </template>
+
+  {% include "helpdesk/_component_templates.html" %}
+</main>
+
+{% component "modal" id="createTicketModal" title="Buat tiket" size="lg" %}
+  {% fill "content" %}
+  <form
+    id="createTicketForm"
+    method="post"
+    action="{% url 'helpdesk:ticket_create' %}"
+    data-api-url="{% url 'helpdesk:ticket_create_api' %}"
+    enctype="multipart/form-data"
+    novalidate
+    class="flex flex-col gap-6"
+  >
+    {% csrf_token %}
+    <p class="font-sans text-sm text-neutral-800">
+      Ceritakan masalahnya dan kami akan segera membalas. Kolom bertanda <span aria-hidden="true">*</span><span class="sr-only">wajib</span> wajib diisi.
+    </p>
+
+    <div>
+      {% component "input" id="ticketSubject" name="subject" label="Judul *" placeholder=" " icon="type" required=True class_="aria-invalid:border-red-100 aria-invalid:ring-1 aria-invalid:ring-red-100" attrs='maxlength="200" data-modal-autofocus aria-describedby="ticketSubjectError ticketSubjectCount"' / %}
+      <div class="mt-1.5 flex items-start justify-between gap-3 px-1 font-sans text-xs">
+        <p id="ticketSubjectError" class="flex items-center gap-1 text-red-100" hidden></p>
+        <span id="ticketSubjectCount" class="ml-auto shrink-0 tabular-nums text-neutral-800">0 / 200</span>
+      </div>
+    </div>
+
+    <fieldset>
+      <legend class="mb-2 font-sans text-sm font-semibold text-foreground">Prioritas</legend>
+      <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
+        {% for value, label, icon, icon_color, hint in priority_form_options %}
+        <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-neutral-400 bg-neutral-50 p-3 transition-all duration-200 hover:border-neutral-500 has-checked:border-secondary-700 has-checked:bg-secondary-50 has-checked:ring-2 has-checked:ring-secondary-700/20 has-focus-visible:ring-2 has-focus-visible:ring-primary-500 sm:flex-col sm:items-start sm:gap-1.5">
+          <input type="radio" name="priority" value="{{ value }}" class="sr-only" {% if value == default_priority %}checked data-default-checked{% endif %} />
+          <span class="flex items-center gap-2 font-sans text-sm font-semibold text-foreground">
+            <span class="{{ icon_color }}">{% lucide icon class="w-4 h-4" %}</span>
+            {{ label }}
+          </span>
+          <span class="font-sans text-xs text-neutral-800">{{ hint }}</span>
+        </label>
+        {% endfor %}
+      </div>
+    </fieldset>
+
+    <div>
+      <label for="ticketDescription" class="mb-2 block font-sans text-sm font-semibold text-foreground">Deskripsi <span aria-hidden="true">*</span></label>
+      <textarea
+        id="ticketDescription"
+        name="description"
+        rows="5"
+        maxlength="5000"
+        required
+        placeholder="Apa yang terjadi? Seharusnya bagaimana? Sertakan ID, tautan, atau langkah-langkahnya kalau ada."
+        aria-describedby="ticketDescriptionError ticketDescriptionCount"
+        class="max-h-72 min-h-32 w-full resize-none rounded-xl border border-neutral-400 bg-neutral-50 px-4 py-3 font-sans text-sm text-foreground transition-colors duration-200 placeholder:text-neutral-700 hover:border-primary-400 focus:border-secondary-600 focus:outline-none focus:ring-1 focus:ring-secondary-600 aria-invalid:border-red-100 aria-invalid:ring-1 aria-invalid:ring-red-100"
+      ></textarea>
+      <div class="mt-1.5 flex items-start justify-between gap-3 px-1 font-sans text-xs">
+        <p id="ticketDescriptionError" class="flex items-center gap-1 text-red-100" hidden></p>
+        <span id="ticketDescriptionCount" class="ml-auto shrink-0 tabular-nums text-neutral-800">0 / 5000</span>
+      </div>
+    </div>
+
+    <fieldset data-attachments data-max="5" data-max-mb="5" data-has-items="false" class="group/attach">
+      <legend class="mb-2 flex w-full items-center justify-between gap-3 font-sans text-sm font-semibold text-foreground">
+        <span>Tangkapan layar <span class="font-normal text-neutral-800">(opsional)</span></span>
+        <span data-attach-count class="font-normal tabular-nums text-neutral-800">0 / 5</span>
+      </legend>
+
+      <label
+        data-attach-drop
+        for="ticketAttachmentFile"
+        class="group flex cursor-pointer flex-col items-center gap-2 rounded-2xl border-2 border-dashed border-neutral-500 bg-neutral-300 px-4 py-6 text-center transition-all duration-300 hover:border-primary-500 hover:bg-primary-100 has-focus-visible:ring-2 has-focus-visible:ring-primary-500 data-[dragging=true]:scale-[1.01] data-[dragging=true]:border-secondary-600 data-[dragging=true]:bg-primary-200 data-[full=true]:pointer-events-none data-[full=true]:opacity-50 group-data-[has-items=true]/attach:flex-row group-data-[has-items=true]/attach:justify-center group-data-[has-items=true]/attach:gap-3 group-data-[has-items=true]/attach:py-3"
+      >
+        <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary-200 text-secondary-700 transition-all duration-300 group-hover:-translate-y-0.5 group-data-[dragging=true]:-translate-y-1.5 group-data-[dragging=true]:scale-110 group-data-[has-items=true]/attach:h-9 group-data-[has-items=true]/attach:w-9">
+          {% lucide "images" class="w-5 h-5" aria_hidden="true" %}
+        </span>
+        <span class="font-sans text-sm font-semibold text-secondary-900">
+          <span class="group-data-[has-items=true]/attach:hidden">Tarik gambar ke sini, tempel, atau <span class="text-primary-700 underline decoration-primary-400 underline-offset-4">pilih file</span></span>
+          <span class="hidden group-data-[has-items=true]/attach:inline">Tambah gambar <span class="font-normal text-neutral-800">(tarik, tempel, atau pilih)</span></span>
+        </span>
+        <span class="font-sans text-xs text-neutral-800 group-data-[has-items=true]/attach:hidden">JPG, PNG, WebP, atau GIF, maksimal 5 MB per file</span>
+        <input id="ticketAttachmentFile" name="attachments" data-attach-file type="file" multiple accept="image/jpeg,image/png,image/webp,image/gif" class="sr-only" />
+      </label>
+
+      {# What's attached so far: right under the drop zone so it's seen straight away #}
+      <p data-attach-status hidden role="status" class="mt-3 flex items-center gap-2 rounded-xl border border-primary-300 bg-primary-100 px-3 py-2 font-sans text-sm font-semibold text-primary-900">
+        <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary-500 text-neutral-50">{% lucide "check" class="w-3.5 h-3.5" stroke_width=3 aria_hidden="true" %}</span>
+        <span data-attach-status-text class="min-w-0 flex-1"></span>
+      </p>
+      <ul data-attach-list class="mt-3 grid grid-cols-2 gap-3 empty:hidden sm:grid-cols-3" aria-label="Gambar terlampir"></ul>
+
+      <div class="mt-3 flex items-start gap-2">
+        <div class="min-w-0 flex-1">
+          {% component "input" id="ticketImageLink" name="image_links" type="url" label="Atau tempel tautan gambar" placeholder=" " icon="link" attrs='data-attach-link maxlength="500" inputmode="url" autocapitalize="off" spellcheck="false" aria-describedby="ticketLinkPreview"' / %}
+        </div>
+        {% component "button" text="Tambah" variant="neutral" size="lg" icon_left="plus" attrs='data-attach-link-add aria-label="Tambah tautan gambar"' / %}
+      </div>
+
+      {# Live preview of the link being typed, before it's added #}
+      <div
+        id="ticketLinkPreview"
+        data-link-preview
+        data-state="idle"
+        hidden
+        aria-live="polite"
+        class="link-preview mt-2 flex items-center gap-3 rounded-2xl border border-neutral-400 bg-neutral-50 p-2 pr-3 transition-colors data-[state=ok]:border-primary-400 data-[state=ok]:bg-primary-50 data-[state=error]:border-tertiary-400 data-[state=error]:bg-tertiary-100"
+      >
+        <span class="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-neutral-400">
+          <img data-link-preview-image alt="" referrerpolicy="no-referrer" class="hidden h-full w-full object-cover" />
+          <span data-link-preview-spinner class="h-5 w-5 animate-spin rounded-full border-2 border-secondary-300 border-t-transparent"></span>
+          <span data-link-preview-broken hidden class="text-neutral-800">{% lucide "image-off" class="w-6 h-6" aria_hidden="true" %}</span>
+        </span>
+        <span class="flex min-w-0 flex-1 flex-col">
+          <span data-link-preview-host class="truncate font-sans text-sm font-semibold text-secondary-900"></span>
+          <span data-link-preview-text class="font-sans text-xs text-neutral-800"></span>
+        </span>
+        <span class="hidden shrink-0 font-sans text-xs font-semibold text-primary-800 sm:inline" data-link-preview-hint>Tekan Enter untuk menambah</span>
+      </div>
+
+      <p data-attach-error hidden role="alert" class="mt-2 flex items-center gap-1 px-1 font-sans text-xs text-red-100"></p>
+    </fieldset>
+  </form>
+  {% endfill %}
+
+  {% fill "footer" %}
+  <span class="mr-auto hidden font-sans text-xs text-neutral-800 sm:inline">
+    <kbd class="rounded border border-neutral-500 bg-neutral-300 px-1.5 py-0.5 font-mono text-[0.6875rem]">Ctrl</kbd>
+    +
+    <kbd class="rounded border border-neutral-500 bg-neutral-300 px-1.5 py-0.5 font-mono text-[0.6875rem]">Enter</kbd>
+    untuk mengirim
+  </span>
+  {% component "button" text="Batal" variant="neutral" attrs="data-modal-close" / %}
+  {% component "button" id="createTicketSubmit" type="submit" text="Kirim tiket" variant="secondary" icon_right="send-horizontal" attrs='form="createTicketForm"' / %}
+  {% endfill %}
+{% endcomponent %}
+{% endblock content %} {% block scripts %}
+<script type="module" src="{% static 'js/helpdesk/stats.js' %}" defer></script>
+<script type="module" src="{% static 'js/helpdesk/create_ticket.js' %}" defer></script>
+{% endblock scripts %}

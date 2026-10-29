@@ -1,0 +1,246 @@
+{% load lucide %} {% if href %}
+<a
+  href="{{ href }}"
+  {% if id %}id="{{ id }}"{% endif %}
+  {% if attrs %}{{ attrs|safe }}{% endif %}
+  class="group relative inline-flex shrink-0 items-center justify-center gap-2 overflow-hidden rounded-xl border font-sans font-semibold outline-none transition-all duration-200 ease-out
+
+    {% if variant == 'primary' %}
+      border-primary-500 bg-primary-500 text-secondary-900 shadow-sm hover:-translate-y-0.5 hover:border-primary-400 hover:bg-primary-400 hover:shadow-md active:translate-y-0 active:scale-[0.97]
+    {% elif variant == 'secondary' %}
+      border-secondary-700 bg-secondary-700 text-neutral-50 shadow-sm hover:-translate-y-0.5 hover:border-secondary-600 hover:bg-secondary-600 hover:shadow-md active:translate-y-0 active:scale-[0.97]
+    {% elif variant == 'tertiary' %}
+      border-tertiary-300 bg-tertiary-200 text-tertiary-900 hover:-translate-y-0.5 hover:border-tertiary-400 hover:bg-tertiary-300 hover:shadow-md active:translate-y-0 active:scale-[0.97]
+    {% elif variant == 'neutral' %}
+      border-neutral-400 bg-neutral-50 text-secondary-800 hover:-translate-y-0.5 hover:border-neutral-500 hover:bg-neutral-300 hover:shadow-sm active:translate-y-0 active:scale-[0.97]
+    {% elif variant == 'primary-ghost' %}
+      border-primary-700 bg-transparent text-primary-700 hover:bg-primary-100 hover:text-primary-800 active:scale-[0.97]
+    {% elif variant == 'secondary-ghost' %}
+      border-secondary-700 bg-transparent text-secondary-700 hover:bg-secondary-50 hover:text-secondary-900 active:scale-[0.97]
+    {% elif variant == 'tertiary-ghost' %}
+      border-tertiary-700 bg-transparent text-tertiary-700 hover:bg-tertiary-100 hover:text-tertiary-900 active:scale-[0.97]
+    {% elif variant == 'neutral-ghost' %}
+      border-neutral-700 bg-transparent text-neutral-800 hover:bg-neutral-300 hover:text-secondary-900 active:scale-[0.97]
+    {% elif variant == 'danger' %}
+      border-red-100 bg-red-100 text-neutral-50 shadow-sm hover:-translate-y-0.5 hover:bg-red-100/90 hover:shadow-md active:translate-y-0 active:scale-[0.97]
+    {% elif variant == 'danger-ghost' %}
+      border-red-100/40 bg-transparent text-red-100 hover:border-red-100 hover:bg-red-100/10 active:scale-[0.97]
+    {% else %}
+      border-primary-500 bg-primary-500 text-secondary-900 hover:border-primary-400 hover:bg-primary-400 active:scale-[0.97]
+    {% endif %}
+
+    {% if size == 'xs' %}
+      min-h-8 rounded-lg px-3 text-xs
+    {% elif size == 'sm' %}
+      min-h-9 rounded-lg px-3.5 text-sm
+    {% elif size == 'lg' %}
+      min-h-12 px-5 text-base
+    {% elif size == 'xl' %}
+      min-h-14 rounded-2xl px-6 text-base
+    {% else %}
+      min-h-11 px-4 text-sm
+    {% endif %}
+
+    {% if full_width %}
+      w-full
+    {% else %}
+      w-auto
+    {% endif %}
+
+    {% if disabled %}
+      pointer-events-none cursor-not-allowed opacity-45 grayscale-[0.15] hover:translate-y-0 hover:shadow-none
+    {% endif %}
+
+    {% if selected %}
+      ring-2 ring-primary-300 ring-offset-2
+    {% endif %}
+
+    focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2
+
+    {{ class_ }}
+  "
+  {%
+  if
+  disabled
+  %}
+  aria-disabled="true"
+  tabindex="-1"
+  {%
+  endif
+  %}
+  {%
+  if
+  selected
+  %}
+  aria-current="page"
+  aria-pressed="true"
+  {%
+  endif
+  %}
+  {%
+  if
+  aria_label
+  %}
+  aria-label="{{ aria_label }}"
+  {%
+  endif
+  %}
+  data-button
+  data-variant="{{ variant }}"
+  data-size="{{ size }}"
+>
+  <span
+    class="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 group-hover:translate-x-full"
+    aria-hidden="true"
+  ></span>
+
+  {% if icon_left %}
+  <span
+    class="relative inline-flex shrink-0 transition-transform duration-200 group-hover:-translate-x-0.5"
+    aria-hidden="true"
+    data-button-icon-left
+  >
+    {% lucide icon_left class="w-5 h-5" %}
+  </span>
+  {% endif %} {% if text %}
+  <span class="relative" data-button-text>{{ text }}</span>
+  {% endif %} {% if icon_right %}
+  <span
+    class="relative inline-flex shrink-0 transition-transform duration-200 group-hover:translate-x-0.5"
+    aria-hidden="true"
+    data-button-icon-right
+  >
+    {% lucide icon_right class="w-5 h-5" %}
+  </span>
+  {% endif %}
+  <span
+    class="relative ml-1 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent {% if loading %}inline-flex{% else %}hidden{% endif %}"
+    aria-hidden="true"
+    data-button-spinner
+  ></span>
+</a>
+
+{% else %}
+
+<button
+  id="{{ id }}"
+  type="{{ type|default:'button' }}"
+  {% if attrs %}{{ attrs|safe }}{% endif %}
+  class="group relative inline-flex shrink-0 items-center justify-center gap-2 overflow-hidden rounded-xl border font-sans font-semibold outline-none transition-all duration-200 ease-out
+
+    {% if variant == 'primary' %}
+      border-primary-500 bg-primary-500 text-secondary-900 shadow-sm hover:-translate-y-0.5 hover:border-primary-400 hover:bg-primary-400 hover:shadow-md active:translate-y-0 active:scale-[0.97]
+    {% elif variant == 'secondary' %}
+      border-secondary-700 bg-secondary-700 text-neutral-50 shadow-sm hover:-translate-y-0.5 hover:border-secondary-600 hover:bg-secondary-600 hover:shadow-md active:translate-y-0 active:scale-[0.97]
+    {% elif variant == 'tertiary' %}
+      border-tertiary-300 bg-tertiary-200 text-tertiary-900 hover:-translate-y-0.5 hover:border-tertiary-400 hover:bg-tertiary-300 hover:shadow-md active:translate-y-0 active:scale-[0.97]
+    {% elif variant == 'neutral' %}
+      border-neutral-400 bg-neutral-50 text-secondary-800 hover:-translate-y-0.5 hover:border-neutral-500 hover:bg-neutral-300 hover:shadow-sm active:translate-y-0 active:scale-[0.97]
+    {% elif variant == 'primary-ghost' %}
+      border-primary-700 bg-transparent text-primary-700 hover:bg-primary-100 hover:text-primary-800 active:scale-[0.97]
+    {% elif variant == 'secondary-ghost' %}
+      border-secondary-700 bg-transparent text-secondary-700 hover:bg-secondary-50 hover:text-secondary-900 active:scale-[0.97]
+    {% elif variant == 'tertiary-ghost' %}
+      border-tertiary-700 bg-transparent text-tertiary-700 hover:bg-tertiary-100 hover:text-tertiary-900 active:scale-[0.97]
+    {% elif variant == 'neutral-ghost' %}
+      border-neutral-700 bg-transparent text-neutral-800 hover:bg-neutral-300 hover:text-secondary-900 active:scale-[0.97]
+    {% elif variant == 'danger' %}
+      border-red-100 bg-red-100 text-neutral-50 shadow-sm hover:-translate-y-0.5 hover:bg-red-100/90 hover:shadow-md active:translate-y-0 active:scale-[0.97]
+    {% elif variant == 'danger-ghost' %}
+      border-red-100/40 bg-transparent text-red-100 hover:border-red-100 hover:bg-red-100/10 active:scale-[0.97]
+    {% else %}
+      border-primary-500 bg-primary-500 text-secondary-900 hover:border-primary-400 hover:bg-primary-400 active:scale-[0.97]
+    {% endif %}
+
+    {% if size == 'xs' %}
+      min-h-8 rounded-lg px-3 text-xs
+    {% elif size == 'sm' %}
+      min-h-9 rounded-lg px-3.5 text-sm
+    {% elif size == 'lg' %}
+      min-h-12 px-5 text-base
+    {% elif size == 'xl' %}
+      min-h-14 rounded-2xl px-6 text-base
+    {% else %}
+      min-h-11 px-4 text-sm
+    {% endif %}
+
+    {% if full_width %}
+      w-full
+    {% else %}
+      w-auto
+    {% endif %}
+
+    {% if disabled %}
+      cursor-not-allowed opacity-45 grayscale-[0.15] hover:translate-y-0 hover:shadow-none
+    {% endif %}
+
+    {% if selected %}
+      ring-2 ring-primary-300 ring-offset-2
+    {% endif %}
+
+    focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2
+    disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:translate-y-0 disabled:hover:shadow-none disabled:active:scale-100
+
+    {{ class_ }}
+  "
+  {%
+  if
+  disabled
+  %}
+  disabled
+  aria-disabled="true"
+  {%
+  endif
+  %}
+  {%
+  if
+  selected
+  %}
+  aria-pressed="true"
+  {%
+  endif
+  %}
+  {%
+  if
+  aria_label
+  %}
+  aria-label="{{ aria_label }}"
+  {%
+  endif
+  %}
+  data-button
+  data-variant="{{ variant }}"
+  data-size="{{ size }}"
+>
+  <span
+    class="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 group-hover:translate-x-full"
+    aria-hidden="true"
+  ></span>
+
+  {% if icon_left %}
+  <span
+    class="relative inline-flex shrink-0 transition-transform duration-200 group-hover:-translate-x-0.5"
+    aria-hidden="true"
+    data-button-icon-left
+  >
+    {% lucide icon_left class="w-5 h-5" %}
+  </span>
+  {% endif %} {% if text %}
+  <span class="relative" data-button-text>{{ text }}</span>
+  {% endif %} {% if icon_right %}
+  <span
+    class="relative inline-flex shrink-0 transition-transform duration-200 group-hover:translate-x-0.5"
+    aria-hidden="true"
+    data-button-icon-right
+  >
+    {% lucide icon_right class="w-5 h-5" %}
+  </span>
+  {% endif %}
+  <span
+    class="relative ml-1 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent {% if loading %}inline-flex{% else %}hidden{% endif %}"
+    aria-hidden="true"
+    data-button-spinner
+  ></span>
+</button>
+
+{% endif %}

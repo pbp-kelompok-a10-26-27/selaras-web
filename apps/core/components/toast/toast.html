@@ -1,0 +1,61 @@
+{% load lucide %}
+
+{% comment %}
+  Map types to static Tailwind classes so the CSS compiler detects them
+{% endcomment %}
+{% if type == "success" %}
+    {% with border_color="border-primary-500" bg_color="bg-primary-50" icon_color="text-primary-600" icon_name="check-circle" %}
+    {% endwith %}
+{% elif type == "error" %}
+    {% with border_color="border-tertiary-700" bg_color="bg-tertiary-50" icon_color="text-tertiary-700" icon_name="alert-circle" %}
+    {% endwith %}
+{% elif type == "warning" %}
+    {% with border_color="border-secondary-400" bg_color="bg-secondary-50" icon_color="text-secondary-400" icon_name="alert-triangle" %}
+    {% endwith %}
+{% else %}
+    {% with border_color="border-neutral-400" bg_color="bg-neutral-50" icon_color="text-secondary-600" icon_name="info" %}
+    {% endwith %}
+{% endif %}
+
+<div 
+    id="{{ id }}"
+    class="toast-item pointer-events-auto flex items-start gap-3 w-full max-w-sm p-4 rounded-2xl shadow-xl transform translate-y-2 opacity-0 transition-all duration-300 ease-out 
+    {% if type == 'success' %}border border-primary-500 bg-primary-50
+    {% elif type == 'error' %}border border-tertiary-700 bg-tertiary-50
+    {% elif type == 'warning' %}border border-secondary-400 bg-secondary-50
+    {% else %}border border-neutral-400 bg-neutral-50
+    {% endif %} 
+    {{ class_ }}"
+    data-duration="{{ duration }}"
+    role="alert"
+>
+    {# Type Icon #}
+    <div class="flex-shrink-0 mt-0.5">
+        {% if type == "success" %}
+            <span class="text-primary-600">{% lucide "check-circle" class="w-5 h-5" %}</span>
+        {% elif type == "error" %}
+            <span class="text-tertiary-700">{% lucide "alert-circle" class="w-5 h-5" %}</span>
+        {% elif type == "warning" %}
+            <span class="text-secondary-400">{% lucide "alert-triangle" class="w-5 h-5" %}</span>
+        {% else %}
+            <span class="text-secondary-600">{% lucide "info" class="w-5 h-5" %}</span>
+        {% endif %}
+    </div>
+
+    {# Content #}
+    <div class="flex-1 min-w-0">
+        {% if title %}
+        <h4 class="font-sans md:text-s5 text-s6 text-foreground leading-tight truncate">{{ title }}</h4>
+        {% endif %}
+        <p class="font-sans text-b3 text-foreground/80 mt-0.5 leading-normal">{{ message }}</p>
+    </div>
+
+    {# Close Button #}
+    <button 
+        type="button" 
+        class="toast-close flex-shrink-0 text-neutral-700 hover:text-foreground transition-colors p-1 rounded-lg hover:bg-neutral-200/60 cursor-pointer"
+        aria-label="Tutup notifikasi"
+    >
+        {% lucide "x" class="w-4 h-4" %}
+    </button>
+</div>

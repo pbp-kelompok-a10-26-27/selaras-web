@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+{% load static component_tags lucide %}
+
+{% block title %}{% if article %}Edit artikel{% else %}Tulis artikel{% endif %} · SELARAS{% endblock %}
+
+{% block content %}
+<div class="relative isolate">
+  <div class="page-aura" aria-hidden="true"></div>
+
+  <main id="articleEditorPage" class="mx-auto w-full max-w-6xl px-4 pb-24 pt-36 sm:px-6 sm:pt-40 lg:px-8">
+    <nav aria-label="Kembali" class="mb-6">
+      {% if article %}{% url 'articles:html-detail' article.slug as back_url %}{% else %}{% url 'articles:html-list' as back_url %}{% endif %}
+      {% component "button" text="Kembali" variant="neutral-ghost" size="sm" icon_left="arrow-left" href=back_url / %}
+    </nav>
+
+    <header class="mb-8">
+      <div class="flex flex-wrap items-center gap-2">
+        {% if is_admin %}
+          {% component "badge" text="Area pengelolaan · admin" variant="primary" icon="shield-check" / %}
+        {% else %}
+          {% component "badge" text="Ruang penulis" variant="primary" icon="pen-line" / %}
+        {% endif %}
+        {% if article %}{% include "articles/partials/status_badge.html" with status=article.status %}{% endif %}
+      </div>
+      <h1 class="mt-4 font-display text-h3 leading-tight text-foreground sm:text-h2">
+        {% if article %}Merawat cerita yang sudah ada.{% else %}Sebuah cerita baru.{% endif %}
+      </h1>
+      <p class="mt-2 max-w-2xl font-sans text-b3 text-neutral-900">Tuangkan gagasan, bagikan pengetahuan, dan biarkan setiap tulisan membawa perubahan.</p>
+      {% if article.status == "REJECTED" and article.review_note %}
+      <div role="note" class="mt-5 flex max-w-3xl items-start gap-3 rounded-2xl border border-tertiary-400 bg-tertiary-50 p-4">
+        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-tertiary-200 text-tertiary-800" aria-hidden="true">{% lucide "message-square-warning" class="w-5 h-5" %}</span>
+        <div>
+          <p class="font-sans text-sm font-semibold text-tertiary-900">Catatan dari {{ article.reviewed_by.display_name|default:"admin" }}</p>
+          <p class="mt-0.5 whitespace-pre-line font-sans text-sm text-tertiary-900">{{ article.review_note }}</p>
+          <p class="mt-2 font-sans text-b4 text-tertiary-800">Perbaiki lalu kirim ulang untuk review.</p>
+        </div>
+      </div>
+      {% elif article.status == "PENDING" and not is_admin %}
+      <p class="mt-5 flex max-w-3xl items-center gap-2 rounded-2xl border border-orange-100/60 bg-orange-100/15 px-4 py-3 font-sans text-sm text-secondary-900">{% lucide "hourglass" class="w-4 h-4 shrink-0" aria_hidden="true" %}Artikel ini sedang menunggu review. Perubahan yang kamu simpan ikut ditinjau.</p>
+      {% endif %}
+    </header>
+
+    <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
+      <form id="articleForm" method="post" enctype="multipart/form-data" novalidate class="space-y-6" data-article-form>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+        <div role="alert" class="flex items-start gap-2 rounded-xl border border-tertiary-400 bg-tertiary-50 p-3 font-sans text-sm text-tertiary-900">
+          {% lucide "circle-alert" class="w-4 h-4 mt-0.5 shrink-0" %}
+          <div>{% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}</div>
+        </div>
+        {% endif %}
+
+        <section aria-labelledby="storyTitle" class="space-y-5 rounded-3xl border border-neutral-400 bg-neutral-50 p-5 sm:p-8">
+          <h2 id="storyTitle" class="flex items-center gap-2 font-display text-h5 text-foreground">
+            <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-100 text-primary-700" aria-hidden="true">{% lucide "pen-line" class="w-4 h-4" %}</span>
+            Cerita
+          </h2>
+          {% component "input" type="text" id=form.title.auto_id name=form.title.html_name label="Judul artikel" placeholder=" " icon="heading" value=form.title.value errors=form.title.errors attrs='maxlength="200" data-preview-source="title"' / %}
+          <div class="space-y-1">
+            {% component "input" type="text" id=form.summary.auto_id name=form.summary.html_name label="Ringkasan" placeholder=" " icon="text-quote" value=form.summary.value errors=form.summary.errors attrs='data-preview-source="summary"' / %}
+            <p class="px-1 font-sans text-b4 text-neutral-800">Ringkasan ini membantu pembaca memilih cerita dari halaman daftar.</p>
+          </div>
+          <div class="space-y-1">
+            {% component "textarea" id=form.content.auto_id name=form.content.html_name label="Isi artikel" value=form.content.value rows=14 errors=form.content.errors attrs='data-preview-source="content"' / %}
+            <p class="px-1 font-sans text-b4 text-neutral-800" aria-live="polite"><span data-word-count>0 kata</span> · <span data-reading-time>1 menit baca</span> · Pisahkan paragraf dengan baris kosong.</p>
+          </div>
+        </section>
+
+        <section aria-labelledby="classTitle" class="space-y-5 rounded-3xl border border-neutral-400 bg-neutral-50 p-5 sm:p-8">
+          <h2 id="classTitle" class="flex items-center gap-2 font-display text-h5 text-foreground">
+            <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-100 text-primary-700" aria-hidden="true">{% lucide "tags" class="w-4 h-4" %}</span>
+            Kategori &amp; tag
+          </h2>
+
+          <div>
+            {% if not form.category_options %}
+            <div role="alert" class="mb-3 flex items-start gap-3 rounded-2xl border border-orange-100/60 bg-orange-100/15 p-4">
+              {% lucide "folder-x" class="w-5 h-5 mt-0.5 shrink-0 text-secondary-800" aria_hidden="true" %}
+              <div class="font-sans text-sm text-secondary-900">
+                <p class="font-semibold">Belum ada kategori.</p>
+                {% if is_admin %}
+                <p class="mt-0.5">Tambahkan kategori dulu agar artikel bisa disimpan. <a href="{% url 'articles:categories' %}" class="font-semibold underline">Kelola kategori</a></p>
+                {% else %}
+                <p class="mt-0.5">Admin belum menyiapkan kategori. Simpan tulisanmu di tempat lain dan coba lagi nanti.</p>
+                {% endif %}
+              </div>
+            </div>
+            {% endif %}
+            {% component "dropdown" id=form.category.auto_id name=form.category.html_name label="Kategori" placeholder="Pilih kategori" options=form.category_options initial_value=form.category.value|default_if_none:"" default_label=form.selected_category_label / %}
+            {% for error in form.category.errors %}
+            <p role="alert" class="mt-2 flex items-center gap-1.5 px-1 font-sans text-xs font-semibold text-tertiary-700">{% lucide "circle-alert" class="w-3.5 h-3.5 shrink-0" %}{{ error }}</p>
+            {% endfor %}
+            {% if is_admin and form.category_options %}
+            <p class="mt-2 px-1 font-sans text-b4 text-neutral-800">Kategori yang dibutuhkan belum ada? <a href="{% url 'articles:categories' %}" class="font-semibold text-secondary-700 underline hover:text-secondary-900" target="_blank" rel="noopener">Kelola kategori</a></p>
+            {% endif %}
+          </div>
+
+          <fieldset>
+            <legend class="mb-2 font-sans text-s5 text-foreground">Tag yang sudah ada</legend>
+            <div class="flex flex-wrap gap-2">
+              {% for tag_choice in form.tags %}
+              <label class="inline-flex min-h-9 cursor-pointer select-none items-center gap-1.5 rounded-full border border-neutral-400 bg-neutral-50 px-3 font-sans text-sm font-semibold text-secondary-700 transition-all duration-200 hover:-translate-y-0.5 hover:border-secondary-300 has-checked:border-secondary-700 has-checked:bg-secondary-700 has-checked:text-neutral-50 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-primary-500 has-[:focus-visible]:ring-offset-2 [&>input]:sr-only">
+                {{ tag_choice.tag }}
+                <span>#{{ tag_choice.choice_label }}</span>
+              </label>
+              {% empty %}
+              <span class="font-sans text-sm text-neutral-800">Belum ada tag yang tersedia; tambahkan nama tag di bawah.</span>
+              {% endfor %}
+            </div>
+            {% for error in form.tags.errors %}
+            <p role="alert" class="mt-2 flex items-center gap-1.5 px-1 font-sans text-xs font-semibold text-tertiary-700">{% lucide "circle-alert" class="w-3.5 h-3.5 shrink-0" %}{{ error }}</p>
+            {% endfor %}
+          </fieldset>
+
+          <div class="space-y-1">
+            {% component "input" type="text" id=form.new_tags.auto_id name=form.new_tags.html_name label=form.new_tags.label placeholder=" " icon="tag" value=form.new_tags.value errors=form.new_tags.errors / %}
+            <p class="px-1 font-sans text-b4 text-neutral-800">{{ form.new_tags.help_text }} Tag yang namanya sudah ada akan digunakan kembali.</p>
+          </div>
+        </section>
+
+        <section aria-labelledby="imageTitle" class="space-y-4 rounded-3xl border border-neutral-400 bg-neutral-50 p-5 sm:p-8">
+          <h2 id="imageTitle" class="flex items-center gap-2 font-display text-h5 text-foreground">
+            <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-100 text-primary-700" aria-hidden="true">{% lucide "image" class="w-4 h-4" %}</span>
+            Gambar utama
+          </h2>
+
+          {% if article and article.image %}
+          <div class="flex items-center gap-4 rounded-2xl border border-neutral-400 bg-neutral-100 p-3">
+            <img src="{{ article.image.url }}" alt="Gambar artikel saat ini" class="h-16 w-24 shrink-0 rounded-xl object-cover">
+            <div class="min-w-0 flex-1">
+              <p class="font-sans text-sm font-semibold text-foreground">Gambar saat ini</p>
+              <label class="mt-1 inline-flex cursor-pointer items-center gap-2 font-sans text-b4 text-neutral-900">
+                <input type="checkbox" name="{{ form.image.html_name }}-clear" id="{{ form.image.html_name }}-clear_id" class="h-4 w-4 accent-red-100" data-image-clear>
+                Hapus gambar ini
+              </label>
+            </div>
+          </div>
+          {% endif %}
+
+          {% component "file_drop" id=form.image.auto_id name=form.image.html_name title="Unggah gambar baru" hint="JPEG, PNG, WEBP, atau GIF, maksimal 5 MB dan 20 megapiksel. Gambar baru mengganti yang lama." accept=".jpg,.jpeg,.png,.webp,.gif" max_mb=5 errors=form.image.errors / %}
+        </section>
+
+        <div class="sticky bottom-4 z-20 flex flex-col gap-3 rounded-2xl border border-neutral-400 bg-neutral-50/90 p-4 shadow-lg backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between">
+          <p class="flex items-center gap-2 font-sans text-b4 text-neutral-800">
+            <span class="h-2 w-2 rounded-full bg-neutral-500 transition-colors data-[dirty=true]:bg-orange-100" data-dirty-dot aria-hidden="true"></span>
+            <span data-dirty-label>Belum ada perubahan</span>
+          </p>
+          <div class="flex flex-col-reverse gap-2 sm:flex-row">
+            {% component "button" text="Simpan sebagai draf" variant="neutral" size="md" type="submit" icon_left="save" attrs='name="status" value="DRAFT"' / %}
+            {% if is_admin %}
+            {% component "button" text="Terbitkan artikel" variant="primary" size="md" type="submit" icon_right="arrow-right" attrs='name="status" value="PUBLISHED"' / %}
+            {% else %}
+            {% component "button" text="Kirim untuk review" variant="primary" size="md" type="submit" icon_right="send" attrs='name="status" value="PENDING"' / %}
+            {% endif %}
+          </div>
+        </div>
+      </form>
+
+      <aside class="space-y-5 lg:sticky lg:top-28" aria-label="Pratinjau dan catatan">
+        <div>
+          <p class="mb-2 font-sans text-xs font-semibold uppercase tracking-wider text-neutral-800">Pratinjau kartu</p>
+          <div class="overflow-hidden rounded-3xl border border-neutral-400 bg-neutral-50 shadow-sm" data-preview-card>
+            <div class="relative h-36 overflow-hidden">
+              <img data-preview-image src="{% if article and article.image %}{{ article.image.url }}{% endif %}" alt="" class="h-full w-full object-cover {% if not article or not article.image %}hidden{% endif %}">
+              <div data-preview-placeholder class="campaign-media flex h-full w-full items-center justify-center {% if article and article.image %}hidden{% endif %}" data-tone="primary" aria-hidden="true">
+                {% lucide "sprout" class="w-8 h-8" %}
+              </div>
+            </div>
+            <div class="p-5">
+              <div class="flex flex-wrap items-center gap-2 font-sans text-b4 text-neutral-800">
+                <span class="inline-flex items-center rounded-full border border-primary-300 bg-primary-100 px-2.5 py-0.5 font-semibold text-secondary-800" data-preview-category>{{ form.selected_category_label|default:"Kategori" }}</span>
+                <span data-preview-minutes>1 menit baca</span>
+              </div>
+              <p class="mt-3 font-display text-h5 leading-snug text-foreground" data-preview-title data-empty="Judul artikelmu">{{ form.title.value|default:"Judul artikelmu" }}</p>
+              <p class="mt-2 line-clamp-3 font-sans text-sm text-neutral-900" data-preview-summary data-empty="Ringkasan singkat akan tampil di sini.">{{ form.summary.value|default:"Ringkasan singkat akan tampil di sini." }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="rounded-2xl border border-neutral-400 bg-neutral-50 p-5">
+          <h2 class="flex items-center gap-2 font-display text-h6 text-foreground">{% lucide "sprout" class="w-4 h-4 text-primary-700" %}Merawat bumi lewat tulisan</h2>
+          <ul class="mt-4 space-y-3 font-sans text-sm text-neutral-900">
+            {% if is_admin %}
+            <li class="flex gap-2">{% lucide "lock" class="w-4 h-4 mt-0.5 shrink-0 text-secondary-500" aria_hidden="true" %}<span><strong class="text-foreground">Draf tetap aman.</strong> Artikel yang belum terbit hanya terlihat oleh admin dan penulisnya.</span></li>
+            {% else %}
+            <li class="flex gap-2">{% lucide "lock" class="w-4 h-4 mt-0.5 shrink-0 text-secondary-500" aria_hidden="true" %}<span><strong class="text-foreground">Draf hanya milikmu.</strong> Simpan kapan saja; belum ada yang bisa melihatnya.</span></li>
+            <li class="flex gap-2">{% lucide "shield-check" class="w-4 h-4 mt-0.5 shrink-0 text-secondary-500" aria_hidden="true" %}<span><strong class="text-foreground">Ditinjau dulu.</strong> Admin membaca kirimanmu, lalu menerbitkan atau memberi catatan. Kamu akan mendapat notifikasi.</span></li>
+            {% endif %}
+            <li class="flex gap-2">{% lucide "hash" class="w-4 h-4 mt-0.5 shrink-0 text-secondary-500" aria_hidden="true" %}<span><strong class="text-foreground">Tag yang relevan.</strong> Bantu pembaca menemukan tulisanmu dengan lebih mudah.</span></li>
+            <li class="flex gap-2">{% lucide "calendar-clock" class="w-4 h-4 mt-0.5 shrink-0 text-secondary-500" aria_hidden="true" %}<span><strong class="text-foreground">Publikasi otomatis.</strong> Waktu terbit diatur oleh sistem.</span></li>
+          </ul>
+        </div>
+
+        {% if article %}
+        <div class="rounded-2xl border border-red-100/30 bg-red-100/5 p-5">
+          <p class="font-sans text-sm font-semibold text-foreground">Zona berbahaya</p>
+          <p class="mt-1 font-sans text-b4 text-neutral-900">Artikel akan dihapus permanen beserta gambarnya.{% if not is_admin %} Artikel yang sudah terbit hanya bisa dihapus admin.{% endif %}</p>
+          {% component "button" text="Hapus artikel" variant="danger-ghost" size="sm" icon_left="trash-2" class_="mt-3" attrs='data-modal-open="delete-article-modal" aria-haspopup="dialog"' / %}
+        </div>
+        {% endif %}
+      </aside>
+    </div>
+  </main>
+</div>
+
+{% if article %}
+{% component "modal" id="delete-article-modal" title="Hapus artikel?" size="sm" %}
+  {% fill "content" %}
+  <p class="font-sans text-sm text-neutral-900">&ldquo;<strong class="text-foreground">{{ article.title }}</strong>&rdquo; akan dihapus permanen. Tindakan ini tidak dapat dibatalkan.</p>
+  {% endfill %}
+  {% fill "footer" %}
+  <form method="post" action="{% url 'articles:html-delete' article.slug %}" class="flex w-full items-center justify-end gap-3" data-skip-dirty>
+    {% csrf_token %}
+    {% component "button" text="Batal" variant="neutral" size="sm" attrs="data-modal-close data-modal-autofocus" / %}
+    {% component "button" type="submit" text="Ya, hapus" variant="danger" size="sm" icon_left="trash-2" / %}
+  </form>
+  {% endfill %}
+{% endcomponent %}
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script type="module" src="{% static 'js/articles/editor.js' %}"></script>
+{% endblock %}

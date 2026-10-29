@@ -1,0 +1,385 @@
+{% load static lucide component_tags %}
+<!doctype html>
+<html lang="id" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Masuk · SELARAS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link href="https://fonts.cdnfonts.com/css/transcity" rel="stylesheet" />
+
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="{% static 'assets/images/logo.svg' %}"
+    />
+
+    <link rel="stylesheet" href="{% static 'css/output.css' %}" />
+  </head>
+  <body
+    class="h-full font-sans bg-[#f7f9f0] text-[#212b1c] flex items-center justify-center p-4 sm:p-6 lg:p-8 selection:bg-[#aac46d] selection:text-[#212b1c]"
+  >
+    <div
+      id="falling-leaves"
+      class="pointer-events-none fixed inset-0 z-0 overflow-hidden"
+      aria-hidden="true"
+    ></div>
+    <main
+      class="w-full max-w-5xl bg-[#fffffe] rounded-3xl border border-[#e6e4df] shadow-sm overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[600px] fade-in"
+    >
+      <section
+        class="lg:col-span-5 bg-gradient-to-br from-[#f2f6e9] via-[#e5edd2] to-[#f7f9f0] p-8 lg:p-12 flex flex-col justify-between relative overflow-hidden border-b lg:border-b-0 lg:border-r border-[#e6e4df]"
+      >
+        <div
+          class="absolute -top-12 -left-12 w-48 h-48 bg-[#fbedf0] rounded-full blur-2xl opacity-60 pointer-events-none"
+        ></div>
+        <div
+          class="absolute -bottom-16 -right-16 w-64 h-64 bg-[#aac46d] rounded-full blur-3xl opacity-30 pointer-events-none"
+        ></div>
+
+        <div class="relative z-10 flex items-center gap-3">
+          <div
+            class="w-20 h-20 rounded-xl bg-none text-[#fffffe] flex items-center justify-center shadow-xs"
+          >
+            <img src="{% static 'assets/images/logo.svg' %}" />
+          </div>
+          <span class="font-display text-2xl tracking-wide text-primary-900"
+            >SELARAS</span
+          >
+        </div>
+
+        <div
+          class="relative z-10 my-8 lg:my-0 flex flex-col items-center justify-center text-center"
+        >
+          <div
+            class="relative w-48 h-48 sm:w-56 sm:h-56 flex items-center justify-center mb-6"
+          >
+            <svg
+              class="absolute inset-0 w-full h-full text-[#aac46d]/40 animate-float"
+              viewBox="0 0 200 200"
+              fill="currentColor"
+            >
+              <path
+                d="M41.5,-52.1C52.6,-41.8,59.8,-27.5,62.4,-12.3C65,2.9,63,19,55.3,31.7C47.6,44.4,34.2,53.7,19.3,58.8C4.4,63.9,-12,64.8,-27.4,59.2C-42.8,53.6,-57.2,41.5,-64.1,25.8C-71,10,-70.4,-9.4,-62.7,-24.8C-55,-40.2,-40.2,-51.6,-25.4,-57.4C-10.6,-63.2,4.2,-63.4,18.8,-59.5C33.4,-55.6,30.4,-62.4,41.5,-52.1Z"
+                transform="translate(100 100)"
+              />
+            </svg>
+
+            <svg
+              class="absolute inset-2 w-11/12 h-11/12 text-[#f3c5cf]/50 animate-float-reverse"
+              viewBox="0 0 200 200"
+              fill="currentColor"
+            >
+              <path
+                d="M38.1,-48.5C48.8,-37.8,56.5,-23.7,58.8,-8.5C61.1,6.7,58,23,49.2,35.8C40.4,48.6,25.9,57.9,9.8,59.8C-6.3,61.7,-24,56.2,-37.7,45.8C-51.4,35.4,-61.1,20.1,-62.9,3.7C-64.7,-12.7,-58.6,-30.2,-46.8,-41.3C-35,-52.4,-17.5,-57.1,-0.7,-56.1C16.1,-55.1,27.4,-59.2,38.1,-48.5Z"
+                transform="translate(100 100)"
+              />
+            </svg>
+
+            <div
+              class="absolute top-2 right-4 w-2 h-2 rounded-full bg-[#809352]"
+            ></div>
+            <div
+              class="absolute bottom-4 left-6 w-3 h-3 rounded-full bg-[#dbb1ba]"
+            ></div>
+          </div>
+
+          <p
+            class="text-xs uppercase tracking-widest text-[#5f7a4f] font-semibold mb-1"
+          >
+            Gaya hidup berkelanjutan
+          </p>
+          <p class="text-sm text-[#475c3b] max-w-xs leading-relaxed">
+            Lanjutkan perjalananmu menuju hidup yang lebih tenang dan sadar.
+          </p>
+        </div>
+
+        <div
+          class="relative z-10 text-center lg:text-left text-xs text-[#999895]"
+        >
+          &copy; SELARAS. Hidup selaras dengan bumi.
+        </div>
+      </section>
+
+      <section
+        class="lg:col-span-7 p-8 sm:p-10 lg:p-14 flex flex-col justify-center bg-[#fffffe]"
+      >
+        <div class="max-w-md w-full mx-auto slide-in-up">
+          {% if form.non_field_errors %}
+          <div
+            class="mb-6 p-3.5 rounded-xl bg-[#fbedf0] border border-[#f3c5cf] text-xs text-[#6d595d] space-y-1"
+            role="alert"
+          >
+            {% for error in form.non_field_errors %}
+            <p class="flex items-center gap-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-[#b6949b]"></span>
+              <span clas="font-sans">{{ error }}</span>
+            </p>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          <div class="mb-8">
+            <h1
+              class="font-display text-3xl sm:text-4xl text-[#212b1c] tracking-tight mb-2"
+            >
+              Selamat datang lagi!
+            </h1>
+            <p class="text-sm text-[#737270]">
+              Masuk ke akun SELARAS kamu untuk melanjutkan.
+            </p>
+          </div>
+
+          <form
+            method="post"
+            action="{% url 'accounts:login' %}"
+            class="space-y-6"
+            novalidate
+          >
+            {% csrf_token %}
+
+            <div class="space-y-1">
+              <div class="relative flex items-center">
+                <div
+                  class="absolute left-3.5 z-20 text-[#5f7a4f] pointer-events-none"
+                >
+                  <span>{% lucide "user" class="w-5 h-5" %}</span>
+                </div>
+
+                <input
+                  type="text"
+                  name="username"
+                  id="id_username"
+                  required
+                  autocomplete="username"
+                  placeholder=" "
+                  value="{{ form.username.value|default_if_none:'' }}"
+                  class="floating-input w-full pl-11 pr-4 py-3.5 text-sm text-[#212b1c] bg-[#fffffe] rounded-xl border border-[#e6e4df] focus:border-[#475c3b] focus:ring-1 focus:ring-[#475c3b] outline-none transition-all duration-200 peer"
+                />
+
+                <label
+                  for="id_username"
+                  class="floating-label absolute left-11 z-10 text-sm text-[#999895] pointer-events-none transition-all duration-200 ease-out origin-left"
+                >
+                  Username atau email
+                </label>
+              </div>
+
+              {% if form.username.errors %}
+              <div class="text-xs text-[#b6949b] pt-1 pl-1">
+                {{ form.username.errors.0 }}
+              </div>
+              {% endif %}
+            </div>
+
+            <div class="space-y-1">
+              <div class="relative flex items-center">
+                <div
+                  class="absolute left-3.5 z-20 text-[#5f7a4f] pointer-events-none"
+                >
+                  <span>{% lucide "lock" class="w-5 h-5" %}</span>
+                </div>
+
+                <input
+                  type="password"
+                  name="password"
+                  id="id_password"
+                  required
+                  autocomplete="current-password"
+                  placeholder=" "
+                  class="floating-input w-full pl-11 pr-11 py-3.5 text-sm text-[#212b1c] bg-[#fffffe] rounded-xl border border-[#e6e4df] focus:border-[#475c3b] focus:ring-1 focus:ring-[#475c3b] outline-none transition-all duration-200 peer"
+                />
+
+                <label
+                  for="id_password"
+                  class="floating-label absolute z-10 left-11 text-sm text-[#999895] pointer-events-none transition-all duration-200 ease-out origin-left"
+                >
+                  Kata sandi
+                </label>
+
+                <button
+                  type="button"
+                  id="togglePassword"
+                  aria-label="Tampilkan kata sandi"
+                  class="toggle-password absolute right-3.5 w-5 h-5 text-[#999895] hover:text-[#475c3b] focus:outline-none transition-colors"
+                  data-target="id_password"
+                >
+                  <span
+                    class="eye-icon absolute inset-0 flex items-center justify-center transition-all duration-200 ease-in-out opacity-100 scale-100"
+                  >
+                    {% lucide "eye" class="w-5 h-5" %}
+                  </span>
+                  <span
+                    class="eye-off-icon absolute inset-0 flex items-center justify-center transition-all duration-200 ease-in-out opacity-0 scale-75 pointer-events-none"
+                  >
+                    {% lucide "eye-off" class="w-5 h-5" %}
+                  </span>
+                </button>
+              </div>
+
+              {% if form.password.errors %}
+              <div class="text-xs text-[#b6949b] pt-1 pl-1">
+                {{ form.password.errors.0 }}
+              </div>
+              {% endif %}
+            </div>
+
+            <div class="flex justify-end">
+              <a href="{% url 'accounts:password_reset' %}" class="rounded-md text-sm font-semibold text-[#475c3b] hover:text-[#212b1c] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">Lupa kata sandi?</a>
+            </div>
+
+            {% component "button" text="Masuk" type="submit"
+            variant="secondary" size="large" full_width=True
+            icon_right="arrow-right" class="w-full mt-2" %} {% endcomponent %}
+          </form>
+
+          <div class="mt-8 pt-6 border-t border-[#e6e4df] text-center">
+            <p class="text-sm text-[#737270]">
+              Belum punya akun?
+              <a
+                href="{% url 'accounts:register' %}"
+                class="inline-flex items-center gap-1 font-semibold text-[#475c3b] hover:text-[#212b1c] transition-all group ml-1"
+              >
+                <span>Daftar sekarang</span>
+                <span
+                  >{% lucide "chevron-right" class="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" %}</span
+                >
+              </a>
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // Toggle button eye
+        const toggleButtons = document.querySelectorAll(".toggle-password");
+        toggleButtons.forEach((button) => {
+          button.addEventListener("click", function () {
+            const targetId = this.getAttribute("data-target");
+            const input = document.getElementById(targetId);
+            const eyeIcon = this.querySelector(".eye-icon");
+            const eyeOffIcon = this.querySelector(".eye-off-icon");
+
+            if (input) {
+              const isPassword = input.getAttribute("type") === "password";
+              input.setAttribute("type", isPassword ? "text" : "password");
+
+              if (isPassword) {
+                eyeIcon.classList.replace("opacity-100", "opacity-0");
+                eyeIcon.classList.replace("scale-100", "scale-75");
+                eyeIcon.classList.add("pointer-events-none");
+
+                eyeOffIcon.classList.replace("opacity-0", "opacity-100");
+                eyeOffIcon.classList.replace("scale-75", "scale-100");
+                eyeOffIcon.classList.remove("pointer-events-none");
+              } else {
+                eyeIcon.classList.replace("opacity-0", "opacity-100");
+                eyeIcon.classList.replace("scale-75", "scale-100");
+                eyeIcon.classList.remove("pointer-events-none");
+
+                eyeOffIcon.classList.replace("opacity-100", "opacity-0");
+                eyeOffIcon.classList.replace("scale-100", "scale-75");
+                eyeOffIcon.classList.add("pointer-events-none");
+              }
+
+              this.setAttribute(
+                "aria-label",
+                isPassword ? "Sembunyikan kata sandi" : "Tampilkan kata sandi",
+              );
+            }
+          });
+        });
+
+        // Leaves falling animation
+        const fallingLeavesContainer =
+          document.getElementById("falling-leaves");
+        if (!fallingLeavesContainer) return;
+
+        const isMobile = window.innerWidth < 768;
+        const leafCount = isMobile ? 40 : 60;
+
+        const colors = [
+          "#809352",
+          "#889d57",
+          "#99b062",
+          "#aac46d",
+          "#5f7a4f",
+          "#c29ea6",
+          "#dbb1ba",
+        ];
+
+        for (let i = 0; i < leafCount; i++) {
+          createLeaf(fallingLeavesContainer, colors);
+        }
+
+        function createLeaf(container, colors) {
+          const leaf = document.createElement("span");
+          const size = random(40, 60);
+          const startX = random(-5, 105);
+          const duration = random(12, 24);
+          const delay = random(-24, 0);
+          const opacity = random(0.12, 0.28);
+
+          const driftX = random(-100, 100);
+          const rotation = random(240, 600);
+
+          const color = colors[Math.floor(Math.random() * colors.length)];
+
+          /*
+           * Leaf styling
+           */
+          leaf.style.position = "absolute";
+          leaf.style.left = `${startX}%`;
+          leaf.style.top = "-40px";
+
+          leaf.style.width = `${size}px`;
+          leaf.style.height = `${size}px`;
+
+          leaf.style.color = color;
+          leaf.style.opacity = opacity;
+
+          leaf.style.animationDuration = `${duration}s`;
+          leaf.style.animationDelay = `${delay}s`;
+
+          leaf.style.setProperty("--drift-x", `${driftX}px`);
+          leaf.style.setProperty("--rotation", `${rotation}deg`);
+
+          leaf.className = "falling-leaf";
+
+          /*
+           * Use an SVG leaf icon.
+           * This is equivalent to the Lucide leaf icon,
+           * but avoids Django template tags inside JS.
+           */
+          leaf.innerHTML = `
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M11 20A7 7 0 0 1 9.8 6.2C15.5 3.7 20 4 20 4s.3 4.5-2.2 10.2A7 7 0 0 1 11 20Z" />
+        <path d="M8 16c2.5-2.5 5-4.5 8-6" />
+      </svg>
+    `;
+
+          container.appendChild(leaf);
+        }
+
+        function random(min, max) {
+          return Math.random() * (max - min) + min;
+        }
+      });
+    </script>
+  </body>
+</html>

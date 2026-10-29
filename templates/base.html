@@ -1,14 +1,14 @@
-{% load static %}
+{% load lucide static component_tags %}
 
 <!doctype html>
-<html lang="en">
+<html lang="id">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+     <link rel="icon" type="image/svg+xml" href="{% static 'assets/images/logo.svg' %}" />
 
     <title>{% block title %}SELARAS{% endblock %}</title>
 
-    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -18,12 +18,18 @@
     <link href="https://fonts.cdnfonts.com/css/transcity" rel="stylesheet" />
 
     <link rel="stylesheet" href="{% static 'css/output.css' %}" />
+    {% block extra_head %}{% endblock %}
   </head>
 
-  <body class="min-h-screen bg-gray-50">
-    {% include "components/navbar.html" %}
+  <body class="min-h-screen">
+    {% component "navbar" authenticated=user.is_authenticated / %}
     {% block content %} 
     {% endblock %}
-    {% include "components/footer.html" %}
+    {% component "footer" / %}
+
+    <script type="module" src="{% static 'js/main.js' %}" defer></script>
+    <script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js" integrity="sha384-hJnF5AwidE18GSWTAGHv3ByzzvfNZ1Tcx5y1UUV3WkauuMCEzBJBMSwSt/PUPXnM" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    {% block scripts %}{% endblock %}
   </body>
 </html>
+

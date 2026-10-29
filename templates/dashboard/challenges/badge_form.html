@@ -1,0 +1,114 @@
+{% extends "dashboard/base.html" %}
+{% load static lucide component_tags %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="flex max-w-5xl flex-col gap-6">
+  <header class="flex flex-col gap-3">
+    <nav aria-label="Navigasi">
+      <ol class="flex flex-wrap items-center gap-1.5 font-sans text-sm">
+        <li><a href="{{ dashboard_home_url }}" class="rounded-md px-1 py-0.5 text-neutral-800 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">Dashboard</a></li>
+        <li aria-hidden="true" class="text-neutral-700">{% lucide "chevron-right" class="w-4 h-4" %}</li>
+        <li><a href="{{ back_url }}" class="rounded-md px-1 py-0.5 text-neutral-800 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">Lencana</a></li>
+        <li aria-hidden="true" class="text-neutral-700">{% lucide "chevron-right" class="w-4 h-4" %}</li>
+        <li><span aria-current="page" class="px-1 font-semibold text-primary-800">{% if is_edit %}Edit{% else %}Baru{% endif %}</span></li>
+      </ol>
+    </nav>
+    <h1 class="font-display text-h3 leading-tight text-foreground sm:text-h2">{{ title }}</h1>
+  </header>
+
+  <form method="post" class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start" data-badge-form>
+    {% csrf_token %}
+    <div class="flex flex-col gap-6">
+      <section class="flex flex-col gap-5 rounded-2xl border border-neutral-400 bg-neutral-50 p-5 sm:p-8" aria-label="Detail lencana">
+        <div class="flex flex-col gap-1.5">
+          <label for="{{ form.name.id_for_label }}" class="font-sans text-sm font-semibold text-foreground">Nama <span class="text-tertiary-700" aria-hidden="true">*</span></label>
+          {{ form.name }}
+          {% if form.name.errors %}<p class="font-sans text-xs font-medium text-tertiary-700">{{ form.name.errors.0 }}</p>{% endif %}
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label for="{{ form.description.id_for_label }}" class="font-sans text-sm font-semibold text-foreground">Deskripsi</label>
+          {{ form.description }}
+        </div>
+      </section>
+
+      <fieldset class="rounded-2xl border border-neutral-400 bg-neutral-50 p-5 sm:p-8">
+        <legend class="sr-only">Ikon</legend>
+        <p class="mb-3 font-sans text-sm font-semibold text-foreground" aria-hidden="true">Ikon</p>
+        <div class="grid grid-cols-6 gap-2 sm:grid-cols-8">
+          {% for value, label in icon_choices %}
+          <label class="flex aspect-square cursor-pointer items-center justify-center rounded-xl border border-neutral-400 bg-neutral-100 text-secondary-800 transition-all hover:border-secondary-300 hover:bg-secondary-50 has-checked:border-secondary-700 has-checked:bg-secondary-700 has-checked:text-neutral-50 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-primary-500" title="{{ label }}">
+            <input type="radio" name="icon" value="{{ value }}" class="sr-only" {% if form.icon.value == value %}checked{% endif %} data-icon-choice>
+            {% lucide value class="w-5 h-5" aria_hidden="true" %}
+            <span class="sr-only">{{ label }}</span>
+          </label>
+          {% endfor %}
+        </div>
+      </fieldset>
+
+      <fieldset class="rounded-2xl border border-neutral-400 bg-neutral-50 p-5 sm:p-8">
+        <legend class="sr-only">Warna</legend>
+        <p class="mb-3 font-sans text-sm font-semibold text-foreground" aria-hidden="true">Warna</p>
+        <div class="flex flex-wrap gap-3">
+          {% for value, label in tone_choices %}
+          <label class="flex cursor-pointer items-center gap-2 rounded-xl border border-neutral-400 bg-neutral-100 py-2 pl-2 pr-3 font-sans text-sm font-semibold text-secondary-800 transition-all hover:border-secondary-300 has-checked:border-secondary-700 has-checked:ring-2 has-checked:ring-secondary-700/20 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-primary-500">
+            <input type="radio" name="tone" value="{{ value }}" class="sr-only" {% if form.tone.value == value %}checked{% endif %} data-tone-choice>
+            <span class="badge-medal h-7 w-7" data-tone="{{ value }}" aria-hidden="true"></span>
+            {{ label }}
+          </label>
+          {% endfor %}
+        </div>
+      </fieldset>
+    </div>
+
+    <aside class="flex flex-col gap-4 lg:sticky lg:top-6" aria-label="Pratinjau">
+      <div class="flex flex-col items-center gap-4 rounded-2xl border border-neutral-400 bg-neutral-50 p-6 text-center">
+        <p class="self-start font-sans text-xs font-semibold uppercase tracking-wider text-neutral-800">Pratinjau</p>
+        <span class="badge-medal h-24 w-24" data-tone="{{ form.tone.value|default:'primary' }}" data-preview-medal aria-hidden="true">
+          {% for value, label in icon_choices %}<span data-preview-icon="{{ value }}" {% if form.icon.value != value %}hidden{% endif %}>{% lucide value class="w-10 h-10" %}</span>{% endfor %}
+        </span>
+        <p class="font-display text-h5 text-foreground" data-preview-name>{{ form.name.value|default:"Nama lencana" }}</p>
+        <p class="font-sans text-xs text-neutral-800">Di samping nama, tampilannya begini:</p>
+        <span class="inline-flex items-center gap-1.5 font-sans text-sm font-semibold text-secondary-900">
+          Sari W.
+          <span class="badge-chip gap-1 px-1.5 py-px text-[0.6875rem]" data-tone="{{ form.tone.value|default:'primary' }}" data-preview-chip>
+            {% for value, label in icon_choices %}<span class="inline-flex" data-preview-icon="{{ value }}" {% if form.icon.value != value %}hidden{% endif %}>{% lucide value class="h-3 w-3" %}</span>{% endfor %}
+            <span data-preview-name>{{ form.name.value|default:"Nama lencana" }}</span>
+          </span>
+        </span>
+      </div>
+      <div class="flex flex-col gap-2">
+        {% component "button" text="Simpan lencana" variant="primary" size="md" type="submit" icon_left="save" full_width=True / %}
+        {% component "button" text="Batal" variant="neutral" size="md" href=back_url full_width=True / %}
+      </div>
+    </aside>
+  </form>
+</div>
+
+{% include "accounts/_messages.html" %}
+{% endblock %}
+
+{% block scripts %}
+<script type="module">
+  // Pratinjau langsung saat mengedit
+  const form = document.querySelector("[data-badge-form]");
+  const nameInput = form.querySelector('[name="name"]');
+  const paint = () => {
+    const icon = form.querySelector("[data-icon-choice]:checked")?.value;
+    const tone = form.querySelector("[data-tone-choice]:checked")?.value || "primary";
+    form.querySelectorAll("[data-preview-icon]").forEach((node) => {
+      node.hidden = node.dataset.previewIcon !== icon;
+    });
+    form.querySelectorAll("[data-preview-medal], [data-preview-chip]").forEach((node) => {
+      node.dataset.tone = tone;
+    });
+    form.querySelectorAll("[data-preview-name]").forEach((node) => {
+      node.textContent = nameInput.value.trim() || "Nama lencana";
+    });
+  };
+  form.addEventListener("input", paint);
+  form.addEventListener("change", paint);
+  paint();
+</script>
+{% endblock %}

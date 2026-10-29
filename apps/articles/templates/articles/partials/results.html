@@ -1,0 +1,55 @@
+{% load component_tags lucide %}
+{% comment %}
+Result heading, the article grid and pagination. Swapped in place by static/js/articles/list.js.
+{% endcomment %}
+{% if filter_error %}
+<div role="alert" class="mb-6 flex items-start gap-3 rounded-2xl border border-tertiary-400 bg-tertiary-50 p-4 font-sans text-sm text-tertiary-900">
+  {% lucide "circle-alert" class="w-5 h-5 mt-0.5 shrink-0" aria_hidden="true" %}
+  <div>
+    <strong class="block">Filter belum dapat diterapkan.</strong>
+    <p class="mt-0.5">{{ filter_error }}</p>
+  </div>
+</div>
+{% endif %}
+
+<div class="mb-5 flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <h2 class="font-display text-h5 text-foreground">
+      {% if selected_status == "DRAFT" %}Draf artikel{% else %}Temukan cerita pilihan{% endif %}
+    </h2>
+    <p class="mt-1 font-sans text-sm text-neutral-800" role="status" aria-live="polite">
+      {{ page_obj.paginator.count }} artikel{% if filters.search %} untuk &ldquo;<strong class="text-secondary-900">{{ filters.search }}</strong>&rdquo;{% endif %}
+    </p>
+  </div>
+  {% if filters.search or filters.category or filters.tag %}
+  {% querystring search=None category=None tag=None page=None as reset_url %}
+  {% component "button" href=reset_url text="Hapus semua filter" variant="neutral-ghost" size="sm" icon_left="rotate-ccw" attrs="data-articles-link data-articles-reset" / %}
+  {% endif %}
+</div>
+
+{% if articles %}
+<ul class="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+  {% for article in articles %}
+  {% cycle "primary" "secondary" "tertiary" as tone silent %}
+  {% cycle "sprout" "leaf" "book-open" "recycle" "trees" "flower-2" as card_icon silent %}
+  {% if forloop.first and page_obj.number == 1 %}
+  <li class="scroll-reveal md:col-span-2 xl:col-span-3" style="--i: 0">
+    {% include "articles/partials/article_card.html" with featured=True tone=tone icon=card_icon %}
+  </li>
+  {% else %}
+  <li class="scroll-reveal" style="--i: {{ forloop.counter0 }}">
+    {% include "articles/partials/article_card.html" with featured=False tone=tone icon=card_icon %}
+  </li>
+  {% endif %}
+  {% endfor %}
+</ul>
+
+{% component "pagination" page_obj=page_obj anchor="#articlesResults" class_="mt-10" / %}
+{% else %}
+  {% component "empty_state" icon="leaf" title="Belum ada cerita di sini." description="Coba kata kunci lain atau hapus filter untuk menjelajahi artikel yang tersedia." %}
+    {% fill "actions" %}
+      {% url 'articles:html-list' as list_url %}
+      {% component "button" href=list_url text="Lihat semua artikel" variant="secondary" size="md" icon_left="rotate-ccw" attrs="data-articles-link data-articles-reset" / %}
+    {% endfill %}
+  {% endcomponent %}
+{% endif %}

@@ -1,0 +1,56 @@
+{% load lucide %}
+
+<div
+  class="space-y-3 {{ class_ }}"
+  data-photo-picker
+  data-max-files="{{ max_files }}"
+  data-max-mb="{{ max_mb }}"
+  data-accept="{{ accept }}"
+>
+  <label
+    for="{{ id }}"
+    data-photo-zone
+    class="group relative flex cursor-pointer items-center gap-4 rounded-2xl border-2 border-dashed bg-neutral-100 px-4 py-4 transition-all duration-200 hover:border-primary-500 hover:bg-primary-50 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-primary-500 has-[:focus-visible]:ring-offset-2 data-[dragging=true]:scale-[1.01] data-[dragging=true]:border-primary-500 data-[dragging=true]:bg-primary-100 data-[full=true]:pointer-events-none data-[full=true]:opacity-60
+      {% if errors %}border-tertiary-600{% else %}border-neutral-500{% endif %}"
+  >
+    <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary-100 text-primary-700 transition-transform duration-200 group-hover:-translate-y-0.5" aria-hidden="true">
+      {% lucide "images" class="w-5 h-5" %}
+    </span>
+    <span class="min-w-0 flex-1">
+      <span class="block font-sans text-s5 text-secondary-900">{{ title }}</span>
+      {% if hint %}<span class="block font-sans text-b4 text-neutral-800">{{ hint }}</span>{% endif %}
+    </span>
+    <span class="hidden shrink-0 rounded-full border border-neutral-400 bg-neutral-50 px-3 py-1 font-sans text-xs font-semibold text-secondary-800 sm:inline">Pilih foto</span>
+    <input type="file" id="{{ id }}" name="{{ name }}" multiple
+      {% if accept %}accept="{{ accept }}"{% endif %}
+      class="sr-only {{ input_class }}" />
+  </label>
+
+  <div data-photo-meter hidden class="flex items-center gap-3 px-1">
+    <div class="h-1.5 flex-1 overflow-hidden rounded-full bg-neutral-400" aria-hidden="true">
+      <div data-photo-meter-bar class="h-full w-0 rounded-full bg-primary-500 transition-[width] duration-300 data-[warn=true]:bg-tertiary-600"></div>
+    </div>
+    <p data-photo-count class="shrink-0 font-sans text-xs font-semibold tabular-nums text-neutral-900" aria-live="polite"></p>
+  </div>
+
+  <ul data-photo-list class="grid grid-cols-3 gap-2 sm:grid-cols-5" aria-label="Foto yang dipilih"></ul>
+
+  <div data-photo-error role="alert" class="space-y-0.5 px-1">
+    {% for error in errors %}
+    <p class="flex items-center gap-1.5 font-sans text-xs font-semibold text-tertiary-700">
+      {% lucide "circle-alert" class="w-3.5 h-3.5 shrink-0" %}{{ error }}
+    </p>
+    {% endfor %}
+  </div>
+
+  <template data-photo-template>
+    <li class="attach-tile-in group/photo relative aspect-square overflow-hidden rounded-xl border border-neutral-400 bg-neutral-300">
+      <img data-photo-img alt="" class="h-full w-full object-cover" />
+      <span data-photo-index class="absolute left-1.5 top-1.5 rounded-full bg-secondary-900/75 px-1.5 font-sans text-[0.6875rem] font-bold leading-5 text-neutral-50 tabular-nums"></span>
+      <span class="absolute inset-x-1.5 bottom-1.5 flex justify-between gap-1">
+        <button type="button" data-photo-left class="flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg bg-neutral-50/90 text-secondary-900 shadow-sm outline-none transition-opacity focus-visible:ring-2 focus-visible:ring-primary-500 disabled:opacity-0 sm:opacity-0 sm:group-hover/photo:opacity-100 sm:focus-visible:opacity-100" aria-label="Geser foto ke kiri">{% lucide "chevron-left" class="w-4 h-4" %}</button>
+        <button type="button" data-photo-remove class="flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg bg-neutral-50/90 text-tertiary-800 shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-primary-500" aria-label="Hapus foto">{% lucide "x" class="w-4 h-4" %}</button>
+      </span>
+    </li>
+  </template>
+</div>

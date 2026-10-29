@@ -1,0 +1,5 @@
+{% load component_tags %}
+<span class="inline-flex min-w-0 max-w-full items-center gap-1.5 {{ class_ }}" data-user-name>
+  <span class="truncate {{ name_class }}">{{ name }}</span>
+  {% if badge %}{% component "badge_chip" badge=badge size="xs" show_name=badge_name class_="max-w-[9rem]" / %}{% endif %}
+</span>

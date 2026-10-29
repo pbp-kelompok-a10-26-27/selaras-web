@@ -1,0 +1,32 @@
+{% load component_tags %}
+
+<div class="group/tooltip relative inline-flex" data-tooltip-wrapper>
+  {# Target element trigger (default slot) #}
+  <div aria-describedby="{{ id }}" class="inline-flex">
+    {% slot "trigger" default %}{% endslot %}
+  </div>
+
+  {# Tooltip Bubble #}
+  {# Visible on hover, keyboard focus (focus-visible, so a mouse click doesn't pin it open) and while #}
+  {# flashTooltip() holds it open (data-tooltip-open). Escape hides it (data-tooltip-dismissed). #}
+  <div
+    id="{{ id }}"
+    role="tooltip"
+    data-tooltip-content
+    class="pointer-events-none absolute z-50 whitespace-nowrap rounded-xl bg-neutral-900 px-3 py-1.5 font-sans text-xs text-neutral-50 opacity-0 shadow-xl transition-all duration-200 ease-out
+      group-hover/tooltip:opacity-100 group-has-[:focus-visible]/tooltip:opacity-100 group-data-[tooltip-open]/tooltip:opacity-100 group-data-[tooltip-dismissed]/tooltip:opacity-0!
+      motion-reduce:transition-none
+      {% if position == 'bottom' %}
+        top-full mt-2 left-1/2 -translate-x-1/2 translate-y-1 group-hover/tooltip:translate-y-0 group-has-[:focus-visible]/tooltip:translate-y-0 group-data-[tooltip-open]/tooltip:translate-y-0
+      {% elif position == 'left' %}
+        right-full mr-2 top-1/2 -translate-y-1/2 translate-x-1 group-hover/tooltip:translate-x-0 group-has-[:focus-visible]/tooltip:translate-x-0 group-data-[tooltip-open]/tooltip:translate-x-0
+      {% elif position == 'right' %}
+        left-full ml-2 top-1/2 -translate-y-1/2 -translate-x-1 group-hover/tooltip:translate-x-0 group-has-[:focus-visible]/tooltip:translate-x-0 group-data-[tooltip-open]/tooltip:translate-x-0
+      {% else %}
+        bottom-full mb-2 left-1/2 -translate-x-1/2 -translate-y-1 group-hover/tooltip:translate-y-0 group-has-[:focus-visible]/tooltip:translate-y-0 group-data-[tooltip-open]/tooltip:translate-y-0
+      {% endif %}
+      {{ class_ }}"
+  >
+    {% slot "content" %}{{ text }}{% endslot %}
+  </div>
+</div>
