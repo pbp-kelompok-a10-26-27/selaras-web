@@ -5,10 +5,11 @@ from tempfile import TemporaryDirectory
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
-from django.test.client import BOUNDARY, encode_multipart
+from django.test.client import BOUNDARY, RequestFactory, encode_multipart
 from django.urls import reverse
 
 from apps.challenges.models import Challenge, ChallengeParticipation
+from apps.feeds import views
 from apps.feeds.models import Comment, Like, Post
 
 
@@ -215,28 +216,39 @@ class FeedApiTests(TestCase):
         self.assertRedirects(response, f"{reverse('feeds:list')}#post-{self.post.pk}")
         self.assertFalse(Like.objects.filter(post=self.post, user=self.user).exists())
 
-    def test_like_button_is_available_on_detail_and_hidden_from_admin(self):
+    def test_like_button_is_available_to_admin(self):
         response = self.client.get(reverse("feeds:detail", args=(self.post.pk,)))
         self.assertContains(response, "♡ Suka")
         self.assertContains(response, 'name="return_to" value="detail"')
 
         self.client.force_login(self.admin)
         response = self.client.get(reverse("feeds:list"))
-        self.assertNotContains(response, "♡ Suka")
-        self.assertNotContains(response, "Batalkan suka")
+        self.assertContains(response, "♡ Suka")
 
-    def test_admin_cannot_create_post_from_feed_page(self):
+    def test_admin_can_create_post_from_feed_page(self):
         self.client.force_login(self.admin)
         response = self.client.get(reverse("feeds:list"))
         self.assertEqual(response.status_code, 200)
-        self.assertNotContains(response, "Buat postingan")
+        self.assertContains(response, "Buat postingan")
         response = self.client.get(reverse("feeds:create"))
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 200)
         response = self.client.post(
             reverse("feeds:create"),
-            {"challenge": str(self.challenge.pk), "content": "Admin post"},
+            {"content": "Admin post"},
         )
-        self.assertEqual(response.status_code, 403)
+        self.assertRedirects(response, reverse("feeds:list"))
+        self.assertTrue(
+            Post.objects.filter(author=self.admin, content="Admin post").exists()
+        )
+        api_response = self.client.post(
+            "/api/v1/posts",
+            encode_multipart(BOUNDARY, {"content": "Admin API post"}),
+            content_type=f"multipart/form-data; boundary={BOUNDARY}",
+        )
+        self.assertEqual(api_response.status_code, 201)
+        self.assertEqual(
+            api_response.json()["data"]["author"]["id"], str(self.admin.pk)
+        )
 
     def test_comment_reply_depth_and_owner_rules(self):
         root_response = self.client.post(
@@ -292,6 +304,36 @@ class FeedApiTests(TestCase):
         self.assertEqual(data[0]["replies"][0]["content"], "Reply")
         self.assertNotIn("replies", data[0]["replies"][0])
 
+    def test_get_comment_json_returns_serialized_comments(self):
+        comment = Comment.objects.create(
+            post=self.post,
+            author=self.other_user,
+            content="Serialized comment",
+        )
+        request = RequestFactory().get("/comments.json")
+        request.user = self.user
+
+        response = views.get_comment_json(request)
+
+        self.assertEqual(response.status_code, 200)
+        payload = json.loads(response.content)
+        self.assertEqual(len(payload["data"]), 1)
+        self.assertEqual(
+            payload["data"][0],
+            {
+                "id": comment.pk,
+                "post_id": self.post.pk,
+                "parent_id": None,
+                "content": "Serialized comment",
+                "author": {
+                    "id": str(self.other_user.pk),
+                    "name": self.other_user.get_username(),
+                },
+                "created_at": comment.created_at.isoformat(),
+                "updated_at": comment.updated_at.isoformat(),
+            },
+        )
+
     def test_post_detail_displays_comment_form_and_existing_comments(self):
         Comment.objects.create(
             post=self.post,
@@ -329,16 +371,85 @@ class FeedApiTests(TestCase):
             Comment.objects.filter(post=self.post, author=self.user).exists()
         )
 
-    def test_admin_cannot_comment_from_post_detail(self):
+    def test_admin_can_comment_from_post_detail(self):
         self.client.force_login(self.admin)
         response = self.client.get(reverse("feeds:detail", args=(self.post.pk,)))
         self.assertEqual(response.status_code, 200)
-        self.assertNotContains(response, "Kirim komentar")
+        self.assertContains(response, "Kirim komentar")
         response = self.client.post(
             reverse("feeds:comment_create", args=(self.post.pk,)),
             {"content": "Admin comment"},
         )
-        self.assertEqual(response.status_code, 403)
+        self.assertRedirects(response, reverse("feeds:detail", args=(self.post.pk,)))
+        self.assertTrue(
+            Comment.objects.filter(
+                post=self.post, author=self.admin, content="Admin comment"
+            ).exists()
+        )
+
+    def test_admin_can_reply_edit_own_content_and_delete_others_content(self):
+        self.client.force_login(self.admin)
+        post = Post.objects.create(
+            author=self.admin,
+            challenge=None,
+            content="Admin-owned post",
+        )
+        post_update = self.client.generic(
+            "PATCH",
+            f"/api/v1/posts/{post.pk}",
+            encode_multipart(BOUNDARY, {"content": "Updated admin post"}),
+            content_type=f"multipart/form-data; boundary={BOUNDARY}",
+        )
+        self.assertEqual(post_update.status_code, 200)
+        post.refresh_from_db()
+        self.assertEqual(post.content, "Updated admin post")
+
+        root = Comment.objects.create(
+            post=self.post,
+            author=self.other_user,
+            content="Root comment",
+        )
+        reply_response = self.client.post(
+            f"/api/v1/comments/{root.pk}/replies",
+            data=json.dumps({"content": "Admin reply"}),
+            content_type="application/json",
+        )
+        self.assertEqual(reply_response.status_code, 201)
+        reply = Comment.objects.get(author=self.admin, parent=root)
+        edit_response = self.client.patch(
+            f"/api/v1/comments/{reply.pk}",
+            data=json.dumps({"content": "Edited admin reply"}),
+            content_type="application/json",
+        )
+        self.assertEqual(edit_response.status_code, 200)
+        reply.refresh_from_db()
+        self.assertEqual(reply.content, "Edited admin reply")
+
+        delete_comment_response = self.client.delete(f"/api/v1/comments/{root.pk}")
+        self.assertEqual(delete_comment_response.status_code, 204)
+        self.assertFalse(Comment.objects.filter(pk=root.pk).exists())
+        delete_post_response = self.client.delete(f"/api/v1/posts/{self.post.pk}")
+        self.assertEqual(delete_post_response.status_code, 204)
+        self.assertFalse(Post.objects.filter(pk=self.post.pk).exists())
+
+    def test_admin_can_delete_any_comment_from_detail_page(self):
+        comment = Comment.objects.create(
+            post=self.post,
+            author=self.other_user,
+            content="Remove this comment",
+        )
+        self.client.force_login(self.admin)
+        response = self.client.get(reverse("feeds:detail", args=(self.post.pk,)))
+        self.assertContains(
+            response, f'data-modal-open="delete-comment-modal-{comment.pk}"'
+        )
+        self.assertContains(
+            response,
+            f'action="{reverse("feeds:comment_delete", args=(comment.pk,))}"',
+        )
+        deleted = self.client.post(reverse("feeds:comment_delete", args=(comment.pk,)))
+        self.assertRedirects(deleted, reverse("feeds:detail", args=(self.post.pk,)))
+        self.assertFalse(Comment.objects.filter(pk=comment.pk).exists())
 
     def test_like_is_idempotent_and_count_is_returned(self):
         path = f"/api/v1/posts/{self.post.pk}/like"
@@ -354,11 +465,11 @@ class FeedApiTests(TestCase):
         self.assertFalse(unlike.json()["data"]["liked"])
         self.assertEqual(unlike.json()["data"]["like_count"], 0)
 
-    def test_admin_can_moderate_but_cannot_like(self):
+    def test_admin_can_moderate_and_like(self):
         self.client.force_login(self.admin)
-        forbidden_like = self.client.post(f"/api/v1/posts/{self.post.pk}/like")
-        self.assertEqual(forbidden_like.status_code, 403)
-        self.assertEqual(forbidden_like.json()["error"]["code"], "FORBIDDEN_ROLE")
+        liked = self.client.post(f"/api/v1/posts/{self.post.pk}/like")
+        self.assertEqual(liked.status_code, 201)
+        self.assertTrue(Like.objects.filter(post=self.post, user=self.admin).exists())
 
         deleted = self.client.delete(f"/api/v1/admin/posts/{self.post.pk}")
         self.assertEqual(deleted.status_code, 204)
@@ -473,13 +584,17 @@ class FeedApiTests(TestCase):
         self.assertFalse(Post.objects.filter(pk=self.post.pk).exists())
         self.assertTrue(Post.objects.filter(pk=owned_by_another_user.pk).exists())
 
-    def test_admin_search_hides_admin_like_and_exposes_all_posts(self):
+    def test_admin_search_includes_ownership_and_like_state(self):
         self.client.force_login(self.admin)
+        own_post = Post.objects.create(author=self.admin, content="Admin progress")
+        Like.objects.create(post=own_post, user=self.admin)
         response = self.client.get("/api/v1/admin/posts?q=Progress")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.json()["data"]), 1)
-        self.assertFalse(response.json()["data"][0]["liked_by_me"])
-        self.assertFalse(response.json()["data"][0]["is_owner"])
+        items = response.json()["data"]
+        self.assertEqual(len(items), 2)
+        own_post_data = next(item for item in items if item["id"] == own_post.pk)
+        self.assertTrue(own_post_data["liked_by_me"])
+        self.assertTrue(own_post_data["is_owner"])
 
     def test_unauthenticated_requests_use_api_error_shape(self):
         self.client.logout()

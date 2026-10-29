@@ -23,7 +23,7 @@
     id="post-actions-{{ post.id }}"
     class="mt-4 flex flex-wrap items-center gap-4 text-sm text-slate-600"
   >
-    {% if user.is_authenticated and user.role == "user" %}
+    {% if user.is_authenticated and user.role == "user" or user.is_authenticated and user.role == "admin" %}
       <form action="{% url 'feeds:like' post.id %}" method="post">
         {% csrf_token %}
         <input

@@ -215,7 +215,7 @@ def _author_data(user):
     }
 
 
-def _post_data(request, post, admin_view=False):
+def _post_data(request, post):
     image_url = request.build_absolute_uri(post.image.url) if post.image else None
     return {
         "id": post.pk,
@@ -235,10 +235,8 @@ def _post_data(request, post, admin_view=False):
             if hasattr(post, "comment_count")
             else post.comments.count()
         ),
-        "liked_by_me": bool(getattr(post, "liked_by_me", False))
-        if not admin_view
-        else False,
-        "is_owner": not admin_view and post.author_id == request.user.pk,
+        "liked_by_me": bool(getattr(post, "liked_by_me", False)),
+        "is_owner": post.author_id == request.user.pk,
         "created_at": post.created_at.isoformat(),
         "updated_at": post.updated_at.isoformat(),
     }
@@ -251,9 +249,7 @@ def _comment_data(request, comment, include_replies=True):
         "parent_id": comment.parent_id,
         "content": comment.content,
         "author": _author_data(comment.author),
-        "is_owner": (
-            request.user.role == "user" and comment.author_id == request.user.pk
-        ),
+        "is_owner": comment.author_id == request.user.pk,
         "created_at": comment.created_at.isoformat(),
         "updated_at": comment.updated_at.isoformat(),
     }
@@ -277,11 +273,12 @@ def _comment_json_data(comment):
     }
 
 
+@require_http_methods(["GET"])
 def get_comment_json(request):
-    comments = Comment.objects.all()
-
-    comments_json = serializers.serialize("json", comments)
-    return HttpResponse(comments_json, content_type="application/json")
+    if not request.user.is_authenticated:
+        return _error(request, 401, "UNAUTHENTICATED", "Autentikasi diperlukan.")
+    comments = Comment.objects.select_related("author").order_by("created_at", "id")
+    return JsonResponse({"data": [_comment_json_data(comment) for comment in comments]})
 
 
 def _paged_response(request, items, page, per_page, total, key="data"):
@@ -351,7 +348,7 @@ def _delete_stored_file(storage, path):
         logger.warning("Unable to delete feed image %s", path, exc_info=True)
 
 
-@_api_endpoint(("POST",), roles=("user",))
+@_api_endpoint(("POST",), roles=("user", "admin"))
 def api_post_create(request):
     if request.content_type != "multipart/form-data":
         return _error(
@@ -434,7 +431,7 @@ def api_post_create(request):
     )
 
 
-@_api_endpoint(("GET",), roles=("user",))
+@_api_endpoint(("GET",), roles=("user", "admin"))
 def api_post_list(request):
     pagination, error = _pagination(request)
     if error:
@@ -476,13 +473,13 @@ def api_post_detail(request, post_id):
     post = get_object_or_404(_post_queryset(request.user), pk=post_id)
     return _ok(
         request,
-        {"data": _post_data(request, post, admin_view=is_admin(request.user))},
+        {"data": _post_data(request, post)},
         template="feeds/partials/post_card.html",
         context={"post": post},
     )
 
 
-@_api_endpoint(("PATCH",), roles=("user",))
+@_api_endpoint(("PATCH",), roles=("user", "admin"))
 def api_post_update(request, post_id):
     post = get_object_or_404(
         Post.objects.select_related("author", "challenge"), pk=post_id
@@ -584,10 +581,10 @@ def _delete_post(post):
             transaction.on_commit(lambda: _delete_stored_file(storage, image_name))
 
 
-@_api_endpoint(("DELETE",), roles=("user",))
+@_api_endpoint(("DELETE",), roles=("user", "admin"))
 def api_post_delete(request, post_id):
     post = get_object_or_404(Post.objects.select_related("author"), pk=post_id)
-    if post.author_id != request.user.pk:
+    if not is_admin(request.user) and post.author_id != request.user.pk:
         return _error(request, 403, "NOT_OWNER", "Postingan bukan milik Anda.")
     _delete_post(post)
     return _delete_response(request)
@@ -620,7 +617,7 @@ def api_admin_post_list(request):
     total = queryset.count()
     offset = (pagination["page"] - 1) * pagination["per_page"]
     page_items = queryset[offset : offset + pagination["per_page"]]
-    items = [_post_data(request, post, admin_view=True) for post in page_items]
+    items = [_post_data(request, post) for post in page_items]
     return _ok(
         request,
         _paged_response(
@@ -699,7 +696,7 @@ def api_comment_resource(request, comment_id):
     return api_comment_update(request, comment_id)
 
 
-@_api_endpoint(("POST",), roles=("user",))
+@_api_endpoint(("POST",), roles=("user", "admin"))
 def api_comment_create(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
     throttle_response = _throttle(request)
@@ -734,7 +731,7 @@ def api_comment_create(request, post_id):
     )
 
 
-@_api_endpoint(("POST",), roles=("user",))
+@_api_endpoint(("POST",), roles=("user", "admin"))
 def api_reply_create(request, comment_id):
     parent = get_object_or_404(
         Comment.objects.select_related("post", "author"), pk=comment_id
@@ -792,7 +789,7 @@ def api_reply_create(request, comment_id):
     )
 
 
-@_api_endpoint(("PATCH",), roles=("user",))
+@_api_endpoint(("PATCH",), roles=("user", "admin"))
 def api_comment_update(request, comment_id):
     comment = get_object_or_404(Comment.objects.select_related("author"), pk=comment_id)
     if comment.author_id != request.user.pk:
@@ -836,10 +833,10 @@ def _delete_comment(comment):
         comment.delete()
 
 
-@_api_endpoint(("DELETE",), roles=("user",))
+@_api_endpoint(("DELETE",), roles=("user", "admin"))
 def api_comment_delete(request, comment_id):
     comment = get_object_or_404(Comment.objects.select_related("author"), pk=comment_id)
-    if comment.author_id != request.user.pk:
+    if not is_admin(request.user) and comment.author_id != request.user.pk:
         return _error(request, 403, "NOT_OWNER", "Komentar bukan milik Anda.")
     _delete_comment(comment)
     return _delete_response(request)
@@ -852,7 +849,7 @@ def api_admin_comment_delete(request, comment_id):
     return _delete_response(request)
 
 
-@_api_endpoint(("POST", "DELETE"), roles=("user",))
+@_api_endpoint(("POST", "DELETE"), roles=("user", "admin"))
 def api_toggle_like(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
     throttle_response = _throttle(request)
@@ -899,7 +896,10 @@ def post_list(request):
     return render(
         request,
         "feeds/feeds.html",
-        {"posts": posts, "can_create_post": is_user(request.user)},
+        {
+            "posts": posts,
+            "can_create_post": is_user(request.user) or is_admin(request.user),
+        },
     )
 
 
@@ -921,7 +921,7 @@ def post_detail(request, post_id):
             "post": post,
             "comments": comments,
             "comment_form": FeedCommentForm(),
-            "can_comment": is_user(request.user),
+            "can_comment": is_user(request.user) or is_admin(request.user),
         },
     )
 
@@ -929,8 +929,8 @@ def post_detail(request, post_id):
 def post_create(request):
     if not request.user.is_authenticated:
         return _error(request, 401, "UNAUTHENTICATED", "Autentikasi diperlukan.")
-    if not is_user(request.user):
-        return HttpResponseForbidden("Hanya user yang dapat membuat postingan.")
+    if not (is_user(request.user) or is_admin(request.user)):
+        return HttpResponseForbidden("Peran tidak diizinkan membuat postingan.")
     if request.method == "GET":
         return render(
             request,
@@ -961,7 +961,7 @@ def post_update(request, post_id):
 def post_delete(request, post_id):
     if not request.user.is_authenticated:
         return _error(request, 401, "UNAUTHENTICATED", "Autentikasi diperlukan.")
-    if not is_user(request.user):
+    if not (is_user(request.user) or is_admin(request.user)):
         return HttpResponseForbidden("Hanya pemilik postingan yang dapat menghapusnya.")
     if request.method != "POST":
         return HttpResponse(status=405, headers={"Allow": "POST"})
@@ -977,8 +977,8 @@ def post_delete(request, post_id):
 def toggle_like(request, post_id):
     if not request.user.is_authenticated:
         return _error(request, 401, "UNAUTHENTICATED", "Autentikasi diperlukan.")
-    if not is_user(request.user):
-        return HttpResponseForbidden("Hanya user yang dapat menyukai postingan.")
+    if not (is_user(request.user) or is_admin(request.user)):
+        return HttpResponseForbidden("Peran tidak diizinkan menyukai postingan.")
     if request.method != "POST":
         return HttpResponse(status=405, headers={"Allow": "POST"})
     post = get_object_or_404(Post, pk=post_id)
@@ -1002,8 +1002,8 @@ def toggle_like(request, post_id):
 def comment_create(request, post_id):
     if not request.user.is_authenticated:
         return _error(request, 401, "UNAUTHENTICATED", "Autentikasi diperlukan.")
-    if not is_user(request.user):
-        return HttpResponseForbidden("Hanya user yang dapat membuat komentar.")
+    if not (is_user(request.user) or is_admin(request.user)):
+        return HttpResponseForbidden("Peran tidak diizinkan membuat komentar.")
     if request.method != "POST":
         return HttpResponse(status=405, headers={"Allow": "POST"})
     post = get_object_or_404(Post, pk=post_id)
@@ -1036,6 +1036,21 @@ def comment_create(request, post_id):
         },
         status=422,
     )
+
+
+def comment_delete(request, comment_id):
+    if not request.user.is_authenticated:
+        return _error(request, 401, "UNAUTHENTICATED", "Autentikasi diperlukan.")
+    if not (is_user(request.user) or is_admin(request.user)):
+        return HttpResponseForbidden("Peran tidak diizinkan menghapus komentar.")
+    if request.method != "POST":
+        return HttpResponse(status=405, headers={"Allow": "POST"})
+    comment = get_object_or_404(Comment, pk=comment_id)
+    if not is_admin(request.user) and comment.author_id != request.user.pk:
+        return HttpResponseForbidden("Komentar bukan milik Anda.")
+    post_id = comment.post_id
+    _delete_comment(comment)
+    return redirect("feeds:detail", post_id=post_id)
 
 
 def moderate_post(request, post_id):

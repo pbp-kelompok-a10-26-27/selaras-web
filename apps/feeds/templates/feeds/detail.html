@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load component_tags %}
 
 {% block title %}Detail Postingan | SELARAS{% endblock %}
 
@@ -159,16 +160,66 @@
             {{ comment.author.get_full_name|default:comment.author.username }}
           </p>
           <p class="whitespace-pre-wrap">{{ comment.content }}</p>
-          <p class="mt-1 text-xs text-slate-500">{{ comment.created_at }}</p>
+          <div class="mt-1 flex items-center gap-3 text-xs text-slate-500">
+            <span>{{ comment.created_at }}</span>
+            {% if user.role == "admin" or comment.author_id == user.id %}
+              <button
+                type="button"
+                data-modal-open="delete-comment-modal-{{ comment.id }}"
+                aria-haspopup="dialog"
+                class="font-semibold text-red-700 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700"
+              >
+                Hapus komentar
+              </button>
+            {% endif %}
+          </div>
           {% for reply in comment.replies.all %}
             <div class="ml-5 mt-3 border-l-2 border-emerald-200 py-2 pl-4">
               <p class="font-semibold">
                 {{ reply.author.get_full_name|default:reply.author.username }}
               </p>
               <p class="whitespace-pre-wrap">{{ reply.content }}</p>
+              {% if user.role == "admin" or reply.author_id == user.id %}
+                <button
+                  type="button"
+                  data-modal-open="delete-comment-modal-{{ reply.id }}"
+                  aria-haspopup="dialog"
+                  class="mt-1 text-xs font-semibold text-red-700 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700"
+                >
+                  Hapus komentar
+                </button>
+              {% endif %}
             </div>
+            {% if user.role == "admin" or reply.author_id == user.id %}
+              {% component "modal" id="delete-comment-modal-{{ reply.id }}" title="Konfirmasi hapus komentar" size="sm" %}
+                {% fill "content" %}
+                  <p class="font-sans text-sm text-slate-700">Yakin ingin menghapus komentar ini? Tindakan ini tidak dapat dibatalkan.</p>
+                {% endfill %}
+                {% fill "footer" %}
+                  <button type="button" data-modal-close data-modal-autofocus class="min-h-10 rounded-xl border border-slate-300 px-4 py-2 font-semibold text-slate-700 hover:bg-slate-100">Batal</button>
+                  <form action="{% url 'feeds:comment_delete' reply.id %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="min-h-10 rounded-xl bg-red-700 px-4 py-2 font-semibold text-white hover:bg-red-800">Ya, hapus</button>
+                  </form>
+                {% endfill %}
+              {% endcomponent %}
+            {% endif %}
           {% endfor %}
         </article>
+        {% if user.role == "admin" or comment.author_id == user.id %}
+          {% component "modal" id="delete-comment-modal-{{ comment.id }}" title="Konfirmasi hapus komentar" size="sm" %}
+            {% fill "content" %}
+              <p class="font-sans text-sm text-slate-700">Yakin ingin menghapus komentar ini? Tindakan ini tidak dapat dibatalkan.</p>
+            {% endfill %}
+            {% fill "footer" %}
+              <button type="button" data-modal-close data-modal-autofocus class="min-h-10 rounded-xl border border-slate-300 px-4 py-2 font-semibold text-slate-700 hover:bg-slate-100">Batal</button>
+              <form action="{% url 'feeds:comment_delete' comment.id %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="min-h-10 rounded-xl bg-red-700 px-4 py-2 font-semibold text-white hover:bg-red-800">Ya, hapus</button>
+              </form>
+            {% endfill %}
+          {% endcomponent %}
+        {% endif %}
       {% empty %}
         <p class="text-slate-600">Belum ada komentar. Jadilah yang pertama berkomentar.</p>
       {% endfor %}
