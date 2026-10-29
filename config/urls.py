@@ -18,7 +18,8 @@ Including another URLconf
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import include, path
+from django.urls import include, path, re_path
+from django.views.static import serve
 
 from apps.articles.urls import api_urlpatterns
 from apps.core.views import design_system, home
@@ -45,13 +46,15 @@ urlpatterns = [
     path("", home, name="home"),
 ]
 
-# Uploaded avatars. Outside DEBUG the web server is expected to serve MEDIA_ROOT.
+# Upload publik (avatar, foto postingan, kampanye). Di PWS tidak ada web server
+# terpisah, jadi production menyalakan SERVE_MEDIA.
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+elif getattr(settings, "SERVE_MEDIA", False):
+    urlpatterns += [
+        re_path(r"^media/(?P<path>.*)$", serve, {"document_root": settings.MEDIA_ROOT}),
+    ]
 
 # Custom error pages (templates/errors/), used when DEBUG is False
 handler404 = "apps.core.views.page_not_found"
 handler403 = "apps.core.views.permission_denied"
-
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

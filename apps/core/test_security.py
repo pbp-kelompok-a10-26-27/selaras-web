@@ -12,6 +12,7 @@ from pathlib import Path
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
+from django.core.exceptions import ImproperlyConfigured
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase
 from django.urls import reverse
@@ -293,17 +294,48 @@ class A02CryptographicFailuresTests(SecurityTestCase):
         self.assertTrue(session["httponly"])
 
     def test_production_settings_refuse_weak_secrets(self):
-        source = Path(
-            settings.BASE_DIR, "config", "settings", "production.py"
-        ).read_text(encoding="utf-8")
-        for setting in (
-            "SESSION_COOKIE_SECURE = True",
-            "CSRF_COOKIE_SECURE = True",
-            "SECURE_SSL_REDIRECT = True",
-            "SECURE_HSTS_SECONDS",
-            "ImproperlyConfigured",
-        ):
-            self.assertIn(setting, source)
+        loaded = _load_production_settings({"SECRET_KEY": "k" * 60})
+        self.assertFalse(loaded["DEBUG"])
+        self.assertTrue(loaded["SESSION_COOKIE_SECURE"])
+        self.assertTrue(loaded["CSRF_COOKIE_SECURE"])
+        self.assertTrue(loaded["SECURE_SSL_REDIRECT"])
+        self.assertGreater(loaded["SECURE_HSTS_SECONDS"], 0)
+        whitenoise = "whitenoise.middleware.WhiteNoiseMiddleware"
+        self.assertIn(whitenoise, loaded["MIDDLEWARE"])
+        with self.assertRaises(ImproperlyConfigured):
+            _load_production_settings({"SECRET_KEY": "pendek"})
+
+    def test_production_uses_postgres_when_pws_database_is_set(self):
+        loaded = _load_production_settings(
+            {
+                "SECRET_KEY": "k" * 60,
+                "DB_HOST": "db.example",
+                "DB_NAME": "selaras",
+                "SCHEMA": "tugas_kelompok",
+            }
+        )
+        database = loaded["DATABASES"]["default"]
+        self.assertEqual(database["ENGINE"], "django.db.backends.postgresql")
+        self.assertIn("search_path=tugas_kelompok", database["OPTIONS"]["options"])
+
+
+def _load_production_settings(env):
+    """Muat config/settings/production.py dengan environment tertentu."""
+    import importlib
+    import sys
+    from unittest import mock
+
+    keys = ("SECRET_KEY", "DB_HOST", "DB_NAME", "SCHEMA", "SECURE_SSL_REDIRECT")
+    clean = {key: "" for key in keys}
+    with mock.patch.dict("os.environ", {**clean, **env}):
+        for name in ("config.settings.production", "config.settings.base"):
+            sys.modules.pop(name, None)
+        module = importlib.import_module("config.settings.production")
+        values = {name: getattr(module, name) for name in dir(module) if name.isupper()}
+        values["MIDDLEWARE"] = list(values["MIDDLEWARE"])
+    for name in ("config.settings.production", "config.settings.base"):
+        sys.modules.pop(name, None)
+    return values
 
 
 class A03InjectionTests(SecurityTestCase):
