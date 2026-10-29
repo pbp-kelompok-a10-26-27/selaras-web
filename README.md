@@ -47,6 +47,8 @@ SELARAS provides structured challenges with daily progress tracking and badges/s
 - [x] Gamification: community goals, per-challenge leaderboards and a personal impact summary on the profile
 - [x] Demo data seeder: `python manage.py seed_demo` (`--reset`, `--clear`)
 
+- [x] Deployment setup
+
 
 
 ### Design System Notes
