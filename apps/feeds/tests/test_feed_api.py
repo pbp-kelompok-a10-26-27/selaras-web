@@ -117,6 +117,7 @@ class FeedApiTests(TestCase):
         self.assertIsNone(response.json()["data"]["challenge"])
         self.assertIsNone(Post.objects.get(author=self.user).challenge)
 
+    @override_settings(ROOT_URLCONF="apps.feeds.tests.media_test_urls")
     def test_feed_page_button_opens_post_form_and_accepts_upload(self):
         response = self.client.get(reverse("feeds:list"))
         self.assertEqual(response.status_code, 200)
@@ -152,6 +153,15 @@ class FeedApiTests(TestCase):
         self.assertEqual(created.content, "Progress from the page")
         self.assertTrue(created.image.name.startswith("posts/"))
 
+        image_response = self.client.get(created.image.url)
+        image_content = b"".join(image_response.streaming_content)
+        image_response.close()
+        self.assertEqual(
+            image_response.status_code,
+            200,
+        )
+        self.assertEqual(image_content, b"\x89PNG\r\n\x1a\n" + b"\x00" * 24)
+
     def test_feed_form_allows_post_without_challenge(self):
         self.client.force_login(self.other_user)
         response = self.client.post(
@@ -163,6 +173,57 @@ class FeedApiTests(TestCase):
             author=self.other_user, content="Standalone from the feed"
         )
         self.assertIsNone(created.challenge)
+
+    def test_post_content_box_links_to_post_detail(self):
+        another_post = Post.objects.create(
+            author=self.other_user,
+            challenge=self.challenge,
+            content="Another progress update",
+        )
+        response = self.client.get(reverse("feeds:list"))
+        detail_url = reverse("feeds:detail", args=(self.post.pk,))
+        another_detail_url = reverse("feeds:detail", args=(another_post.pk,))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, f'href="{detail_url}"')
+        self.assertContains(response, f'href="{detail_url}#comments"')
+        self.assertContains(response, f'href="{another_detail_url}#comments"')
+        self.assertContains(
+            response,
+            f'aria-label="Buka detail postingan: {self.post.content}"',
+        )
+        self.assertNotContains(response, "Lihat detail")
+
+    def test_feed_card_has_like_button_and_like_unlike_toggle(self):
+        response = self.client.get(reverse("feeds:list"))
+        self.assertContains(response, "♡ Suka")
+        self.assertContains(response, "feed-like-button")
+
+        response = self.client.post(
+            reverse("feeds:like", args=(self.post.pk,)),
+            {"action": "like", "return_to": "feed"},
+        )
+        self.assertRedirects(response, f"{reverse('feeds:list')}#post-{self.post.pk}")
+        self.assertTrue(Like.objects.filter(post=self.post, user=self.user).exists())
+
+        response = self.client.get(reverse("feeds:list"))
+        self.assertContains(response, "♥ Disukai")
+
+        response = self.client.post(
+            reverse("feeds:like", args=(self.post.pk,)),
+            {"action": "unlike", "return_to": "feed"},
+        )
+        self.assertRedirects(response, f"{reverse('feeds:list')}#post-{self.post.pk}")
+        self.assertFalse(Like.objects.filter(post=self.post, user=self.user).exists())
+
+    def test_like_button_is_available_on_detail_and_hidden_from_admin(self):
+        response = self.client.get(reverse("feeds:detail", args=(self.post.pk,)))
+        self.assertContains(response, "♡ Suka")
+        self.assertContains(response, 'name="return_to" value="detail"')
+
+        self.client.force_login(self.admin)
+        response = self.client.get(reverse("feeds:list"))
+        self.assertNotContains(response, "♡ Suka")
+        self.assertNotContains(response, "Batalkan suka")
 
     def test_admin_cannot_create_post_from_feed_page(self):
         self.client.force_login(self.admin)
@@ -230,6 +291,54 @@ class FeedApiTests(TestCase):
         self.assertEqual(data[0]["id"], root.pk)
         self.assertEqual(data[0]["replies"][0]["content"], "Reply")
         self.assertNotIn("replies", data[0]["replies"][0])
+
+    def test_post_detail_displays_comment_form_and_existing_comments(self):
+        Comment.objects.create(
+            post=self.post,
+            author=self.other_user,
+            content="Existing comment",
+        )
+        response = self.client.get(reverse("feeds:detail", args=(self.post.pk,)))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Tambahkan komentar")
+        self.assertContains(response, "Kirim komentar")
+        self.assertContains(response, "Existing comment")
+        self.assertContains(response, '<textarea name="content"')
+        self.assertContains(response, 'rows="4"')
+        self.assertContains(response, "feed-comment-textarea")
+        self.assertContains(response, "feed-comments-heading")
+        self.assertContains(response, "feed-comment-count")
+
+    def test_web_comment_form_creates_comment_and_redirects_to_detail(self):
+        response = self.client.post(
+            reverse("feeds:comment_create", args=(self.post.pk,)),
+            {"content": "  A comment from the page  "},
+        )
+        self.assertRedirects(response, reverse("feeds:detail", args=(self.post.pk,)))
+        comment = Comment.objects.get(post=self.post, author=self.user)
+        self.assertEqual(comment.content, "A comment from the page")
+
+    def test_web_comment_form_shows_validation_error(self):
+        response = self.client.post(
+            reverse("feeds:comment_create", args=(self.post.pk,)),
+            {"content": "   "},
+        )
+        self.assertEqual(response.status_code, 422)
+        self.assertContains(response, "Komentar tidak boleh kosong.", status_code=422)
+        self.assertFalse(
+            Comment.objects.filter(post=self.post, author=self.user).exists()
+        )
+
+    def test_admin_cannot_comment_from_post_detail(self):
+        self.client.force_login(self.admin)
+        response = self.client.get(reverse("feeds:detail", args=(self.post.pk,)))
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "Kirim komentar")
+        response = self.client.post(
+            reverse("feeds:comment_create", args=(self.post.pk,)),
+            {"content": "Admin comment"},
+        )
+        self.assertEqual(response.status_code, 403)
 
     def test_like_is_idempotent_and_count_is_returned(self):
         path = f"/api/v1/posts/{self.post.pk}/like"
@@ -302,6 +411,67 @@ class FeedApiTests(TestCase):
         self.assertEqual(deleted.status_code, 204)
         self.assertEqual(deleted.content, b"")
         self.assertFalse(Post.objects.filter(pk=owned_post.pk).exists())
+
+    def test_owner_can_delete_post_from_feed_and_other_users_cannot(self):
+        owned_post = Post.objects.create(
+            author=self.user, challenge=self.challenge, content="My post"
+        )
+        response = self.client.get(reverse("feeds:list"))
+        modal_id = f"delete-post-modal-{owned_post.pk}"
+        self.assertContains(
+            response, f'action="{reverse("feeds:delete", args=(owned_post.pk,))}"'
+        )
+        self.assertContains(response, f'data-modal-open="{modal_id}"')
+        self.assertContains(response, f'id="{modal_id}"')
+        self.assertContains(response, 'role="dialog"')
+        self.assertContains(response, "Ya, hapus")
+        self.assertNotContains(response, "onsubmit=")
+        self.assertNotContains(
+            response, f'action="{reverse("feeds:delete", args=(self.post.pk,))}"'
+        )
+
+        forbidden = self.client.post(reverse("feeds:delete", args=(self.post.pk,)))
+        self.assertEqual(forbidden.status_code, 403)
+        self.assertTrue(Post.objects.filter(pk=self.post.pk).exists())
+
+        deleted = self.client.post(
+            reverse("feeds:delete", args=(owned_post.pk,)),
+            {"return_to": "feed"},
+        )
+        self.assertRedirects(deleted, f"{reverse('feeds:list')}#post-{owned_post.pk}")
+        self.assertFalse(Post.objects.filter(pk=owned_post.pk).exists())
+
+    def test_admin_cannot_delete_post_through_owner_action(self):
+        self.client.force_login(self.admin)
+        response = self.client.post(reverse("feeds:delete", args=(self.post.pk,)))
+        self.assertEqual(response.status_code, 403)
+        self.assertTrue(Post.objects.filter(pk=self.post.pk).exists())
+
+    def test_admin_can_delete_any_post_from_feed(self):
+        owned_by_another_user = Post.objects.create(
+            author=self.user,
+            challenge=self.challenge,
+            content="Post by a different user",
+        )
+        self.client.force_login(self.admin)
+
+        response = self.client.get(reverse("feeds:list"))
+        for post in (self.post, owned_by_another_user):
+            self.assertContains(
+                response,
+                f'action="{reverse("feeds:moderate", args=(post.pk,))}"',
+            )
+            self.assertContains(
+                response, f'data-modal-open="delete-post-modal-{post.pk}"'
+            )
+
+        deleted = self.client.post(
+            reverse("feeds:moderate", args=(self.post.pk,)),
+            {"return_to": "feed"},
+        )
+        self.assertRedirects(deleted, f"{reverse('feeds:list')}#post-{self.post.pk}")
+        self.assertFalse(Post.objects.filter(pk=self.post.pk).exists())
+        self.assertTrue(Post.objects.filter(pk=owned_by_another_user.pk).exists())
 
     def test_admin_search_hides_admin_like_and_exposes_all_posts(self):
         self.client.force_login(self.admin)

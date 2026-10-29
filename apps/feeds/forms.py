@@ -6,9 +6,35 @@ from django.db import transaction
 
 from apps.challenges.models import Challenge
 
-from .models import Post
+from .models import Comment, Post
 
 MAX_IMAGE_SIZE = 10 * 1024 * 1024
+
+
+class FeedCommentForm(forms.ModelForm):
+    content = forms.CharField(
+        max_length=500,
+        strip=True,
+        error_messages={"required": "Komentar tidak boleh kosong."},
+        widget=forms.Textarea(
+            attrs={
+                "rows": 4,
+                "maxlength": 500,
+                "placeholder": "Tulis komentar...",
+                "class": "feed-comment-textarea",
+            }
+        ),
+    )
+
+    class Meta:
+        model = Comment
+        fields = ("content",)
+
+    def clean_content(self):
+        content = self.cleaned_data["content"].strip()
+        if not content:
+            raise forms.ValidationError("Komentar tidak boleh kosong.")
+        return content
 
 
 class FeedPostForm(forms.Form):

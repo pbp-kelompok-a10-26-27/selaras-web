@@ -20,7 +20,7 @@ from django.views.decorators.http import require_http_methods
 from apps.challenges.models import Challenge, ChallengeParticipation
 from apps.core.permissions import is_admin, is_user
 
-from .forms import MAX_IMAGE_SIZE, FeedPostForm
+from .forms import MAX_IMAGE_SIZE, FeedCommentForm, FeedPostForm
 from .models import Comment, Like, Post
 
 logger = logging.getLogger(__name__)
@@ -263,6 +263,25 @@ def _comment_data(request, comment, include_replies=True):
             for reply in comment.replies.all()
         ]
     return data
+
+
+def _comment_json_data(comment):
+    return {
+        "id": comment.pk,
+        "post_id": comment.post_id,
+        "parent_id": comment.parent_id,
+        "content": comment.content,
+        "author": _author_data(comment.author),
+        "created_at": comment.created_at.isoformat(),
+        "updated_at": comment.updated_at.isoformat(),
+    }
+
+
+def get_comment_json(request):
+    comments = Comment.objects.all()
+
+    comments_json = serializers.serialize("json", comments)
+    return HttpResponse(comments_json, content_type="application/json")
 
 
 def _paged_response(request, items, page, per_page, total, key="data"):
@@ -885,7 +904,26 @@ def post_list(request):
 
 
 def post_detail(request, post_id):
-    return api_post_detail(request, post_id)
+    if not request.user.is_authenticated:
+        return _error(request, 401, "UNAUTHENTICATED", "Autentikasi diperlukan.")
+    post = get_object_or_404(_post_queryset(request.user), pk=post_id)
+    replies = Comment.objects.select_related("author").order_by("created_at", "id")
+    comments = (
+        Comment.objects.filter(post=post, parent__isnull=True)
+        .select_related("author")
+        .prefetch_related(Prefetch("replies", queryset=replies))
+        .order_by("created_at", "id")
+    )
+    return render(
+        request,
+        "feeds/detail.html",
+        {
+            "post": post,
+            "comments": comments,
+            "comment_form": FeedCommentForm(),
+            "can_comment": is_user(request.user),
+        },
+    )
 
 
 def post_create(request):
@@ -921,16 +959,94 @@ def post_update(request, post_id):
 
 
 def post_delete(request, post_id):
-    return api_post_delete(request, post_id)
+    if not request.user.is_authenticated:
+        return _error(request, 401, "UNAUTHENTICATED", "Autentikasi diperlukan.")
+    if not is_user(request.user):
+        return HttpResponseForbidden("Hanya pemilik postingan yang dapat menghapusnya.")
+    if request.method != "POST":
+        return HttpResponse(status=405, headers={"Allow": "POST"})
+    post = get_object_or_404(Post.objects.select_related("author"), pk=post_id)
+    if post.author_id != request.user.pk:
+        return HttpResponseForbidden("Postingan bukan milik Anda.")
+    _delete_post(post)
+    if request.POST.get("return_to") == "detail":
+        return redirect("feeds:list")
+    return redirect(f"{reverse('feeds:list')}#post-{post_id}")
 
 
 def toggle_like(request, post_id):
-    return api_toggle_like(request, post_id)
+    if not request.user.is_authenticated:
+        return _error(request, 401, "UNAUTHENTICATED", "Autentikasi diperlukan.")
+    if not is_user(request.user):
+        return HttpResponseForbidden("Hanya user yang dapat menyukai postingan.")
+    if request.method != "POST":
+        return HttpResponse(status=405, headers={"Allow": "POST"})
+    post = get_object_or_404(Post, pk=post_id)
+    throttle_response = _throttle(request)
+    if throttle_response:
+        return throttle_response
+    action = request.POST.get("action")
+    if action == "like":
+        Like.objects.get_or_create(post=post, user=request.user)
+    elif action == "unlike":
+        Like.objects.filter(post=post, user=request.user).delete()
+    else:
+        return _validation_error(request, "action", "Aksi like tidak valid.")
+    if request.POST.get("return_to") == "detail":
+        return redirect(
+            f"{reverse('feeds:detail', args=(post.pk,))}#post-actions-{post.pk}"
+        )
+    return redirect(f"{reverse('feeds:list')}#post-{post.pk}")
 
 
 def comment_create(request, post_id):
-    return api_comment_create(request, post_id)
+    if not request.user.is_authenticated:
+        return _error(request, 401, "UNAUTHENTICATED", "Autentikasi diperlukan.")
+    if not is_user(request.user):
+        return HttpResponseForbidden("Hanya user yang dapat membuat komentar.")
+    if request.method != "POST":
+        return HttpResponse(status=405, headers={"Allow": "POST"})
+    post = get_object_or_404(Post, pk=post_id)
+    throttle_response = _throttle(request)
+    if throttle_response:
+        return throttle_response
+    form = FeedCommentForm(request.POST)
+    if form.is_valid():
+        comment = form.save(commit=False)
+        comment.post = post
+        comment.author = request.user
+        comment.save()
+        return redirect("feeds:detail", post_id=post.pk)
+    replies = Comment.objects.select_related("author").order_by("created_at", "id")
+    comments = (
+        Comment.objects.filter(post=post, parent__isnull=True)
+        .select_related("author")
+        .prefetch_related(Prefetch("replies", queryset=replies))
+        .order_by("created_at", "id")
+    )
+    post = _post_queryset(request.user).get(pk=post.pk)
+    return render(
+        request,
+        "feeds/detail.html",
+        {
+            "post": post,
+            "comments": comments,
+            "comment_form": form,
+            "can_comment": True,
+        },
+        status=422,
+    )
 
 
 def moderate_post(request, post_id):
-    return api_admin_post_delete(request, post_id)
+    if not request.user.is_authenticated:
+        return _error(request, 401, "UNAUTHENTICATED", "Autentikasi diperlukan.")
+    if not is_admin(request.user):
+        return HttpResponseForbidden("Hanya admin yang dapat memoderasi postingan.")
+    if request.method != "POST":
+        return HttpResponse(status=405, headers={"Allow": "POST"})
+    post = get_object_or_404(Post, pk=post_id)
+    _delete_post(post)
+    if request.POST.get("return_to") == "detail":
+        return redirect("feeds:list")
+    return redirect(f"{reverse('feeds:list')}#post-{post_id}")
