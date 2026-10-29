@@ -8,3 +8,5 @@ lucide[django]>=1.1,<2.0
 ruff>=0.6
 pip-audit>=2.7
 django-components
+gunicorn>=22.0,<24.0
+whitenoise>=6.9,<7.0
