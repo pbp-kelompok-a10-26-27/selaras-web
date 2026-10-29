@@ -148,6 +148,10 @@ def apply_admin_ticket_query(tickets, query, admin):
             | Q(requester__first_name__icontains=search)
             | Q(requester__last_name__icontains=search)
             | Q(requester__email__icontains=search)
+            | Q(assigned_to__username__icontains=search)
+            | Q(assigned_to__first_name__icontains=search)
+            | Q(assigned_to__last_name__icontains=search)
+            | Q(assigned_to__email__icontains=search)
         )
         # Ticket IDs as users quote them: "#550E8400", "550e8400-e29b"
         ticket_id = search.lstrip("#").strip()
