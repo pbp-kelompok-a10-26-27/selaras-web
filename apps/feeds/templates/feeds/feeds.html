@@ -29,6 +29,36 @@
     outline: 3px solid #6ee7b7;
     outline-offset: 3px;
   }
+
+  .feed-like-button {
+    display: inline-flex;
+    min-height: 40px;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.75rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 0.625rem;
+    background: #fff;
+    color: #334155;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .feed-like-button:hover,
+  .feed-like-button.is-liked {
+    border-color: #047857;
+    color: #047857;
+  }
+
+  .feed-like-button.is-liked {
+    background: #ecfdf5;
+  }
+
+  .feed-like-button:focus-visible {
+    outline: 2px solid #047857;
+    outline-offset: 2px;
+  }
+
 </style>
 <style>
   .feed-image-input {
