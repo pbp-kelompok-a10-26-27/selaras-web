@@ -492,6 +492,7 @@ def article_list(request):
             Q(title__icontains=search)
             | Q(summary__icontains=search)
             | Q(content__icontains=search)
+            | Q(category__name__icontains=search)
         )
 
     category = filters.get("category")

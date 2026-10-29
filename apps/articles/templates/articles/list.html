@@ -1,122 +1,321 @@
 {% extends "base.html" %}
 {% load static lucide %}
 
-{% block title %}Artikel & Edukasi — SELARAS{% endblock %}
+{% block meta %}
+    <title>Artikel &amp; Edukasi - SELARAS</title>
+{% endblock meta %}
 
 {% block extra_head %}
-  <link rel="stylesheet" href="{% static 'css/articles.css' %}" />
-{% endblock %}
+    <link rel="stylesheet" href="{% static 'css/articles.css' %}">
+{% endblock extra_head %}
 
 {% block content %}
-<main class="articles-page articles-list-page">
-  <section class="articles-shell articles-listing" aria-labelledby="articles-title">
-    <p class="articles-eyebrow">Ruang belajar · Artikel &amp; edukasi</p>
-    <div class="articles-intro">
-      <div>
-        <h1 id="articles-title">Belajar dari yang tumbuh.</h1>
-        <p class="articles-intro-copy">Cerita, pengetahuan, dan langkah kecil untuk hidup lebih selaras dengan bumi. Temukan inspirasi yang dekat dengan keseharianmu.</p>
-      </div>
-      <p class="articles-intro-note">Perubahan besar sering bermula dari satu hal kecil.</p>
-    </div>
+    <main class="articles-page articles-list-page">
+        <section class="articles-shell articles-listing"
+                 aria-labelledby="articles-title">
+            <p class="articles-eyebrow">
+                Ruang belajar · Artikel &amp; edukasi
+            </p>
 
-    {% if messages %}
-      <div class="articles-messages" aria-live="polite">
-        {% for message in messages %}<p class="articles-message">{{ message }}</p>{% endfor %}
-      </div>
-    {% endif %}
+            <div class="articles-intro">
+                <div>
+                    <h1 id="articles-title">Belajar dari yang tumbuh.</h1>
+                    <p class="articles-intro-copy">
+                        Cerita, pengetahuan, dan langkah kecil untuk hidup
+                        lebih selaras dengan bumi. Temukan inspirasi yang
+                        dekat dengan keseharianmu.
+                    </p>
+                </div>
 
-    <form class="articles-search" action="{% url 'articles:html-list' %}" method="get">
-      <label class="articles-search-field" for="article-search">
-        {% lucide "search" size=20 aria_hidden="true" %}
-        <span class="sr-only">Cari artikel</span>
-        <input id="article-search" type="search" name="search" value="{{ filters.search }}" placeholder="Cari artikel" />
-      </label>
-      {% if filters.category %}<input type="hidden" name="category" value="{{ filters.category }}" />{% endif %}
-      {% if filters.tag %}<input type="hidden" name="tag" value="{{ filters.tag }}" />{% endif %}
-      {% if is_admin and selected_status %}<input type="hidden" name="status" value="{{ selected_status }}" />{% endif %}
-      <button class="articles-search-button" type="submit">Jelajahi artikel</button>
-    </form>
-
-    <div class="articles-filters" aria-label="Filter artikel">
-      <div class="articles-filter-row">
-        <span class="articles-filter-label">Kategori</span>
-        <a class="articles-chip {% if not filters.category %}is-active{% endif %}" href="{{ all_categories_url }}">Semua</a>
-        {% for category in categories %}
-          <a class="articles-chip {% if category.active %}is-active{% endif %}" href="{{ category.url }}">{{ category.name }}</a>
-        {% empty %}
-          <span class="articles-filter-empty">Kategori artikel akan muncul di sini.</span>
-        {% endfor %}
-      </div>
-      <div class="articles-filter-row">
-        <span class="articles-filter-label">Topik</span>
-        {% if filters.tag %}<a class="articles-chip articles-tag-chip" href="{{ all_tags_url }}">Semua tag</a>{% endif %}
-        {% for tag in tags %}
-          <a class="articles-chip articles-tag-chip {% if tag.active %}is-active{% endif %}" href="{{ tag.url }}">#{{ tag.name }}</a>
-        {% empty %}
-          <span class="articles-filter-empty">Tag pada artikel yang tersedia akan muncul di sini.</span>
-        {% endfor %}
-      </div>
-      {% if is_admin %}
-        <form class="articles-status-filter" action="{% url 'articles:html-list' %}" method="get">
-          {% if filters.search %}<input type="hidden" name="search" value="{{ filters.search }}" />{% endif %}
-          {% if filters.category %}<input type="hidden" name="category" value="{{ filters.category }}" />{% endif %}
-          {% if filters.tag %}<input type="hidden" name="tag" value="{{ filters.tag }}" />{% endif %}
-          
-          <select id="article-status" name="status">
-            <option value="PUBLISHED" {% if selected_status == "PUBLISHED" %}selected{% endif %}>Artikel yang tersedia</option>
-            <option value="DRAFT" {% if selected_status == "DRAFT" %}selected{% endif %}>Draf</option>
-          </select>
-          <button type="submit">Tampilkan</button>
-        </form>
-      {% endif %}
-    </div>
-
-    {% if filter_error %}
-      <div class="articles-error" role="alert">
-        {% lucide "circle-alert" size=20 aria_hidden="true" %}
-        <div><strong>Filter belum dapat diterapkan.</strong><p>{{ filter_error }}</p></div>
-      </div>
-    {% endif %}
-
-    <div class="articles-results-heading">
-      <div><h2>{% if selected_status == "DRAFT" %}Draf artikel{% else %}Temukan cerita pilihan{% endif %}</h2><p>{{ page_obj.paginator.count }} artikel{% if filters.search %} untuk “{{ filters.search }}”{% endif %}</p></div>
-      {% if is_admin %}{% component "button" text="Tulis artikel" href=article_create_url variant="primary" size="md" icon_left="plus" / %}{% else %}<span>Semua artikel yang tampil telah terbit</span>{% endif %}
-    </div>
-
-    {% if articles %}
-      <div class="articles-grid">
-        {% for article in articles %}
-          <article class="article-card {% if forloop.first %}article-card-featured{% endif %}">
-            <a class="article-card-visual" href="{% url 'articles:html-detail' article.slug %}" aria-label="Baca artikel: {{ article.title }}">
-              {% if article.image %}<img src="{{ article.image.url }}" alt="" loading="lazy" />{% else %}<span class="article-image-placeholder" aria-hidden="true">{% lucide "sprout" size=38 %}</span>{% endif %}
-            </a>
-            <div class="article-card-body">
-              <div class="article-card-meta"><a href="{% url 'articles:html-list' %}?category={{ article.category.slug|urlencode }}">{{ article.category.name }}</a><span aria-hidden="true"></span>{% if article.published_at %}<time datetime="{{ article.published_at|date:'c' }}">{{ article.published_at|date:"j M Y" }}</time>{% elif is_admin %}<span>Draf</span>{% endif %}</div>
-              <h3><a href="{% url 'articles:html-detail' article.slug %}">{{ article.title }}</a></h3>
-              {% if article.summary %}<p>{{ article.summary }}</p>{% endif %}
-              {% if article.tags.all %}<div class="article-card-tags">{% for tag in article.tags.all %}<a href="{% url 'articles:html-list' %}?tag={{ tag.slug|urlencode }}">#{{ tag.name }}</a>{% endfor %}</div>{% endif %}
-              <div class="article-card-foot"><a class="article-read-link" href="{% url 'articles:html-detail' article.slug %}">Baca cerita {% lucide "arrow-right" size=16 aria_hidden="true" %}</a>{% if is_admin %}<a class="article-edit-link" href="{% url 'articles:html-update' article.slug %}">Edit</a>{% endif %}</div>
+                <p class="articles-intro-note">
+                    Perubahan besar sering bermula dari satu hal kecil.
+                </p>
             </div>
-          </article>
-        {% endfor %}
-      </div>
 
-      {% if page_links %}
-        <nav class="articles-pagination" aria-label="Halaman artikel">
-          {% if previous_page_url %}<a href="{{ previous_page_url }}" class="articles-page-control" aria-label="Halaman sebelumnya">{% lucide "chevron-left" size=16 aria_hidden="true" %}</a>{% endif %}
-          {% for item in page_links %}<a href="{{ item.url }}" class="articles-page-number {% if item.current %}is-current{% endif %}" {% if item.current %}aria-current="page"{% endif %}>{{ item.number }}</a>{% endfor %}
-          {% if next_page_url %}<a href="{{ next_page_url }}" class="articles-page-control" aria-label="Halaman selanjutnya">{% lucide "chevron-right" size=16 aria_hidden="true" %}</a>{% endif %}
-        </nav>
-      {% endif %}
-    {% else %}
-      <section class="articles-empty-state" aria-labelledby="articles-empty-title">
-        {% lucide "leaf" size=30 aria_hidden="true" %}
-        <p class="articles-eyebrow">Ruang untuk mulai</p>
-        <h3 id="articles-empty-title">Belum ada cerita di sini.</h3>
-        <p>Coba kata kunci lain atau hapus filter untuk menjelajahi artikel yang tersedia.</p>
-        <a href="{% url 'articles:html-list' %}">Lihat semua artikel</a>
-      </section>
-    {% endif %}
-  </section>
-</main>
-{% endblock %}
+            {% if messages %}
+                <div class="articles-messages" aria-live="polite">
+                    {% for message in messages %}
+                        <p class="articles-message">{{ message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <form class="articles-search"
+                  action="{% url 'articles:html-list' %}"
+                  method="get">
+                <label class="articles-search-field" for="article-search">
+                    {% lucide "search" size=20 aria_hidden="true" %}
+                    <span class="sr-only">Cari artikel</span>
+                    <input id="article-search"
+                           type="search"
+                           name="search"
+                           value="{{ filters.search }}"
+                           placeholder="Cari artikel">
+                </label>
+
+                {% if filters.category %}
+                    <input type="hidden"
+                           name="category"
+                           value="{{ filters.category }}">
+                {% endif %}
+
+                {% if filters.tag %}
+                    <input type="hidden"
+                           name="tag"
+                           value="{{ filters.tag }}">
+                {% endif %}
+
+                {% if is_admin and selected_status %}
+                    <input type="hidden"
+                           name="status"
+                           value="{{ selected_status }}">
+                {% endif %}
+
+                <button class="articles-search-button" type="submit">
+                    Jelajahi artikel
+                </button>
+            </form>
+
+            <div class="articles-filters" aria-label="Filter artikel">
+                <div class="articles-filter-row">
+                    <span class="articles-filter-label">Kategori</span>
+
+                    <a class="articles-chip {% if not filters.category %}is-active{% endif %}"
+                       href="{{ all_categories_url }}">
+                        Semua
+                    </a>
+
+                    {% for category in categories %}
+                        <a class="articles-chip {% if category.active %}is-active{% endif %}"
+                           href="{{ category.url }}">
+                            {{ category.name }}
+                        </a>
+                    {% empty %}
+                        <span class="articles-filter-empty">
+                            Kategori artikel akan muncul di sini.
+                        </span>
+                    {% endfor %}
+                </div>
+
+                <div class="articles-filter-row">
+                    <span class="articles-filter-label">Topik</span>
+
+                    {% if filters.tag %}
+                        <a class="articles-chip articles-tag-chip"
+                           href="{{ all_tags_url }}">
+                            Semua tag
+                        </a>
+                    {% endif %}
+
+                    {% for tag in tags %}
+                        <a class="articles-chip articles-tag-chip {% if tag.active %}is-active{% endif %}"
+                           href="{{ tag.url }}">
+                            #{{ tag.name }}
+                        </a>
+                    {% empty %}
+                        <span class="articles-filter-empty">
+                            Tag pada artikel yang tersedia akan muncul di sini.
+                        </span>
+                    {% endfor %}
+                </div>
+
+                {% if is_admin %}
+                    <form class="articles-status-filter"
+                          action="{% url 'articles:html-list' %}"
+                          method="get">
+                        {% if filters.search %}
+                            <input type="hidden"
+                                   name="search"
+                                   value="{{ filters.search }}">
+                        {% endif %}
+
+                        {% if filters.category %}
+                            <input type="hidden"
+                                   name="category"
+                                   value="{{ filters.category }}">
+                        {% endif %}
+
+                        {% if filters.tag %}
+                            <input type="hidden"
+                                   name="tag"
+                                   value="{{ filters.tag }}">
+                        {% endif %}
+
+                        <select id="article-status" name="status">
+                            <option value="PUBLISHED"
+                                    {% if selected_status == "PUBLISHED" %}selected{% endif %}>
+                                Artikel yang tersedia
+                            </option>
+                            <option value="DRAFT"
+                                    {% if selected_status == "DRAFT" %}selected{% endif %}>
+                                Draf
+                            </option>
+                        </select>
+
+                        <button type="submit">Tampilkan</button>
+                    </form>
+                {% endif %}
+            </div>
+
+            {% if filter_error %}
+                <div class="articles-error" role="alert">
+                    {% lucide "circle-alert" size=20 aria_hidden="true" %}
+
+                    <div>
+                        <strong>Filter belum dapat diterapkan.</strong>
+                        <p>{{ filter_error }}</p>
+                    </div>
+                </div>
+            {% endif %}
+
+            <div class="articles-results-heading">
+                <div>
+                    <h2>
+                        {% if selected_status == "DRAFT" %}
+                            Draf artikel
+                        {% else %}
+                            Temukan cerita pilihan
+                        {% endif %}
+                    </h2>
+
+                    <p>
+                        {{ page_obj.paginator.count }} artikel
+                        {% if filters.search %}
+                            untuk “{{ filters.search }}”
+                        {% endif %}
+                    </p>
+                </div>
+
+                {% if is_admin %}
+                    {% component "button" text="Tulis artikel" href=article_create_url variant="primary" size="md" icon_left="plus" / %}
+                {% else %}
+                    <span>Semua artikel yang tampil telah terbit</span>
+                {% endif %}
+            </div>
+
+            {% if articles %}
+                <div class="articles-grid">
+                    {% for article in articles %}
+                        <article class="article-card {% if forloop.first %}article-card-featured{% endif %}">
+                            <a class="article-card-visual"
+                               href="{% url 'articles:html-detail' article.slug %}"
+                               aria-label="Baca artikel: {{ article.title }}">
+                                {% if article.image %}
+                                    <img src="{{ article.image.url }}"
+                                         alt=""
+                                         loading="lazy">
+                                {% else %}
+                                    <span class="article-image-placeholder"
+                                          aria-hidden="true">
+                                        {% lucide "sprout" size=38 %}
+                                    </span>
+                                {% endif %}
+                            </a>
+
+                            <div class="article-card-body">
+                                <div class="article-card-meta">
+                                    <a href="{% url 'articles:html-list' %}?category={{ article.category.slug|urlencode }}">
+                                        {{ article.category.name }}
+                                    </a>
+
+                                    <span aria-hidden="true"></span>
+
+                                    {% if article.published_at %}
+                                        <time datetime="{{ article.published_at|date:'c' }}">
+                                            {{ article.published_at|date:"j M Y" }}
+                                        </time>
+                                    {% elif is_admin %}
+                                        <span>Draf</span>
+                                    {% endif %}
+                                </div>
+
+                                <h3>
+                                    <a href="{% url 'articles:html-detail' article.slug %}">
+                                        {{ article.title }}
+                                    </a>
+                                </h3>
+
+                                {% if article.summary %}
+                                    <p>{{ article.summary }}</p>
+                                {% endif %}
+
+                                {% if article.tags.all %}
+                                    <div class="article-card-tags">
+                                        {% for tag in article.tags.all %}
+                                            <a href="{% url 'articles:html-list' %}?tag={{ tag.slug|urlencode }}">
+                                                #{{ tag.name }}
+                                            </a>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+
+                                <div class="article-card-foot">
+                                    <a class="article-read-link"
+                                       href="{% url 'articles:html-detail' article.slug %}">
+                                        Baca cerita
+                                        {% lucide "arrow-right" size=16 aria_hidden="true" %}
+                                    </a>
+
+                                    {% if is_admin %}
+                                        <a class="article-edit-link"
+                                           href="{% url 'articles:html-update' article.slug %}">
+                                            Edit
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+
+                {% if page_links %}
+                    <nav class="articles-pagination"
+                         aria-label="Halaman artikel">
+                        {% if previous_page_url %}
+                            <a href="{{ previous_page_url }}"
+                               class="articles-page-control"
+                               aria-label="Halaman sebelumnya">
+                                {% lucide "chevron-left" size=16 aria_hidden="true" %}
+                            </a>
+                        {% endif %}
+
+                        {% for item in page_links %}
+                            <a href="{{ item.url }}"
+                               class="articles-page-number {% if item.current %}is-current{% endif %}"
+                               {% if item.current %}aria-current="page"{% endif %}>
+                                {{ item.number }}
+                            </a>
+                        {% endfor %}
+
+                        {% if next_page_url %}
+                            <a href="{{ next_page_url }}"
+                               class="articles-page-control"
+                               aria-label="Halaman selanjutnya">
+                                {% lucide "chevron-right" size=16 aria_hidden="true" %}
+                            </a>
+                        {% endif %}
+                    </nav>
+                {% endif %}
+            {% else %}
+                <section class="articles-empty-state"
+                         aria-labelledby="articles-empty-title">
+                    {% lucide "leaf" size=30 aria_hidden="true" %}
+
+                    <p class="articles-eyebrow">Ruang untuk mulai</p>
+                    <h3 id="articles-empty-title">
+                        Belum ada cerita di sini.
+                    </h3>
+
+                    <p>
+                        Coba kata kunci lain atau hapus filter untuk
+                        menjelajahi artikel yang tersedia.
+                    </p>
+
+                    <a href="{% url 'articles:html-list' %}">
+                        Lihat semua artikel
+                    </a>
+                </section>
+            {% endif %}
+        </section>
+    </main>
+{% endblock content %}

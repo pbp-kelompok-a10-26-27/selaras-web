@@ -1141,3 +1141,32 @@ body:has(.articles-list-page) [data-navbar] {
     transition-duration: .01ms !important;
   }
 }
+
+.articles-editor-tips {
+    list-style: none;
+    padding: 0;
+    margin: 1.5rem 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.articles-editor-tips li {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding-left: 1rem;
+    border-left: 3px solid var(--accent, #7a9b76);
+}
+
+.articles-editor-tips strong {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--ink, #241b2f);
+}
+
+.articles-editor-tips span {
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: var(--text-muted, #7a6b7d);
+}
