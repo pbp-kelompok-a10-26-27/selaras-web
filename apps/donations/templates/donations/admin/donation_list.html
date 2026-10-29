@@ -1,0 +1,49 @@
+{% extends "dashboard/base.html" %}
+{% load component_tags %}
+
+{% block title %}Donation verification{% endblock %}
+
+{% block content %}
+<header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+  <div>
+    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-secondary-600">Donations</p>
+    <h1 class="mt-2 font-display text-3xl text-secondary-900 sm:text-4xl">Donation verification</h1>
+    <p class="mt-2 text-sm text-neutral-700">Review submitted donations and their verification status.</p>
+  </div>
+  <form method="get" class="flex flex-wrap items-end gap-3 rounded-2xl border border-neutral-400 bg-neutral-50 p-3">
+    <label for="donation-status" class="text-sm font-semibold text-secondary-800">Status</label>
+    <select id="donation-status" name="status" class="min-h-10 rounded-xl border border-neutral-400 bg-white px-3 text-sm outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-200">
+      <option value="">All statuses</option>
+      {% for value, label in status_choices %}
+      <option value="{{ value }}" {% if status == value %}selected{% endif %}>{{ value }}</option>
+      {% endfor %}
+    </select>
+    {% component "button" text="Filter" type="submit" variant="secondary" size="sm" / %}
+  </form>
+</header>
+
+{% if donations %}
+<section aria-label="Donations for review" class="mt-8 space-y-4">
+  {% for donation in donations %}
+  <article class="flex flex-col gap-4 rounded-2xl border border-neutral-400 bg-neutral-50 p-5 sm:flex-row sm:items-center sm:justify-between">
+    <div class="min-w-0">
+      <div class="flex flex-wrap items-center gap-3">
+        <h2 class="font-display text-xl text-secondary-900">{{ donation.campaign.title }}</h2>
+        <span class="rounded-full bg-primary-100 px-3 py-1 text-xs font-bold tracking-wide text-secondary-800">{{ donation.status }}</span>
+      </div>
+      <p class="mt-2 text-sm text-neutral-700">{{ donation.donor.get_full_name|default:donation.donor.username }} · {{ donation.created_at|date:"j M Y, H:i" }}</p>
+    </div>
+    <div class="flex flex-wrap items-center gap-4 sm:justify-end">
+      <p class="font-semibold text-secondary-900">Rp {{ donation.amount|floatformat:2 }}</p>
+      {% component "button" href="{% url 'donations:verify' donation.pk %}" text="Review" variant="neutral" size="sm" / %}
+    </div>
+  </article>
+  {% endfor %}
+</section>
+{% else %}
+<section class="mt-8 rounded-2xl border border-dashed border-secondary-200 bg-primary-50 px-6 py-12 text-center">
+  <h2 class="font-display text-2xl text-secondary-900">No donations found.</h2>
+  <p class="mt-2 text-sm text-neutral-700">Try another status filter or check back later.</p>
+</section>
+{% endif %}
+{% endblock %}
