@@ -1,0 +1,6 @@
+<article id="comment-{{ comment.id }}" class="border-l-2 border-emerald-200 py-2 pl-4">
+  <p class="text-sm font-semibold">
+    {{ comment.author.get_full_name|default:comment.author.username }}
+  </p>
+  <p class="whitespace-pre-wrap">{{ comment.content }}</p>
+</article>
