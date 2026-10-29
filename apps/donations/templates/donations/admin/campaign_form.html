@@ -1,0 +1,42 @@
+{% extends "dashboard/base.html" %}
+{% load component_tags %}
+
+{% block title %}{% if is_create %}Create campaign{% else %}Edit campaign{% endif %}{% endblock %}
+
+{% block content %}
+<a href="{% url 'donations:campaign_list' %}" class="inline-flex items-center gap-2 rounded-sm text-sm font-semibold text-secondary-700 outline-none hover:text-secondary-900 focus-visible:ring-2 focus-visible:ring-primary-500">← Back to campaigns</a>
+
+<header class="mt-5">
+  <p class="text-xs font-semibold uppercase tracking-[0.18em] text-secondary-600">Campaign management</p>
+  <h1 class="mt-2 font-display text-3xl text-secondary-900 sm:text-4xl">{% if is_create %}Create campaign{% else %}Edit campaign{% endif %}</h1>
+  <p class="mt-2 text-sm text-neutral-700">Set the campaign details, fundraising target, schedule, and lifecycle status.</p>
+</header>
+
+<form method="post" class="mt-7 max-w-3xl space-y-5 rounded-3xl border border-neutral-400 bg-neutral-50 p-6 shadow-sm sm:p-8">
+  {% csrf_token %}
+
+  {% if form.non_field_errors %}
+  <div role="alert" class="rounded-xl border border-tertiary-400 bg-tertiary-50 p-4 text-sm text-tertiary-900">
+    {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+  </div>
+  {% endif %}
+
+  {% for field in form %}
+  <div>
+    <label for="{{ field.id_for_label }}" class="block text-sm font-semibold text-secondary-800">{{ field.label }}</label>
+    <div class="mt-2">{{ field }}</div>
+    {% if field.help_text %}<p class="mt-1 text-xs text-neutral-700">{{ field.help_text }}</p>{% endif %}
+    {% for error in field.errors %}<p role="alert" class="mt-2 text-sm text-red-100">{{ error }}</p>{% endfor %}
+  </div>
+  {% endfor %}
+
+  <div class="flex flex-wrap gap-3 border-t border-neutral-400 pt-5">
+    {% if is_create %}
+    {% component "button" text="Create campaign" type="submit" variant="primary" size="sm" icon_left="plus" / %}
+    {% else %}
+    {% component "button" text="Save changes" type="submit" variant="primary" size="sm" icon_left="check" / %}
+    {% endif %}
+    {% component "button" href="{% url 'donations:campaign_list' %}" text="Cancel" variant="neutral" size="sm" / %}
+  </div>
+</form>
+{% endblock %}

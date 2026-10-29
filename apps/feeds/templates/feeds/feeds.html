@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Feed | SELARAS{% endblock %}
+
+{% block content %}
+<style>
+  .feed-create-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 48px;
+    padding: 0.75rem 1.25rem;
+    border: 2px solid #047857;
+    border-radius: 0.75rem;
+    background: #047857;
+    color: #fff;
+    font-weight: 700;
+    text-decoration: none;
+    box-shadow: 0 4px 10px rgb(4 120 87 / 20%);
+  }
+
+  .feed-create-link:hover {
+    border-color: #065f46;
+    background: #065f46;
+  }
+
+  .feed-create-link:focus-visible {
+    outline: 3px solid #6ee7b7;
+    outline-offset: 3px;
+  }
+
+  .feed-like-button {
+    display: inline-flex;
+    min-height: 40px;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.75rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 0.625rem;
+    background: #fff;
+    color: #334155;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .feed-like-button:hover,
+  .feed-like-button.is-liked {
+    border-color: #047857;
+    color: #047857;
+  }
+
+  .feed-like-button.is-liked {
+    background: #ecfdf5;
+  }
+
+  .feed-like-button:focus-visible {
+    outline: 2px solid #047857;
+    outline-offset: 2px;
+  }
+
+</style>
+<style>
+  .feed-image-input {
+    display: block;
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 0.75rem;
+    background: #f8fafc;
+    color: #475569;
+  }
+
+  .feed-image-input::file-selector-button {
+    margin-right: 1rem;
+    padding: 0.5rem 1rem;
+    border: 0;
+    border-radius: 0.5rem;
+    background: #047857;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .feed-image-input::file-selector-button:hover {
+    background: #065f46;
+  }
+
+  .feed-image-input:focus-visible {
+    outline: 2px solid #047857;
+    outline-offset: 2px;
+  }
+</style>
+<main class="mx-auto max-w-3xl px-4 py-10">
+  <h1 class="mb-5 text-3xl font-semibold">Feed komunitas</h1>
+  {% if can_create_post %}
+    <a
+      href="{% url 'feeds:create' %}"
+      class="feed-create-link mb-8 w-full"
+    >
+      + Buat postingan
+    </a>
+  {% endif %}
+  <div class="space-y-5">
+    {% for post in posts %}
+      {% include "feeds/partials/post_card.html" with post=post %}
+    {% empty %}
+      <p class="rounded-xl bg-white p-6 text-slate-600">Belum ada postingan.</p>
+    {% endfor %}
+  </div>
+</main>
+{% endblock %}

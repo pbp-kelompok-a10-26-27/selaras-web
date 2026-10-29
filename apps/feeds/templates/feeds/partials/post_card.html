@@ -1,0 +1,109 @@
+{% load component_tags %}
+
+<article id="post-{{ post.id }}" class="rounded-xl bg-white p-5 shadow-sm">
+  <header class="mb-3">
+    <p class="font-semibold">
+      {{ post.author.get_full_name|default:post.author.username }}
+    </p>
+    <p class="text-sm text-slate-500">
+      {% if post.challenge %}{{ post.challenge.title }} · {% endif %}{{ post.created_at }}
+    </p>
+  </header>
+  <a
+    href="{% url 'feeds:detail' post.id %}"
+    class="block rounded-lg text-inherit no-underline hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
+    aria-label="Buka detail postingan: {{ post.content|truncatechars:80 }}"
+  >
+    <p class="whitespace-pre-wrap">{{ post.content }}</p>
+    {% if post.image %}
+      <img class="mt-4 max-h-96 rounded-lg object-cover" src="{{ post.image.url }}" alt="Foto postingan">
+    {% endif %}
+  </a>
+  <footer
+    id="post-actions-{{ post.id }}"
+    class="mt-4 flex flex-wrap items-center gap-4 text-sm text-slate-600"
+  >
+    {% if user.is_authenticated and user.role == "user" or user.is_authenticated and user.role == "admin" %}
+      <form action="{% url 'feeds:like' post.id %}" method="post">
+        {% csrf_token %}
+        <input
+          type="hidden"
+          name="action"
+          value="{% if post.liked_by_me %}unlike{% else %}like{% endif %}"
+        >
+        <input type="hidden" name="return_to" value="{{ return_to|default:'feed' }}">
+        <button
+          type="submit"
+          class="feed-like-button {% if post.liked_by_me %}is-liked{% endif %}"
+          aria-pressed="{{ post.liked_by_me|yesno:'true,false' }}"
+          aria-label="{% if post.liked_by_me %}Batalkan suka{% else %}Sukai{% endif %} postingan ini"
+        >
+          {% if post.liked_by_me %}♥ Disukai{% else %}♡ Suka{% endif %}
+          <span class="feed-like-count">{{ post.like_count|default:0 }}</span>
+        </button>
+      </form>
+    {% else %}
+      <span>{{ post.like_count|default:0 }} suka</span>
+    {% endif %}
+    <a
+      href="{% url 'feeds:detail' post.id %}#comments"
+      class="text-inherit underline-offset-2 hover:underline"
+      aria-label="Lihat {{ post.comment_count|default:0 }} komentar"
+    >
+      {{ post.comment_count|default:0 }} komentar
+    </a>
+    {% if user.is_authenticated and user.role == "admin" %}
+      <button
+        type="button"
+        data-modal-open="delete-post-modal-{{ post.id }}"
+        aria-haspopup="dialog"
+        class="rounded-md px-2 py-1 font-semibold text-red-700 hover:bg-red-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700"
+        aria-label="Hapus postingan ini sebagai admin"
+      >
+        Hapus
+      </button>
+    {% elif user.is_authenticated and user.role == "user" and post.author_id == user.id %}
+      <button
+        type="button"
+        data-modal-open="delete-post-modal-{{ post.id }}"
+        aria-haspopup="dialog"
+        class="rounded-md px-2 py-1 font-semibold text-red-700 hover:bg-red-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700"
+        aria-label="Hapus postingan ini"
+      >
+        Hapus
+      </button>
+    {% endif %}
+  </footer>
+</article>
+{% if user.is_authenticated and user.role == "admin" or user.is_authenticated and user.role == "user" and post.author_id == user.id %}
+  {% component "modal" id="delete-post-modal-{{ post.id }}" title="Konfirmasi hapus postingan" size="sm" %}
+    {% fill "content" %}
+      <p class="font-sans text-sm text-slate-700">
+        Yakin ingin menghapus postingan ini? Tindakan ini tidak dapat dibatalkan.
+      </p>
+    {% endfill %}
+    {% fill "footer" %}
+      <button
+        type="button"
+        data-modal-close
+        data-modal-autofocus
+        class="min-h-10 rounded-xl border border-slate-300 px-4 py-2 font-semibold text-slate-700 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
+      >
+        Batal
+      </button>
+      <form
+        action="{% if user.role == 'admin' %}{% url 'feeds:moderate' post.id %}{% else %}{% url 'feeds:delete' post.id %}{% endif %}"
+        method="post"
+      >
+        {% csrf_token %}
+        <input type="hidden" name="return_to" value="{{ return_to|default:'feed' }}">
+        <button
+          type="submit"
+          class="min-h-10 rounded-xl bg-red-700 px-4 py-2 font-semibold text-white hover:bg-red-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700"
+        >
+          Ya, hapus
+        </button>
+      </form>
+    {% endfill %}
+  {% endcomponent %}
+{% endif %}

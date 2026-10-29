@@ -1,0 +1,63 @@
+{% extends "dashboard/base.html" %}
+{% load component_tags %}
+
+{% block title %}Review donation{% endblock %}
+
+{% block content %}
+<a href="{% url 'donations:verification_queue' %}" class="inline-flex items-center gap-2 rounded-sm text-sm font-semibold text-secondary-700 outline-none hover:text-secondary-900 focus-visible:ring-2 focus-visible:ring-primary-500">← Back to donations</a>
+
+{% if messages %}
+<div class="mt-5 space-y-3" aria-live="polite">
+  {% for message in messages %}
+  <p role="status" class="rounded-2xl border px-4 py-3 text-sm leading-6 {% if message.tags == 'success' %}border-primary-500 bg-primary-50 text-secondary-800{% elif message.tags == 'warning' %}border-secondary-300 bg-secondary-50 text-secondary-800{% else %}border-neutral-400 bg-neutral-50 text-secondary-800{% endif %}">{{ message }}</p>
+  {% endfor %}
+</div>
+{% endif %}
+
+<article class="mt-6 overflow-hidden rounded-3xl border border-neutral-400 bg-neutral-50 shadow-sm">
+  <header class="bg-primary-100 px-6 py-8 sm:px-9">
+    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-secondary-600">Donation review</p>
+    <div class="mt-3 flex flex-wrap items-center justify-between gap-3">
+      <h1 class="font-display text-3xl text-secondary-900 sm:text-4xl">{{ donation.campaign.title }}</h1>
+      <span class="rounded-full bg-neutral-50 px-3 py-1.5 text-xs font-bold tracking-wide text-secondary-800">{{ donation.status }}</span>
+    </div>
+  </header>
+
+  <dl class="grid gap-4 p-6 sm:grid-cols-2 sm:p-9">
+    <div class="rounded-2xl border border-neutral-400 bg-white p-5">
+      <dt class="text-xs font-semibold uppercase tracking-wide text-neutral-700">Donor</dt>
+      <dd class="mt-2 text-sm font-semibold text-secondary-900">{{ donation.donor.get_full_name|default:donation.donor.username }} · {{ donation.donor.email }}</dd>
+    </div>
+    <div class="rounded-2xl border border-neutral-400 bg-white p-5">
+      <dt class="text-xs font-semibold uppercase tracking-wide text-neutral-700">Amount</dt>
+      <dd class="mt-2 font-display text-2xl text-secondary-900">Rp {{ donation.amount|floatformat:2 }}</dd>
+    </div>
+    <div class="rounded-2xl border border-neutral-400 bg-white p-5">
+      <dt class="text-xs font-semibold uppercase tracking-wide text-neutral-700">Submitted</dt>
+      <dd class="mt-2 text-sm font-semibold text-secondary-900">{{ donation.created_at|date:"j M Y, H:i" }}</dd>
+    </div>
+    <div class="rounded-2xl border border-neutral-400 bg-white p-5">
+      <dt class="text-xs font-semibold uppercase tracking-wide text-neutral-700">Verified</dt>
+      <dd class="mt-2 text-sm font-semibold text-secondary-900">{% if donation.verified_at %}{{ donation.verified_at|date:"j M Y, H:i" }}{% else %}Not verified{% endif %}</dd>
+    </div>
+    <div class="rounded-2xl border border-neutral-400 bg-white p-5 sm:col-span-2">
+      <dt class="text-xs font-semibold uppercase tracking-wide text-neutral-700">Transfer proof</dt>
+      <dd class="mt-3">
+        {% if proof_available %}
+        {% component "button" href="{% url 'donations:admin_proof' donation.pk %}" text="Download proof" variant="neutral" size="sm" icon_left="file-down" / %}
+        {% else %}
+        <span class="text-sm text-neutral-700">Proof is unavailable.</span>
+        {% endif %}
+      </dd>
+    </div>
+  </dl>
+
+  {% if donation.status == "PENDING" %}
+  <form method="post" class="flex flex-wrap gap-3 border-t border-neutral-400 px-6 py-5 sm:px-9">
+    {% csrf_token %}
+    {% component "button" text="Approve donation" type="submit" attrs='name="status" value="APPROVED"' variant="primary" size="sm" icon_left="circle-check" / %}
+    {% component "button" text="Reject donation" type="submit" attrs='name="status" value="REJECTED"' variant="tertiary" size="sm" icon_left="circle-x" / %}
+  </form>
+  {% endif %}
+</article>
+{% endblock %}

@@ -33,6 +33,7 @@ urlpatterns = [
     path("articles/", include("apps.articles.urls")),
     path("challenges/", include("apps.challenges.urls")),
     path("feed/", include("apps.feeds.urls")),
+    path("api/v1/", include("apps.feeds.api_urls")),
     path("donations/", include("apps.donations.urls")),
     path("helpdesk/", include("apps.helpdesk.urls")),
     path("design-system/", design_system, name="design_system"),

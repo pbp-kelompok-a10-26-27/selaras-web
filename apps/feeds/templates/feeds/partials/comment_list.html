@@ -1,0 +1,10 @@
+<div class="space-y-3">
+  {% for comment in comments %}
+    {% include "feeds/partials/comment_item.html" with comment=comment %}
+    {% for reply in comment.replies.all %}
+      {% include "feeds/partials/comment_item.html" with comment=reply %}
+    {% endfor %}
+  {% empty %}
+    <p>Belum ada komentar.</p>
+  {% endfor %}
+</div>

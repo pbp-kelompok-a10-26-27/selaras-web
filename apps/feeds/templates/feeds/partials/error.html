@@ -1,0 +1,6 @@
+<div role="alert" data-error-code="{{ code }}">
+  <p>{{ message }}</p>
+  {% for detail in details %}
+    <p>{{ detail.message }}</p>
+  {% endfor %}
+</div>
