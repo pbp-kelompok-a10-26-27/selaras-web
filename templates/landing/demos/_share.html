@@ -1,13 +1,13 @@
 {% load lucide %}
 {# Berbagi demo: post to a pretend feed, like and cheer (static/js/landing/demos.js). Nothing is saved. #}
 <div class="landing-demo" data-demo="share" role="group" aria-labelledby="demoShareTitle">
-  {% include "landing/demos/_head.html" with title="Bagikan kebiasaan Anda" title_id="demoShareTitle" %}
+  {% include "landing/demos/_head.html" with title="Bagikan kebiasaanmu" title_id="demoShareTitle" %}
 
   <form class="mt-4 rounded-2xl border border-tertiary-300/70 bg-neutral-50/80 p-3 transition-shadow focus-within:shadow-[0_0_0_2px_var(--color-tertiary-300)]" data-share-form>
     <div class="flex gap-3">
       <span aria-hidden="true" class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-secondary-700 font-sans text-sm font-semibold text-neutral-50">A</span>
       <label for="shareText" class="sr-only">Tulis cerita</label>
-      <textarea id="shareText" rows="2" maxlength="140" placeholder="Apa kebiasaan baik Anda hari ini?" class="min-h-16 w-full resize-none bg-transparent pt-1.5 font-sans text-sm text-secondary-900 outline-none placeholder:text-secondary-500" data-share-text></textarea>
+      <textarea id="shareText" rows="2" maxlength="140" placeholder="Apa kebiasaan baikmu hari ini?" class="min-h-16 w-full resize-none bg-transparent pt-1.5 font-sans text-sm text-secondary-900 outline-none placeholder:text-secondary-500" data-share-text></textarea>
     </div>
     <div class="mt-2 flex flex-wrap gap-1.5" aria-label="Ide cerita">
       {% for prompt in share_demo_prompts %}

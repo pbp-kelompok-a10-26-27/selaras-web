@@ -22,7 +22,19 @@ api_urlpatterns = [
 urlpatterns = [
     path("browse/", html_views.article_html_list, name="html-list"),
     path("read/<slug:slug>/", html_views.article_html_detail, name="html-detail"),
+    path(
+        "read/<slug:slug>/finished/",
+        html_views.article_mark_read,
+        name="mark-read",
+    ),
+    path("mine/", html_views.article_mine, name="mine"),
     path("manage/new/", html_views.article_html_create, name="html-create"),
+    path("manage/categories/", html_views.category_manage, name="categories"),
+    path(
+        "manage/<slug:slug>/review/",
+        html_views.article_review,
+        name="review",
+    ),
     path(
         "manage/<slug:slug>/edit/",
         html_views.article_html_update,

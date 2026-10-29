@@ -1,0 +1,19 @@
+{% load lucide %}{# Kartu angka. tone: primary | warning | info | danger | neutral #}
+<div class="flex items-center gap-4 rounded-2xl border border-neutral-400 bg-neutral-50 p-4 sm:p-5">
+  {% if tone == "warning" %}
+  <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-orange-100/50 bg-orange-100/15 text-orange-100">{% lucide icon class="w-5 h-5" %}</span>
+  {% elif tone == "info" %}
+  <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-blue-100/40 bg-blue-100/10 text-blue-200">{% lucide icon class="w-5 h-5" %}</span>
+  {% elif tone == "danger" %}
+  <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-red-100/40 bg-red-100/10 text-red-100">{% lucide icon class="w-5 h-5" %}</span>
+  {% elif tone == "neutral" %}
+  <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-neutral-300 text-neutral-900">{% lucide icon class="w-5 h-5" %}</span>
+  {% else %}
+  <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-100 text-primary-700">{% lucide icon class="w-5 h-5" %}</span>
+  {% endif %}
+  <div class="flex min-w-0 flex-col">
+    <dt class="font-sans text-sm font-semibold text-neutral-900">{{ label }}</dt>
+    <dd class="truncate font-sans text-2xl font-bold tabular-nums text-foreground">{% if prefix %}<span class="text-base">{{ prefix }}</span> {% endif %}{{ value }}</dd>
+    {% if hint %}<dd class="font-sans text-xs text-neutral-800">{{ hint }}</dd>{% endif %}
+  </div>
+</div>

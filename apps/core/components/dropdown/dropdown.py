@@ -11,8 +11,8 @@ class Dropdown(component.Component):
             "id": kwargs.get("id", ""),
             "name": kwargs.get("name", ""),
             "label": kwargs.get("label", ""),
-            "placeholder": kwargs.get("placeholder", "Select an option"),
-            "default_value": kwargs.get("default_value", "All"),
+            "placeholder": kwargs.get("placeholder", "Pilih salah satu"),
+            "default_value": kwargs.get("default_value", "Semua"),
             "initial_value": kwargs.get(
                 "initial_value", ""
             ),  # pre-selected option value

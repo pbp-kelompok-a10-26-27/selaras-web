@@ -22,7 +22,7 @@ if (notice) {
   // Any sign the user wants to read or act here stops the countdown
   const stop = () => {
     clearInterval(timer);
-    notice.textContent = "Take your time. Use the buttons above when you're ready.";
+    notice.textContent = "Santai saja. Pakai tombol di atas kalau sudah siap.";
   };
   notice.querySelector("[data-redirect-cancel]").addEventListener("click", () => {
     stop();

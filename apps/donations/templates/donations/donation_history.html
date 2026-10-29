@@ -1,52 +1,125 @@
 {% extends "base.html" %}
-{% load component_tags %}
+{% load static component_tags lucide ui_extras %}
 
 {% block title %}Riwayat Donasi · SELARAS{% endblock %}
 
+{% block extra_head %}
+<noscript><style>.scroll-reveal { opacity: 1; transform: none; }</style></noscript>
+{% endblock %}
+
 {% block content %}
-<main class="mx-auto w-full max-w-6xl px-4 py-12 text-secondary-900 sm:px-6 lg:px-10 lg:py-16">
-  <header class="mx-auto max-w-3xl">
-    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-secondary-600">Aktivitas Anda</p>
-    <h1 class="mt-3 font-display text-4xl leading-tight sm:text-5xl">Riwayat donasi</h1>
-    <p class="mt-4 text-sm leading-6 text-neutral-800">Lihat donasi yang Anda catat dan status verifikasinya.</p>
-  </header>
+<div class="relative isolate">
+  <div class="page-aura" aria-hidden="true"></div>
 
-  <form method="get" class="mt-8 flex max-w-3xl flex-col gap-3 rounded-2xl border border-neutral-400 bg-neutral-50 p-4 sm:flex-row sm:items-end">
-    <label for="donation-status" class="text-sm font-semibold text-secondary-800">Filter status</label>
-    <select id="donation-status" name="status" class="min-h-11 flex-1 rounded-xl border border-neutral-400 bg-white px-4 text-sm font-normal outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-200 sm:max-w-xs">
-      <option value="">Semua status</option>
-      {% for value, label in status_choices %}
-      <option value="{{ value }}" {% if status == value %}selected{% endif %}>{{ value }}</option>
-      {% endfor %}
-    </select>
-    {% component "button" text="Terapkan" type="submit" variant="secondary" size="sm" / %}
-  </form>
+  <main id="donationHistoryPage" class="mx-auto w-full max-w-4xl px-4 pb-24 pt-36 sm:px-6 sm:pt-40 lg:px-8">
+    <header class="mb-8 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        {% component "badge" text="Aktivitasmu" variant="primary" icon="history" / %}
+        <h1 class="mt-3 font-display text-h3 leading-tight text-foreground sm:text-h2">Riwayat donasi</h1>
+        <p class="mt-2 max-w-xl font-sans text-b3 text-neutral-900">Lihat donasi yang kamu catat dan status verifikasinya.</p>
+      </div>
+      {% url 'donations:campaign_list' as campaigns_url %}
+      {% component "button" href=campaigns_url text="Jelajahi kampanye" variant="secondary" size="lg" icon_left="hand-heart" class_="max-sm:w-full" / %}
+    </header>
 
-  {% if donations %}
-  <section aria-label="Donasi Anda" class="mt-8 space-y-4">
-    {% for donation in donations %}
-    <article class="flex flex-col gap-5 rounded-3xl border border-neutral-400 bg-neutral-50 p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-6">
-      <div class="min-w-0">
-        <div class="flex flex-wrap items-center gap-3">
-          <h2 class="font-display text-xl text-secondary-900">{{ donation.campaign.title }}</h2>
-          <span class="rounded-full bg-primary-100 px-3 py-1 text-xs font-bold tracking-wide text-secondary-800">{{ donation.status }}</span>
+    <section aria-label="Dampak donasimu" class="mb-8 grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
+      <dl class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div class="col-span-2 rounded-2xl bg-secondary-900 p-5 text-neutral-50">
+          <dt class="flex items-center gap-1.5 font-sans text-xs font-semibold uppercase tracking-wider text-secondary-200">{% lucide "hand-heart" class="w-4 h-4" aria_hidden="true" %}Total tersalurkan</dt>
+          <dd class="mt-2 font-sans text-2xl font-semibold tabular-nums sm:text-3xl" data-countup="{{ impact.approved_total|floatformat:'0u' }}" data-prefix="Rp ">Rp {{ impact.approved_total|rupiah }}</dd>
         </div>
-        <p class="mt-2 text-sm text-neutral-700">Dikirim {{ donation.created_at|date:"j M Y, H:i" }}</p>
-      </div>
-      <div class="flex flex-wrap items-center gap-4 sm:justify-end">
-        <p class="font-semibold text-secondary-900">Rp {{ donation.amount|floatformat:2 }}</p>
-        {% component "button" href="{% url 'donations:detail' donation.pk %}" text="Lihat detail" variant="neutral" size="sm" / %}
-        {% if donation.status == "PENDING" %}{% component "button" href="{% url 'donations:edit' donation.pk %}" text="Edit" variant="secondary" size="sm" / %}{% endif %}
-      </div>
-    </article>
-    {% endfor %}
-  </section>
-  {% else %}
-  <section class="mt-8 rounded-3xl border border-dashed border-secondary-200 bg-primary-50 px-6 py-14 text-center">
-    <h2 class="font-display text-2xl text-secondary-900">Belum ada donasi untuk ditampilkan.</h2>
-    <p class="mt-3 text-sm leading-6 text-neutral-800">Donasi yang Anda catat akan muncul di sini.</p>
-    {% component "button" href="{% url 'donations:campaign_list' %}" text="Jelajahi kampanye" variant="primary" size="sm" class_="mt-6" / %}
-  </section>
-  {% endif %}
-</main>
+        <div class="rounded-2xl border border-neutral-400 bg-neutral-50 p-5">
+          <dt class="font-sans text-xs font-semibold text-neutral-800">Kampanye didukung</dt>
+          <dd class="mt-1 font-sans text-2xl font-semibold tabular-nums text-secondary-900">{{ impact.campaigns_supported }}</dd>
+        </div>
+        <div class="rounded-2xl border border-neutral-400 bg-neutral-50 p-5">
+          <dt class="font-sans text-xs font-semibold text-neutral-800">Menunggu verifikasi</dt>
+          <dd class="mt-1 font-sans text-2xl font-semibold tabular-nums text-secondary-900">{{ impact.pending_count }}</dd>
+        </div>
+      </dl>
+      {% include "challenges/partials/progress_widget.html" with widget_title="Challenge donasi" widget_empty="Ikuti challenge donasi, dan setiap donasi yang disetujui langsung menambah progresmu." %}
+    </section>
+
+    <div class="mb-6 flex flex-wrap items-center gap-2" role="group" aria-label="Filter status donasi">
+      <span class="mr-1 font-sans text-b4 font-semibold text-neutral-800">Status</span>
+      {% if status == "" %}
+        {% component "button" href="?" text="Semua" variant="neutral" size="sm" selected=True / %}
+      {% else %}
+        {% component "button" href="?" text="Semua" variant="neutral" size="sm" / %}
+      {% endif %}
+      {% if status == "PENDING" %}
+        {% component "button" href="?status=PENDING" text="Menunggu" variant="neutral" size="sm" icon_left="clock" selected=True / %}
+      {% else %}
+        {% component "button" href="?status=PENDING" text="Menunggu" variant="neutral" size="sm" icon_left="clock" / %}
+      {% endif %}
+      {% if status == "APPROVED" %}
+        {% component "button" href="?status=APPROVED" text="Disetujui" variant="neutral" size="sm" icon_left="circle-check" selected=True / %}
+      {% else %}
+        {% component "button" href="?status=APPROVED" text="Disetujui" variant="neutral" size="sm" icon_left="circle-check" / %}
+      {% endif %}
+      {% if status == "REJECTED" %}
+        {% component "button" href="?status=REJECTED" text="Ditolak" variant="neutral" size="sm" icon_left="circle-x" selected=True / %}
+      {% else %}
+        {% component "button" href="?status=REJECTED" text="Ditolak" variant="neutral" size="sm" icon_left="circle-x" / %}
+      {% endif %}
+      <span class="ml-auto font-sans text-sm text-neutral-800" role="status">{{ donations|length }} donasi</span>
+    </div>
+
+    {% if donations %}
+    <ul aria-label="Donasimu" class="space-y-4">
+      {% for donation in donations %}
+      <li class="scroll-reveal" style="--i: {{ forloop.counter0 }}">
+        <article class="flex flex-col gap-4 rounded-2xl border border-neutral-400 bg-neutral-50 p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-neutral-500 hover:shadow-md motion-reduce:transition-none motion-reduce:hover:translate-y-0 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+          <div class="flex min-w-0 items-start gap-4">
+            <span
+              class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl
+                {% if donation.status == 'APPROVED' %}bg-primary-100 text-primary-700
+                {% elif donation.status == 'REJECTED' %}bg-red-100/10 text-red-100
+                {% else %}bg-orange-100/15 text-secondary-800{% endif %}"
+              aria-hidden="true"
+            >
+              {% if donation.status == "APPROVED" %}{% lucide "circle-check" class="w-6 h-6" %}{% elif donation.status == "REJECTED" %}{% lucide "circle-x" class="w-6 h-6" %}{% else %}{% lucide "clock" class="w-6 h-6" %}{% endif %}
+            </span>
+            <div class="min-w-0">
+              <h2 class="font-display text-h5 leading-snug text-foreground">{{ donation.campaign.title }}</h2>
+              <p class="mt-1 font-sans text-b4 text-neutral-800">
+                Dikirim {{ donation.created_at|date:"j M Y, H:i" }}{% if donation.verified_at %} · Diverifikasi {{ donation.verified_at|date:"j M Y" }}{% endif %}
+              </p>
+              <div class="mt-2">{% include "donations/partials/_donation_status.html" with status=donation.status %}</div>
+              {% if donation.status == "REJECTED" and donation.rejection_reason %}
+              <p class="mt-2 flex items-start gap-1.5 font-sans text-b4 text-tertiary-800">{% lucide "message-square-warning" class="mt-0.5 w-3.5 h-3.5 shrink-0" aria_hidden="true" %}<span>{{ donation.rejection_reason }}</span></p>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-3 sm:flex-col sm:items-end sm:gap-2">
+            <p class="font-sans text-lg font-semibold text-secondary-900">Rp {{ donation.amount|rupiah }}</p>
+            <div class="flex flex-wrap items-center gap-2">
+              {% url 'donations:detail' donation.pk as detail_url %}
+              {% component "button" href=detail_url text="Lihat detail" variant="neutral" size="sm" icon_right="arrow-right" / %}
+              {% if donation.status == "PENDING" %}
+              {% url 'donations:edit' donation.pk as edit_url %}
+              {% component "button" href=edit_url text="Edit" variant="secondary" size="sm" icon_left="pencil" / %}
+              {% endif %}
+            </div>
+          </div>
+        </article>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+      {% component "empty_state" icon="hand-heart" title="Belum ada donasi untuk ditampilkan" description="Donasi yang kamu catat akan muncul di sini beserta status verifikasinya." %}
+        {% fill "actions" %}
+          {% component "button" href=campaigns_url text="Jelajahi kampanye" variant="primary" size="md" icon_right="arrow-right" / %}
+        {% endfill %}
+      {% endcomponent %}
+    {% endif %}
+  </main>
+</div>
+
+{% include "accounts/_messages.html" %}
+{% endblock %}
+
+{% block scripts %}
+<script type="module" src="{% static 'js/donations/campaign.js' %}"></script>
 {% endblock %}

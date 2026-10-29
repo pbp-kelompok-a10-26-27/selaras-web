@@ -14,13 +14,13 @@ const FIELDS = {
     input: document.getElementById("ticketSubject"),
     error: document.getElementById("ticketSubjectError"),
     count: document.getElementById("ticketSubjectCount"),
-    requiredMessage: "Give your ticket a short subject.",
+    requiredMessage: "Beri judul singkat untuk tiketmu.",
   },
   description: {
     input: document.getElementById("ticketDescription"),
     error: document.getElementById("ticketDescriptionError"),
     count: document.getElementById("ticketDescriptionCount"),
-    requiredMessage: "Describe the problem so we can help.",
+    requiredMessage: "Ceritakan masalahnya supaya kami bisa bantu.",
   },
 };
 
@@ -89,7 +89,7 @@ function showServerErrors(errors) {
   if (otherErrors.length) {
     window.showToast?.({
       type: "error",
-      title: "Couldn't create ticket",
+      title: "Tiket gagal dibuat",
       message: otherErrors.join(" "),
     });
   }
@@ -123,7 +123,7 @@ function postWithProgress(url, body, onProgress) {
         json: () => JSON.parse(request.responseText),
       }),
     );
-    request.addEventListener("error", () => reject(new Error("Network error. Check your connection and try again.")));
+    request.addEventListener("error", () => reject(new Error("Koneksi bermasalah. Cek internetmu lalu coba lagi.")));
     request.send(body);
   });
 }
@@ -136,7 +136,7 @@ async function submitTicket(event) {
 
   // aria-busy (checked above) blocks double submits; not `disabled`, which
   // would dim the button and make it look broken while it's working
-  setButtonLoading(submitButton, true, attachments.count ? "Uploading…" : "Creating…");
+  setButtonLoading(submitButton, true, attachments.count ? "Mengunggah…" : "Membuat…");
 
   try {
     // FormData includes the csrfmiddlewaretoken from {% csrf_token %}
@@ -149,21 +149,21 @@ async function submitTicket(event) {
     });
 
     if (!response.contentType.includes("application/json"))
-      throw new Error("Server did not return JSON. Your session may be expired");
+      throw new Error("Server tidak merespons dengan benar. Sesimu mungkin sudah habis.");
     const data = response.json();
 
     if (response.status === 400 && data.errors) {
       showServerErrors(data.errors);
       return;
     }
-    if (!response.ok) throw new Error(`Failed to create ticket (${response.status})`);
+    if (!response.ok) throw new Error(`Tiket gagal dibuat (${response.status})`);
 
     window.closeModal(MODAL_ID);
     resetForm();
 
     window.showToast?.({
       type: "success",
-      title: "Ticket created",
+      title: "Tiket berhasil dibuat",
       message: `#${data.ticket.id.slice(0, 8).toUpperCase()} · ${data.ticket.title}`,
     });
 
@@ -176,7 +176,7 @@ async function submitTicket(event) {
     // The modal stays open with everything the user typed
     window.showToast?.({
       type: "error",
-      title: "Couldn't create ticket",
+      title: "Tiket gagal dibuat",
       message: error.message,
     });
   } finally {

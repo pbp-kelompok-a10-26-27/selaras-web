@@ -2358,3 +2358,402 @@ body:has(#landing) footer {
     animation: none;
   }
 }
+
+/* ===================== FEEDS & DONATIONS ========================== */
+/* apps/feeds/templates/, apps/donations/templates/ with static/js/feeds/ and static/js/donations/ */
+
+/* Soft green and pink wash behind the top of a page; it fades out into the page background.
+   Put it as the first child of a `relative isolate` wrapper */
+.page-aura {
+  position: absolute;
+  inset: 0 0 auto 0;
+  z-index: -1;
+  height: 34rem;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      46rem 22rem at 88% 0%,
+      color-mix(in srgb, var(--color-primary-200) 90%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      38rem 20rem at 4% 10%,
+      color-mix(in srgb, var(--color-tertiary-200) 85%, transparent),
+      transparent 70%
+    );
+  mask-image: linear-gradient(180deg, #000 50%, transparent 100%);
+}
+
+/* Items of a list reveal one after another (each sets --i = its place) */
+.scroll-reveal {
+  transition-delay: calc(min(var(--i, 0), 4) * 70ms);
+}
+
+/* Progress bar (components/progress): grows in on load, and the striped part is the
+   "after your donation" preview */
+@keyframes progress-grow {
+  from {
+    width: 0;
+  }
+}
+
+.progress-fill {
+  animation: progress-grow 1.1s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.progress-preview {
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--color-primary-300) 0 6px,
+    color-mix(in srgb, var(--color-primary-300) 45%, transparent) 6px 12px
+  );
+  background-size: 17px 17px;
+  animation: stripes 1s linear infinite;
+}
+
+/* Campaign progress ring. The circle has pathLength="100", so --progress (0-100) is
+   exactly how much of it is drawn */
+@keyframes ring-grow {
+  from {
+    stroke-dashoffset: 100;
+  }
+}
+
+.progress-ring-value {
+  stroke-dasharray: 100;
+  stroke-dashoffset: calc(100 - var(--progress, 0));
+  animation: ring-grow 1.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Feed posts */
+.post-card {
+  transition:
+    border-color 0.3s,
+    box-shadow 0.4s;
+}
+
+.post-card:hover {
+  border-color: var(--color-neutral-500);
+  box-shadow: 0 24px 44px -32px rgb(33 43 28 / 0.45);
+}
+
+/* Landing on /feed/#post-12 (after liking or deleting) lights the post up for a moment */
+.post-card:target {
+  scroll-margin-top: 8rem;
+  animation: post-target 1.8s ease-out;
+}
+
+@keyframes post-target {
+  0% {
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary-300) 80%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 4px transparent;
+  }
+}
+
+.post-like[aria-pressed="true"] {
+  color: var(--color-tertiary-800);
+  background: color-mix(in srgb, var(--color-tertiary-300) 35%, transparent);
+}
+
+.post-like[aria-pressed="true"] svg {
+  fill: var(--color-tertiary-500);
+  stroke: var(--color-tertiary-700);
+}
+
+.post-like[data-bump] svg {
+  animation: badge-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Big heart on double-tap (post detail) */
+.post-heart {
+  pointer-events: none;
+  position: absolute;
+  inset: 50% auto auto 50%;
+  color: var(--color-tertiary-400);
+  opacity: 0;
+  translate: -50% -50%;
+}
+
+.post-body[data-popping] .post-heart {
+  animation: heart-pop 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Campaign banner: a tinted wash with a few growth rings (data-tone picks the colour) */
+.campaign-media {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  color: var(--color-secondary-700);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-200),
+    var(--color-primary-100) 60%,
+    var(--color-primary-50)
+  );
+}
+
+.campaign-media[data-tone="secondary"] {
+  background: linear-gradient(
+    135deg,
+    var(--color-secondary-200),
+    var(--color-secondary-100) 60%,
+    var(--color-secondary-50)
+  );
+}
+
+.campaign-media[data-tone="tertiary"] {
+  color: var(--color-tertiary-800);
+  background: linear-gradient(
+    135deg,
+    var(--color-tertiary-300),
+    var(--color-tertiary-200) 55%,
+    var(--color-tertiary-100)
+  );
+}
+
+.campaign-media::before,
+.campaign-media::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  aspect-ratio: 1;
+  border-radius: 999px;
+  border: 1.5px solid color-mix(in srgb, currentColor 22%, transparent);
+}
+
+.campaign-media::before {
+  width: 17rem;
+  top: -7rem;
+  right: -5rem;
+}
+
+.campaign-media::after {
+  width: 10rem;
+  top: -2.5rem;
+  right: 0.5rem;
+}
+
+/* ============================ ARTICLES ============================ */
+/* apps/articles/templates/articles/ with static/js/articles/ */
+
+/* Reading progress bar at the very top (detail.js sets --read, 0-1) */
+.article-read-progress {
+  transform: scaleX(var(--read, 0));
+  transition: transform 0.1s linear;
+}
+
+/* Article body: plain paragraphs from |linebreaks. data-size (sm, md, lg) is the
+   reader's text size choice */
+.article-prose {
+  --prose-size: 1.0625rem;
+  font-family: var(--font-sans);
+  font-size: var(--prose-size);
+  line-height: 1.85;
+  color: var(--color-neutral-900);
+  overflow-wrap: break-word;
+}
+
+.article-prose[data-size="sm"] {
+  --prose-size: 0.9375rem;
+}
+
+.article-prose[data-size="lg"] {
+  --prose-size: 1.25rem;
+}
+
+.article-prose p + p {
+  margin-top: 1.3em;
+}
+
+.article-prose > p:first-child::first-letter {
+  float: left;
+  margin: 0.08em 0.12em 0 0;
+  font-family: var(--font-display);
+  font-size: 3.4em;
+  line-height: 0.9;
+  color: var(--color-secondary-700);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .article-read-progress {
+    transition: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress-fill,
+  .progress-preview,
+  .progress-ring-value,
+  .post-card:target,
+  .post-like[data-bump] svg,
+  .post-body[data-popping] .post-heart {
+    animation: none;
+  }
+
+  .post-card {
+    transition: none;
+  }
+}
+
+/* ===================== BADGES & NOTIFICATIONS ===================== */
+/* components/badge_chip, components/user_name, the profile badge collection,
+   the navbar bell (static/js/notifications/bell.js) and apps/notifications/ */
+
+/* A challenge badge as a pill; data-tone is the badge's colour */
+.badge-chip {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  border: 1px solid var(--color-primary-300);
+  border-radius: 9999px;
+  background: var(--color-primary-100);
+  color: var(--color-secondary-800);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.badge-chip[data-tone="secondary"] {
+  border-color: var(--color-secondary-700);
+  background: var(--color-secondary-700);
+  color: var(--color-neutral-50);
+}
+
+.badge-chip[data-tone="tertiary"] {
+  border-color: var(--color-tertiary-300);
+  background: var(--color-tertiary-100);
+  color: var(--color-tertiary-800);
+}
+
+.badge-chip[data-tone="gold"] {
+  border-color: var(--color-yellow-200);
+  background: color-mix(in srgb, var(--color-yellow-100) 55%, var(--color-neutral-50));
+  color: var(--color-secondary-900);
+}
+
+.badge-chip[data-tone="gold"] svg {
+  color: var(--color-orange-100);
+}
+
+/* The round medal used in badge collections. Locked medals are greyed out */
+.badge-medal {
+  --medal-from: var(--color-primary-200);
+  --medal-to: var(--color-primary-400);
+  --medal-ink: var(--color-secondary-800);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background:
+    radial-gradient(circle at 30% 25%, rgb(255 255 255 / 0.75), transparent 45%),
+    linear-gradient(145deg, var(--medal-from), var(--medal-to));
+  color: var(--medal-ink);
+  box-shadow:
+    inset 0 -3px 0 rgb(0 0 0 / 0.08),
+    0 8px 20px -10px color-mix(in srgb, var(--medal-to) 80%, transparent);
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.badge-medal[data-tone="secondary"] {
+  --medal-from: var(--color-secondary-300);
+  --medal-to: var(--color-secondary-800);
+  --medal-ink: var(--color-neutral-50);
+}
+
+.badge-medal[data-tone="tertiary"] {
+  --medal-from: var(--color-tertiary-200);
+  --medal-to: var(--color-tertiary-500);
+  --medal-ink: var(--color-tertiary-900);
+}
+
+.badge-medal[data-tone="gold"] {
+  --medal-from: var(--color-yellow-100);
+  --medal-to: var(--color-orange-100);
+  --medal-ink: var(--color-secondary-900);
+}
+
+.badge-medal[data-locked] {
+  --medal-from: var(--color-neutral-300);
+  --medal-to: var(--color-neutral-500);
+  --medal-ink: var(--color-neutral-800);
+  box-shadow: inset 0 -3px 0 rgb(0 0 0 / 0.05);
+}
+
+.group:hover .badge-medal:not([data-locked]) {
+  transform: rotate(-8deg) scale(1.06);
+}
+
+/* Bell popover: opens below the bell on desktop, as a sheet under the navbar on
+   phones */
+.notif-panel {
+  transform-origin: top right;
+  transition:
+    opacity 0.2s ease,
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.notif-panel[data-open="false"] {
+  opacity: 0;
+  transform: translateY(-6px) scale(0.98);
+  pointer-events: none;
+}
+
+@keyframes bell-ring {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  20% {
+    transform: rotate(14deg);
+  }
+  40% {
+    transform: rotate(-12deg);
+  }
+  60% {
+    transform: rotate(8deg);
+  }
+  80% {
+    transform: rotate(-4deg);
+  }
+}
+
+[data-bell][data-ringing] svg {
+  animation: bell-ring 0.8s ease;
+  transform-origin: 50% 10%;
+}
+
+/* Photo carousel on feed posts (static/js/feeds/feed.js) */
+.post-carousel {
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+}
+
+.post-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.post-carousel > * {
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
+}
+
+.carousel-dot[aria-current="true"] {
+  width: 1rem;
+  background: var(--color-neutral-50);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .badge-medal,
+  .notif-panel {
+    transition: none;
+  }
+
+  [data-bell][data-ringing] svg {
+    animation: none;
+  }
+}

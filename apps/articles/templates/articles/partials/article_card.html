@@ -1,0 +1,66 @@
+{% load component_tags lucide %}
+{% comment %}
+One article in the listing. `featured=True` renders the wide card at the top of the first page.
+Optional `tone` (primary, secondary, tertiary) and `icon` colour the banner of articles without an image.
+{% endcomment %}
+{% url 'articles:html-detail' article.slug as detail_url %}
+{% widthratio article.content|wordcount 200 1 as reading_minutes %}
+<article class="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-neutral-400 bg-neutral-50 transition-all duration-300 hover:-translate-y-1 hover:border-neutral-500 hover:shadow-xl motion-reduce:transition-none motion-reduce:hover:translate-y-0 {% if featured %}lg:flex-row{% endif %}" data-article-card>
+  <div class="relative shrink-0 overflow-hidden {% if featured %}h-56 sm:h-72 lg:h-auto lg:w-[55%]{% else %}h-48{% endif %}">
+    {% if article.image %}
+    <img src="{{ article.image.url }}" alt="" loading="lazy" class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04] motion-reduce:transition-none">
+    {% else %}
+    <div class="campaign-media flex h-full w-full items-center justify-center" data-tone="{{ tone|default:'primary' }}" aria-hidden="true">
+      <span class="animate-float flex h-16 w-16 items-center justify-center rounded-2xl border border-neutral-50/70 bg-neutral-50/70 text-secondary-700 shadow-sm backdrop-blur-sm">
+        {% lucide icon|default:"sprout" class="w-8 h-8" %}
+      </span>
+    </div>
+    {% endif %}
+    {% if featured %}
+    <span class="absolute left-4 top-4">{% component "badge" text="Pilihan" variant="secondary" icon="sparkles" / %}</span>
+    {% endif %}
+  </div>
+
+  <div class="flex flex-1 flex-col p-5 sm:p-6 {% if featured %}lg:p-8{% endif %}">
+    <div class="relative z-10 flex flex-wrap items-center gap-x-3 gap-y-2 font-sans text-b4 text-neutral-800">
+      <a href="{% url 'articles:html-list' %}?category={{ article.category.slug|urlencode }}" data-articles-link class="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
+        {% component "badge" text=article.category.name variant="primary" size="sm" / %}
+      </a>
+      {% if article.published_at %}
+      <time datetime="{{ article.published_at|date:'c' }}">{{ article.published_at|date:"j M Y" }}</time>
+      {% elif is_admin %}
+      {% include "articles/partials/status_badge.html" with status=article.status size="sm" %}
+      {% endif %}
+      {% if article.read_by_me %}
+      <span class="inline-flex items-center gap-1 font-semibold text-primary-800">{% lucide "book-open-check" class="w-3.5 h-3.5" aria_hidden="true" %}Sudah dibaca</span>
+      {% endif %}
+      <span class="inline-flex items-center gap-1">{% lucide "clock" class="w-3.5 h-3.5" aria_hidden="true" %}{% if reading_minutes == "0" %}1{% else %}{{ reading_minutes }}{% endif %} menit baca</span>
+    </div>
+
+    <h3 class="mt-3 font-display leading-snug text-foreground {% if featured %}text-h4 sm:text-h3{% else %}text-h5{% endif %}">
+      <a href="{{ detail_url }}" aria-label="Baca artikel: {{ article.title }}" class="rounded-sm outline-none transition-colors after:absolute after:inset-0 after:content-[''] hover:text-secondary-600 focus-visible:ring-2 focus-visible:ring-primary-500">{{ article.title }}</a>
+    </h3>
+
+    {% if article.summary %}
+    <p class="mt-2 font-sans text-sm leading-relaxed text-neutral-900 {% if featured %}line-clamp-4 sm:text-b3{% else %}line-clamp-3{% endif %}">{{ article.summary }}</p>
+    {% endif %}
+
+    {% if article.tags.all %}
+    <div class="relative z-10 mt-4 flex flex-wrap gap-1.5">
+      {% for tag in article.tags.all|slice:":3" %}
+      <a href="{% url 'articles:html-list' %}?tag={{ tag.slug|urlencode }}" data-articles-link class="rounded-full px-2 py-0.5 font-sans text-b4 font-semibold text-secondary-600 outline-none transition-colors hover:bg-secondary-50 hover:text-secondary-900 focus-visible:ring-2 focus-visible:ring-primary-500">#{{ tag.name }}</a>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="mt-auto flex items-center justify-between gap-3 pt-5">
+      <span class="inline-flex items-center gap-1.5 font-sans text-sm font-semibold text-secondary-700 transition-colors group-hover:text-secondary-900">
+        Baca cerita {% lucide "arrow-right" class="w-4 h-4 transition-transform group-hover:translate-x-1" aria_hidden="true" %}
+      </span>
+      {% if is_admin %}
+      {% url 'articles:html-update' article.slug as edit_url %}
+      <span class="relative z-10">{% component "button" href=edit_url text="Edit" variant="neutral-ghost" size="xs" icon_left="pencil" / %}</span>
+      {% endif %}
+    </div>
+  </div>
+</article>

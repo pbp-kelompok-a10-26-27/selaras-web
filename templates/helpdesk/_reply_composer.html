@@ -1,9 +1,8 @@
 {% load lucide component_tags %}
 {% comment %}
-  Reply composer shared by the user and admin ticket pages.
-  A real form (posts to action_url without JS); helpdesk/conversation.js sends it to api_url instead.
-  Both the form and the "closed" notice are rendered; `closed` decides which one starts visible,
-  so a page can switch between them when the status changes.
+  Form balasan untuk halaman tiket pengguna dan admin. Tanpa JS dikirim ke action_url,
+  dengan JS (helpdesk/conversation.js) ke api_url. `closed` menentukan form atau
+  pemberitahuan "ditutup" yang tampil lebih dulu.
 
   Params: action_url, api_url, draft_key, closed (bool), closed_message
 {% endcomment %}
@@ -15,8 +14,8 @@
 >
   {% lucide "lock" class="w-5 h-5 shrink-0 mt-0.5" %}
   <div>
-    <h2 class="font-semibold text-h4 font-sans text-foreground">This ticket is closed</h2>
-    <p>{{ closed_message|default:"Replies are turned off. Open a new ticket if you still need help." }}</p>
+    <h2 class="font-semibold text-h4 font-sans text-foreground">Tiket ini sudah ditutup</h2>
+    <p>{{ closed_message|default:"Balasan sudah dimatikan. Buat tiket baru kalau masih butuh bantuan." }}</p>
   </div>
 </div>
 
@@ -32,10 +31,10 @@
   {% csrf_token %}
   <div class="flex items-center gap-2">
     <span class="text-secondary-500">{% lucide "reply" class="w-5 h-5" %}</span>
-    <h2 id="ticketReplyTitle" class="font-sans text-base font-semibold text-foreground">Add a reply</h2>
+    <h2 id="ticketReplyTitle" class="font-sans text-base font-semibold text-foreground">Tulis balasan</h2>
   </div>
 
-  {# "Replying to …" quote, shown after picking Reply on a message (WhatsApp-style) #}
+  {# Kutipan "Membalas …" setelah memilih Balas di sebuah pesan #}
   <input type="hidden" name="reply_to" id="ticketReplyTo" value="" />
   <div
     id="ticketReplyPreview"
@@ -45,28 +44,28 @@
   >
     <span class="mt-0.5 shrink-0 text-primary-700">{% lucide "corner-up-left" class="w-4 h-4" %}</span>
     <div class="min-w-0 flex-1">
-      <p class="font-sans text-xs font-semibold text-primary-800">Replying to <span data-reply-author></span></p>
+      <p class="font-sans text-xs font-semibold text-primary-800">Membalas <span data-reply-author></span></p>
       <p class="line-clamp-2 break-words font-sans text-sm text-neutral-900" data-reply-excerpt></p>
     </div>
     <button
       type="button"
       data-reply-cancel
-      aria-label="Cancel reply to this message"
-      title="Cancel (Esc)"
+      aria-label="Batal membalas pesan ini"
+      title="Batal (Esc)"
       class="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg text-neutral-800 transition-colors hover:bg-primary-100 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
     >
       {% lucide "x" class="w-4 h-4" %}
     </button>
   </div>
 
-  <label for="ticketReplyMessage" class="sr-only">Your reply</label>
+  <label for="ticketReplyMessage" class="sr-only">Balasanmu</label>
   <textarea
     id="ticketReplyMessage"
     name="message"
     rows="3"
     maxlength="5000"
     required
-    placeholder="Write your reply…"
+    placeholder="Tulis balasanmu…"
     aria-describedby="ticketReplyHint ticketReplyCount"
     class="max-h-80 min-h-24 w-full resize-none rounded-2xl border border-neutral-400 bg-neutral-50 px-4 py-3 font-sans text-b3 text-foreground transition-colors duration-200 placeholder:text-neutral-800 hover:border-primary-400 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/40"
   ></textarea>
@@ -77,11 +76,11 @@
         <kbd class="rounded border border-neutral-500 bg-neutral-300 px-1.5 py-0.5 font-mono text-[0.6875rem]">Ctrl</kbd>
         +
         <kbd class="rounded border border-neutral-500 bg-neutral-300 px-1.5 py-0.5 font-mono text-[0.6875rem]">Enter</kbd>
-        to send
+        untuk mengirim
       </span>
       <span id="ticketReplyCount" class="tabular-nums">0 / 5000</span>
     </p>
 
-    {% component "button" id="ticketReplySubmit" type="submit" text="Send reply" variant="secondary" icon_right="send-horizontal" full_width=True class_="sm:w-auto" / %}
+    {% component "button" id="ticketReplySubmit" type="submit" text="Kirim balasan" variant="secondary" icon_right="send-horizontal" full_width=True class_="sm:w-auto" / %}
   </div>
 </form>

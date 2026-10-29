@@ -11,24 +11,30 @@
     <div>
       <div class="mb-4 flex items-center justify-between gap-2">
         {% include "challenges/_status_badge.html" with status=challenge.status %}
-        <span class="font-sans text-b4 font-medium text-neutral-800">{{ challenge.start_date|date:"M j" }} &ndash; {{ challenge.end_date|date:"M j, Y" }}</span>
+        <span class="font-sans text-b4 font-medium text-neutral-800">{{ challenge.start_date|date:"j M" }} &ndash; {{ challenge.end_date|date:"j M Y" }}</span>
       </div>
 
       <h2 class="font-display text-h5 leading-snug text-foreground">
         <a href="{{ detail_url }}" class="transition-colors hover:text-secondary-600">{{ challenge.title }}</a>
       </h2>
       <p class="mt-2 line-clamp-3 font-sans text-sm leading-relaxed text-neutral-900">{{ challenge.description }}</p>
+      <div class="mt-4 flex flex-wrap items-center gap-2">
+        <span class="inline-flex items-center gap-1.5 rounded-full border border-neutral-400 bg-neutral-100 px-2.5 py-0.5 font-sans text-xs font-semibold text-secondary-800">
+          {% lucide challenge.goal_icon class="w-3.5 h-3.5" aria_hidden="true" %}{{ challenge.get_goal_type_display }}
+        </span>
+        {% if challenge.badge %}{% component "badge_chip" badge=challenge.badge size="sm" / %}{% endif %}
+      </div>
     </div>
 
     <div class="mt-6 flex items-center justify-between gap-3 border-t border-neutral-400/60 pt-4">
       <span class="flex items-center gap-1.5 font-sans text-b4 text-neutral-800">
         {% lucide "users" class="w-4 h-4 text-secondary-500" %}
-        {{ challenge.participants_count }} participant{{ challenge.participants_count|pluralize }}
+        {{ challenge.participants_count }} peserta
       </span>
       {% if challenge.id in joined_challenge_ids %}
-      {% component "button" text="Leave" variant="danger-ghost" size="xs" icon_left="circle-x" attrs="data-trigger-leave data-modal-open='leave-challenge-modal'" / %}
+      {% component "button" text="Keluar" variant="danger-ghost" size="xs" icon_left="circle-x" attrs="data-trigger-leave data-modal-open='leave-challenge-modal'" / %}
       {% else %}
-      {% component "button" text="View details" variant="primary" size="sm" icon_right="arrow-right" href=detail_url / %}
+      {% component "button" text="Lihat detail" variant="primary" size="sm" icon_right="arrow-right" href=detail_url / %}
       {% endif %}
     </div>
   </li>
@@ -37,10 +43,10 @@
 {% else %}
 <div class="mx-auto my-8 max-w-xl rounded-2xl border border-neutral-400 bg-neutral-50 p-12 text-center">
   <span class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-neutral-200 text-neutral-700">{% lucide "search-x" class="w-7 h-7" %}</span>
-  <h2 class="font-display text-h5 text-foreground">No challenges found</h2>
+  <h2 class="font-display text-h5 text-foreground">Challenge nggak ditemukan</h2>
   <p class="mx-auto mt-1 mb-6 max-w-md font-sans text-sm text-neutral-900">
-    {% if search_query %}Nothing matches &ldquo;<strong>{{ search_query }}</strong>&rdquo;. Try a different keyword or clear the filters.{% else %}There are no challenges in this category yet.{% endif %}
+    {% if search_query %}Belum ada yang cocok dengan &ldquo;<strong>{{ search_query }}</strong>&rdquo;. Coba kata kunci lain atau hapus filternya.{% else %}Belum ada challenge di kategori ini.{% endif %}
   </p>
-  {% component "button" id="btn-reset-filters" text="Reset filters" variant="secondary" size="md" icon_left="rotate-ccw" type="button" / %}
+  {% component "button" id="btn-reset-filters" text="Hapus filter" variant="secondary" size="md" icon_left="rotate-ccw" type="button" / %}
 </div>
 {% endif %}

@@ -1,13 +1,12 @@
 {% extends "errors/base.html" %}
 {% load lucide component_tags %}
 
-{% block title %}Halaman tidak ditemukan | SELARAS{% endblock %}
+{% block title %}Halaman tidak ditemukan · SELARAS{% endblock %}
 {% block code_label %}Not Found 404{% endblock %}
 
 {% block content %}
 <div class="grid w-full items-center gap-12 lg:grid-cols-12 lg:gap-10">
 
-  <!-- ============================ Message ============================ -->
   <section aria-labelledby="errorTitle" class="lg:col-span-6">
     <p class="hero-rise inline-flex items-center gap-2 rounded-full bg-tertiary-200 px-3 py-1 text-b4 font-semibold text-tertiary-900" style="--i: 0">
       {% lucide "map-pin-off" class="h-4 w-4" %}
@@ -25,7 +24,7 @@
     </h1>
 
     <p class="hero-rise mt-6 max-w-xl text-b3 leading-relaxed text-secondary-800" style="--i: 3">
-      Halaman yang Anda cari mungkin sudah dipindahkan, dihapus, atau alamatnya salah ketik.
+      Halaman yang kamu cari mungkin sudah dipindahkan, dihapus, atau alamatnya salah ketik.
       Tidak apa-apa, setiap langkah yang tersesat bisa menjadi awal jalan baru.
     </p>
 
@@ -43,10 +42,9 @@
       {% component "button" text="Halaman sebelumnya" variant="secondary-ghost" size="lg" icon_left="arrow-left" attrs="data-back hidden" / %}
     </div>
 
-    <!-- Suggestions -->
     <nav aria-labelledby="suggestTitle" class="hero-rise mt-12" style="--i: 6">
       <h2 id="suggestTitle" class="text-s6 font-sans font-semibold tracking-widest text-secondary-600 uppercase">
-        Mungkin Anda mencari
+        Mungkin kamu mencari
       </h2>
       <ul class="mt-4 grid gap-3 sm:grid-cols-2">
         {% url 'articles:html-list' as articles_url %}
@@ -66,7 +64,7 @@
           <a href="{{ challenges_url }}" class="landing-card flex items-start gap-3 p-4" data-spotlight>
             <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary-200 text-secondary-700">{% lucide "sprout" class="h-5 w-5" %}</span>
             <span>
-              <span class="block text-b3 font-semibold text-secondary-900">Tantangan</span>
+              <span class="block text-b3 font-semibold text-secondary-900">Challenge</span>
               <span class="block text-b4 text-neutral-800">Bangun kebiasaan kecil setiap hari.</span>
             </span>
           </a>
@@ -85,7 +83,7 @@
             <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-tertiary-200 text-tertiary-800">{% lucide "hand-heart" class="h-5 w-5" %}</span>
             <span>
               <span class="block text-b3 font-semibold text-secondary-900">Donasi</span>
-              <span class="block text-b4 text-neutral-800">Dukung aksi lingkungan di sekitar Anda.</span>
+              <span class="block text-b4 text-neutral-800">Dukung aksi lingkungan di sekitarmu.</span>
             </span>
           </a>
         </li>
@@ -93,7 +91,6 @@
     </nav>
   </section>
 
-  <!-- ============================ The garden ============================ -->
   {# Click/tap anywhere in the garden (or use the button) to plant a sprout in the soil #}
   <section aria-label="Kebun 404" class="hero-rise lg:col-span-6" style="--i: 3">
     <div class="error-garden relative isolate overflow-hidden rounded-[2rem] border border-secondary-200/70 bg-neutral-50/60 px-4 pt-10 pb-0 shadow-[0_32px_64px_-40px_rgb(33_43_28/0.45)] backdrop-blur-sm sm:px-8 sm:pt-14" data-garden>

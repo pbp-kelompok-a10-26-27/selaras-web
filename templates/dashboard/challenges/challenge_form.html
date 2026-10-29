@@ -1,24 +1,23 @@
 {% extends "dashboard/base.html" %}
 {% load static lucide component_tags %}
 
-{% block title %}{% if is_edit %}Edit challenge{% else %}New challenge{% endif %}{% endblock %}
+{% block title %}{% if is_edit %}Edit challenge{% else %}Challenge baru{% endif %}{% endblock %}
 
 {% block content %}
 <div class="flex max-w-4xl flex-col gap-6">
-  <!-- Header -->
   <header class="flex flex-col gap-3">
-    <nav aria-label="Breadcrumb">
+    <nav aria-label="Navigasi">
       <ol class="flex flex-wrap items-center gap-1.5 font-sans text-sm">
         <li><a href="{{ dashboard_home_url }}" class="rounded-md px-1 py-0.5 text-neutral-800 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">Dashboard</a></li>
         <li aria-hidden="true" class="text-neutral-700">{% lucide "chevron-right" class="w-4 h-4" %}</li>
-        <li><a href="{{ back_url }}" class="rounded-md px-1 py-0.5 text-neutral-800 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">Challenges</a></li>
+        <li><a href="{{ back_url }}" class="rounded-md px-1 py-0.5 text-neutral-800 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">Challenge</a></li>
         <li aria-hidden="true" class="text-neutral-700">{% lucide "chevron-right" class="w-4 h-4" %}</li>
-        <li><span aria-current="page" class="px-1 font-semibold text-primary-800">{% if is_edit %}Edit{% else %}New{% endif %}</span></li>
+        <li><span aria-current="page" class="px-1 font-semibold text-primary-800">{% if is_edit %}Edit{% else %}Baru{% endif %}</span></li>
       </ol>
     </nav>
     <div class="flex flex-col gap-1">
       <h1 class="font-display text-h3 leading-tight text-foreground sm:text-h2">{{ title }}</h1>
-      <p class="max-w-2xl font-sans text-b3 text-neutral-900">Set clear start and end dates and describe the daily action so participants know what to do.</p>
+      <p class="max-w-2xl font-sans text-b3 text-neutral-900">Tentukan tanggal mulai dan selesai, lalu jelaskan aksinya supaya peserta tahu harus apa.</p>
     </div>
   </header>
 
@@ -34,11 +33,11 @@
     id="challengeForm"
     method="POST"
     class="flex flex-col gap-6"
-    data-published-label="Published"
+    data-published-label="Terbit"
   >
     {% csrf_token %}
 
-    <section class="flex flex-col gap-6 rounded-2xl border border-neutral-400 bg-neutral-50 p-5 sm:p-8" aria-label="Challenge details">
+    <section class="flex flex-col gap-6 rounded-2xl border border-neutral-400 bg-neutral-50 p-5 sm:p-8" aria-label="Detail challenge">
       <div class="flex flex-col gap-1.5">
         <label for="{{ form.title.id_for_label }}" class="font-sans text-sm font-semibold text-foreground">{{ form.title.label }} <span class="text-tertiary-700" aria-hidden="true">*</span></label>
         {{ form.title }}
@@ -65,7 +64,38 @@
       </div>
     </section>
 
-    <section class="flex flex-col gap-4 rounded-2xl border border-neutral-400 bg-neutral-50 p-5 sm:p-8" aria-label="Visibility">
+    <section class="flex flex-col gap-6 rounded-2xl border border-neutral-400 bg-neutral-50 p-5 sm:p-8" aria-labelledby="goalTitle">
+      <div class="flex flex-col gap-1">
+        <h2 id="goalTitle" class="font-display text-h5 text-foreground">Target &amp; hadiah</h2>
+        <p class="font-sans text-sm text-neutral-900">Challenge check-in menghitung check-in harian. Target lainnya tercatat otomatis dari artikel, donasi, dan feed selama periode challenge.</p>
+      </div>
+
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6">
+        <div class="flex flex-col gap-1.5">
+          {% component "dropdown" id=form.goal_type.id_for_label name=form.goal_type.html_name label=form.goal_type.label placeholder=goal_label options=goal_options initial_value=goal_value default_label=goal_label / %}
+          {% if form.goal_type.errors %}<p class="font-sans text-xs font-medium text-tertiary-700">{{ form.goal_type.errors.0 }}</p>{% endif %}
+        </div>
+        <div class="flex flex-col gap-1.5" data-goal-target-field>
+          <label for="{{ form.goal_target.id_for_label }}" class="font-sans text-sm font-semibold text-foreground">{{ form.goal_target.label }} <span class="font-normal text-neutral-800" data-goal-unit></span></label>
+          {{ form.goal_target }}
+          {% if form.goal_target.errors %}<p class="font-sans text-xs font-medium text-tertiary-700">{{ form.goal_target.errors.0 }}</p>{% endif %}
+        </div>
+        <p class="hidden items-center gap-2 self-end rounded-xl bg-primary-50 px-3 py-3 font-sans text-sm text-secondary-800" data-checkin-note>
+          {% lucide "calendar-check" class="w-4 h-4 shrink-0" aria_hidden="true" %}Target: check-in setiap hari dari tanggal mulai sampai selesai.
+        </p>
+      </div>
+
+      <div class="flex flex-col gap-1.5">
+        {% component "dropdown" id=form.badge.id_for_label name=form.badge.html_name label=form.badge.label placeholder=badge_label options=badge_options initial_value=badge_value default_label=badge_label / %}
+        <p class="flex flex-wrap items-center justify-between gap-2 font-sans text-xs text-neutral-800">
+          Diberikan otomatis ke semua yang mencapai target.
+          <a href="{% url 'dashboard:admin_badge_list' %}" class="font-semibold text-secondary-700 hover:text-secondary-900 hover:underline" target="_blank" rel="noopener">Kelola lencana</a>
+        </p>
+        {% if form.badge.errors %}<p class="font-sans text-xs font-medium text-tertiary-700">{{ form.badge.errors.0 }}</p>{% endif %}
+      </div>
+    </section>
+
+    <section class="flex flex-col gap-4 rounded-2xl border border-neutral-400 bg-neutral-50 p-5 sm:p-8" aria-label="Visibilitas">
       <div class="flex items-start gap-3.5">
         <div class="pt-0.5">{{ form.is_published }}</div>
         <div class="flex flex-col gap-0.5">
@@ -75,13 +105,13 @@
       </div>
       <p class="flex items-center gap-2 border-t border-neutral-300 pt-4 font-sans text-sm text-neutral-900" role="status" aria-live="polite">
         {% lucide "info" class="w-4 h-4 text-secondary-500" %}
-        <span>This challenge will show as <strong id="challengeStatusPreview" class="text-foreground">Draft</strong>.</span>
+        <span>Challenge ini akan tampil sebagai <strong id="challengeStatusPreview" class="text-foreground">Draf</strong>.</span>
       </p>
     </section>
 
     <div class="sticky bottom-0 z-10 -mx-4 flex flex-col-reverse gap-3 border-t border-neutral-400 bg-neutral-200/95 px-4 py-4 backdrop-blur sm:mx-0 sm:flex-row sm:items-center sm:justify-end sm:rounded-2xl sm:border">
-      {% component "button" text="Cancel" variant="neutral" size="md" href=back_url / %}
-      {% component "button" text="Save challenge" variant="primary" size="md" type="submit" icon_left="save" / %}
+      {% component "button" text="Batal" variant="neutral" size="md" href=back_url / %}
+      {% component "button" text="Simpan challenge" variant="primary" size="md" type="submit" icon_left="save" / %}
     </div>
   </form>
 </div>

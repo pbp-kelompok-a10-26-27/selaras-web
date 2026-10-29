@@ -16,7 +16,6 @@
     </defs>
   </svg>
 
-  <!-- ============================== HERO: the meadow ============================== -->
   <section aria-labelledby="heroTitle" class="relative isolate flex min-h-[100svh] flex-col" data-hero>
     
     {# The meadow fades out through a mask (.hero-backdrop), not a colour painted on top,
@@ -52,13 +51,13 @@
       </h1>
 
       <p class="hero-rise mt-6 max-w-xl font-sans text-b3 leading-relaxed text-secondary-800 sm:text-b2" style="--i: 6">
-        SELARAS membantu Anda membangun kebiasaan ramah lingkungan secara bertahap melalui kegiatan
+        SELARAS membantu kamu membangun kebiasaan ramah lingkungan secara bertahap melalui kegiatan
         memahami, mempraktikkan, membagikan, lalu memberi kembali.
       </p>
 
       <div class="hero-rise mt-8 flex flex-col gap-3 sm:flex-row sm:items-center" style="--i: 7">
         {% if user.is_authenticated %}
-          {% component "button" text="Lanjutkan tantangan Anda" variant="secondary" size="lg" href=urls.challenges icon_right="arrow-right" / %}
+          {% component "button" text="Lanjutkan challenge-mu" variant="secondary" size="lg" href=urls.challenges icon_right="arrow-right" / %}
         {% else %}
           {% component "button" text="Mulai sekarang, gratis" variant="secondary" size="lg" href=urls.register icon_right="arrow-right" / %}
         {% endif %}
@@ -91,7 +90,6 @@
     </div>
   </section>
 
-  <!-- ============================== MANIFESTO ============================== -->
   {# Words light up one by one as the reader scrolls through #}
   <section aria-label="Tentang SELARAS" class="relative mx-auto max-w-5xl px-4 py-28 sm:px-8 lg:py-40">
     <span aria-hidden="true" data-parallax="0.18" class="pointer-events-none absolute top-16 right-[4%] hidden w-10 rotate-[32deg] text-primary-300 sm:block"><svg viewBox="0 0 24 24" class="animate-float h-auto w-full"><use href="#landing-leaf" /></svg></span>
@@ -102,13 +100,12 @@
     </p>
   </section>
 
-  <!-- ============================== GROWTH RINGS ============================== -->
   <section id="cincin" aria-labelledby="ringsTitle" class="relative mx-auto max-w-7xl px-4 pb-24 sm:px-8 lg:px-12 lg:pb-36">
     <div class="grid items-center gap-12 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-16">
       <div class="flex flex-col gap-6" data-reveal>
         <h2 id="ringsTitle" class="font-display text-[clamp(2rem,4.5vw,3.5rem)] leading-[1.05] text-secondary-900">Satu hari, satu cincin.</h2>
         <p class="max-w-lg font-sans text-b3 leading-relaxed text-secondary-800">
-          Pohon menambah satu cincin setiap tahun. Di SELARAS, setiap hari Anda menjalankan kebiasaan,
+          Pohon menambah satu cincin setiap tahun. Di SELARAS, setiap hari kamu menjalankan kebiasaan,
           satu cincin tipis bertambah. Empat lapisan di dalamnya saling menguatkan.
         </p>
 
@@ -175,7 +172,6 @@
     </div>
   </section>
 
-  <!-- ============================ THE LAYERS ============================ -->
   <section id="lapisan" aria-labelledby="layersTitle" class="relative">
     <span aria-hidden="true" data-parallax="0.22" class="pointer-events-none absolute top-[30%] right-[2%] hidden w-11 -rotate-[40deg] text-tertiary-300 sm:block"><svg viewBox="0 0 24 24" class="animate-float-reverse h-auto w-full"><use href="#landing-leaf" /></svg></span>
     <span aria-hidden="true" data-parallax="0.16" class="pointer-events-none absolute top-[70%] left-[1%] hidden w-9 rotate-[140deg] text-primary-500/60 sm:block"><svg viewBox="0 0 24 24" class="animate-float h-auto w-full"><use href="#landing-leaf" /></svg></span>
@@ -183,7 +179,7 @@
       <header class="mb-14 max-w-2xl lg:mb-20" data-reveal>
         
         <h2 id="layersTitle" class="mt-3 font-display text-[clamp(2rem,4.5vw,3.5rem)] leading-[1.05] text-secondary-900">Empat lapisan, dari dalam ke luar.</h2>
-        <p class="mt-4 font-sans text-b3 text-secondary-800">Setiap lapisan memperkuat lapisan di dalamnya. Anda dapat memulai dari mana saja.</p>
+        <p class="mt-4 font-sans text-b3 text-secondary-800">Setiap lapisan memperkuat lapisan di dalamnya. Kamu dapat memulai dari mana saja.</p>
       </header>
 
       <div class="grid gap-12 lg:grid-cols-[14rem_minmax(0,1fr)] lg:gap-16">
@@ -211,7 +207,6 @@
 
         <div class="flex flex-col gap-24 lg:gap-32">
 
-          <!-- 01 · BELAJAR -->
           <article id="belajar" data-layer="learn" aria-labelledby="learnTitle" data-reveal>
             <header class="flex flex-col gap-3">
               <p class="flex items-center gap-3 font-sans text-xs font-semibold uppercase tracking-[0.2em] text-secondary-500"><span class="flex h-7 w-7 items-center justify-center rounded-full bg-primary-200 text-secondary-700">{% lucide "book-open" class="w-3.5 h-3.5" %}</span>Lapisan inti</p>
@@ -243,12 +238,11 @@
             {% endif %}
           </article>
 
-          <!-- 02 · BERTINDAK -->
           <article id="bertindak" data-layer="act" aria-labelledby="actTitle" data-reveal>
             <header class="flex flex-col gap-3">
               <p class="flex items-center gap-3 font-sans text-xs font-semibold uppercase tracking-[0.2em] text-secondary-500"><span class="flex h-7 w-7 items-center justify-center rounded-full bg-primary-300 text-secondary-800">{% lucide "footprints" class="w-3.5 h-3.5" %}</span>Lapisan kedua</p>
               <h3 id="actTitle" class="font-display text-[clamp(2.25rem,5vw,3.75rem)] leading-none text-secondary-900">Bertindak</h3>
-              <p class="max-w-2xl font-sans text-b3 text-secondary-800">Pengetahuan baru bermakna saat dipraktikkan. Ikuti tantangan selama beberapa hari, catat progres harian, dan raih lencana saat kebiasaan Anda terbentuk.</p>
+              <p class="max-w-2xl font-sans text-b3 text-secondary-800">Pengetahuan baru bermakna saat dipraktikkan. Ikuti tantangan selama beberapa hari, catat progres harian, dan raih lencana saat kebiasaan kamu terbentuk.</p>
             </header>
 
             {# How a challenge grows a ring #}
@@ -293,12 +287,11 @@
             {% endif %}
           </article>
 
-          <!-- 03 · BERBAGI -->
           <article id="berbagi" data-layer="share" aria-labelledby="shareTitle" data-reveal>
             <header class="flex flex-col gap-3">
               <p class="flex items-center gap-3 font-sans text-xs font-semibold uppercase tracking-[0.2em] text-secondary-500"><span class="flex h-7 w-7 items-center justify-center rounded-full bg-tertiary-200 text-tertiary-800">{% lucide "messages-square" class="w-3.5 h-3.5" %}</span>Lapisan ketiga</p>
               <h3 id="shareTitle" class="font-display text-[clamp(2.25rem,5vw,3.75rem)] leading-none text-secondary-900">Berbagi</h3>
-              <p class="max-w-2xl font-sans text-b3 text-secondary-800">Kebiasaan baik itu menular. Bagikan perjalanan Anda di feed, beri semangat melalui suka dan komentar, dan temukan orang-orang dengan tujuan yang sama.</p>
+              <p class="max-w-2xl font-sans text-b3 text-secondary-800">Kebiasaan baik itu menular. Bagikan perjalananmu di feed, beri semangat melalui suka dan komentar, dan temukan orang-orang dengan tujuan yang sama.</p>
             </header>
 
             <div class="mt-8 grid items-start gap-4 md:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
@@ -314,12 +307,11 @@
             {% endif %}
           </article>
 
-          <!-- 04 · BERDONASI -->
           <article id="berdonasi" data-layer="give" aria-labelledby="giveTitle" data-reveal>
             <header class="flex flex-col gap-3">
               <p class="flex items-center gap-3 font-sans text-xs font-semibold uppercase tracking-[0.2em] text-secondary-500"><span class="flex h-7 w-7 items-center justify-center rounded-full bg-secondary-200 text-secondary-700">{% lucide "hand-heart" class="w-3.5 h-3.5" %}</span>Lapisan terluar</p>
               <h3 id="giveTitle" class="font-display text-[clamp(2.25rem,5vw,3.75rem)] leading-none text-secondary-900">Berdonasi</h3>
-              <p class="max-w-2xl font-sans text-b3 text-secondary-800">Lapisan terluar melindungi semuanya. Dukung kampanye lingkungan yang telah diverifikasi, dan saksikan kontribusi Anda tumbuh bersama kontribusi orang lain.</p>
+              <p class="max-w-2xl font-sans text-b3 text-secondary-800">Lapisan terluar melindungi semuanya. Dukung kampanye lingkungan yang telah diverifikasi, dan saksikan kontribusi kamu tumbuh bersama kontribusi orang lain.</p>
             </header>
 
             {% if give.latest %}
@@ -361,10 +353,14 @@
     </div>
   </section>
 
-  <!-- ============================ IMPACT ESTIMATOR ============================ -->
+  {% if community_goals %}
+  <div class="mx-auto max-w-7xl px-4 pb-16 sm:px-8 lg:px-12 lg:pb-24" data-reveal>
+    {% include "challenges/partials/community_goals.html" %}
+  </div>
+  {% endif %}
+
   {% include "landing/_impact.html" %}
 
-  <!-- ============================ CLOSING CTA ============================ -->
   {# Dusk: an eased fade into the dark closing section (.landing-dusk in input.css) #}
   <div aria-hidden="true" class="landing-dusk h-48 sm:h-64"></div>
   <section aria-labelledby="ctaTitle" class="relative isolate overflow-hidden bg-secondary-900 text-neutral-50">
@@ -379,7 +375,7 @@
     <span aria-hidden="true" data-parallax="0.12" class="pointer-events-none absolute top-[20%] left-[55%] hidden w-8 rotate-[150deg] text-primary-300/70 sm:block"><svg viewBox="0 0 24 24" class="animate-float-reverse h-auto w-full"><use href="#landing-leaf" /></svg></span>
     <div class="mx-auto flex max-w-7xl flex-col gap-8 px-4 py-24 sm:px-8 lg:px-12 lg:py-32" data-reveal>
       <p class="font-sans text-xs font-semibold uppercase tracking-[0.24em] text-primary-300">Mulai hari ini</p>
-      <h2 id="ctaTitle" class="max-w-3xl font-display text-[clamp(2.4rem,6vw,4.75rem)] leading-[1.02]">Cincin pertama Anda dapat tumbuh hari ini.</h2>
+      <h2 id="ctaTitle" class="max-w-3xl font-display text-[clamp(2.4rem,6vw,4.75rem)] leading-[1.02]">Cincin pertamamu dapat tumbuh hari ini.</h2>
       <p class="max-w-xl font-sans text-b3 text-secondary-100">Tidak perlu sempurna. Pilih satu kebiasaan kecil, jalankan besok, dan biarkan cincinnya bertambah.</p>
       <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
         {% if user.is_authenticated %}

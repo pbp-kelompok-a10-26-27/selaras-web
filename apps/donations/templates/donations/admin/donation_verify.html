@@ -1,63 +1,116 @@
 {% extends "dashboard/base.html" %}
-{% load component_tags %}
+{% load component_tags lucide ui_extras %}
 
-{% block title %}Review donation{% endblock %}
+{% block title %}Periksa donasi{% endblock %}
 
 {% block content %}
-<a href="{% url 'donations:verification_queue' %}" class="inline-flex items-center gap-2 rounded-sm text-sm font-semibold text-secondary-700 outline-none hover:text-secondary-900 focus-visible:ring-2 focus-visible:ring-primary-500">← Back to donations</a>
-
-{% if messages %}
-<div class="mt-5 space-y-3" aria-live="polite">
-  {% for message in messages %}
-  <p role="status" class="rounded-2xl border px-4 py-3 text-sm leading-6 {% if message.tags == 'success' %}border-primary-500 bg-primary-50 text-secondary-800{% elif message.tags == 'warning' %}border-secondary-300 bg-secondary-50 text-secondary-800{% else %}border-neutral-400 bg-neutral-50 text-secondary-800{% endif %}">{{ message }}</p>
-  {% endfor %}
-</div>
-{% endif %}
-
-<article class="mt-6 overflow-hidden rounded-3xl border border-neutral-400 bg-neutral-50 shadow-sm">
-  <header class="bg-primary-100 px-6 py-8 sm:px-9">
-    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-secondary-600">Donation review</p>
-    <div class="mt-3 flex flex-wrap items-center justify-between gap-3">
-      <h1 class="font-display text-3xl text-secondary-900 sm:text-4xl">{{ donation.campaign.title }}</h1>
-      <span class="rounded-full bg-neutral-50 px-3 py-1.5 text-xs font-bold tracking-wide text-secondary-800">{{ donation.status }}</span>
-    </div>
+<div class="flex flex-col gap-6">
+  <header class="flex flex-col gap-3">
+    <nav aria-label="Navigasi">
+      <ol class="flex flex-wrap items-center gap-1.5 font-sans text-sm">
+        <li><a href="{% url 'dashboard:admin_donation_list' %}" class="rounded-md px-1 py-0.5 text-neutral-800 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">Donasi</a></li>
+        <li aria-hidden="true" class="text-neutral-700">{% lucide "chevron-right" class="w-4 h-4" %}</li>
+        <li><a href="{% url 'donations:verification_queue' %}" class="rounded-md px-1 py-0.5 text-neutral-800 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">Verifikasi</a></li>
+        <li aria-hidden="true" class="text-neutral-700">{% lucide "chevron-right" class="w-4 h-4" %}</li>
+        <li><span aria-current="page" class="px-1 font-semibold text-primary-800">Periksa</span></li>
+      </ol>
+    </nav>
   </header>
 
-  <dl class="grid gap-4 p-6 sm:grid-cols-2 sm:p-9">
-    <div class="rounded-2xl border border-neutral-400 bg-white p-5">
-      <dt class="text-xs font-semibold uppercase tracking-wide text-neutral-700">Donor</dt>
-      <dd class="mt-2 text-sm font-semibold text-secondary-900">{{ donation.donor.get_full_name|default:donation.donor.username }} · {{ donation.donor.email }}</dd>
-    </div>
-    <div class="rounded-2xl border border-neutral-400 bg-white p-5">
-      <dt class="text-xs font-semibold uppercase tracking-wide text-neutral-700">Amount</dt>
-      <dd class="mt-2 font-display text-2xl text-secondary-900">Rp {{ donation.amount|floatformat:2 }}</dd>
-    </div>
-    <div class="rounded-2xl border border-neutral-400 bg-white p-5">
-      <dt class="text-xs font-semibold uppercase tracking-wide text-neutral-700">Submitted</dt>
-      <dd class="mt-2 text-sm font-semibold text-secondary-900">{{ donation.created_at|date:"j M Y, H:i" }}</dd>
-    </div>
-    <div class="rounded-2xl border border-neutral-400 bg-white p-5">
-      <dt class="text-xs font-semibold uppercase tracking-wide text-neutral-700">Verified</dt>
-      <dd class="mt-2 text-sm font-semibold text-secondary-900">{% if donation.verified_at %}{{ donation.verified_at|date:"j M Y, H:i" }}{% else %}Not verified{% endif %}</dd>
-    </div>
-    <div class="rounded-2xl border border-neutral-400 bg-white p-5 sm:col-span-2">
-      <dt class="text-xs font-semibold uppercase tracking-wide text-neutral-700">Transfer proof</dt>
-      <dd class="mt-3">
-        {% if proof_available %}
-        {% component "button" href="{% url 'donations:admin_proof' donation.pk %}" text="Download proof" variant="neutral" size="sm" icon_left="file-down" / %}
-        {% else %}
-        <span class="text-sm text-neutral-700">Proof is unavailable.</span>
-        {% endif %}
-      </dd>
-    </div>
-  </dl>
-
-  {% if donation.status == "PENDING" %}
-  <form method="post" class="flex flex-wrap gap-3 border-t border-neutral-400 px-6 py-5 sm:px-9">
-    {% csrf_token %}
-    {% component "button" text="Approve donation" type="submit" attrs='name="status" value="APPROVED"' variant="primary" size="sm" icon_left="circle-check" / %}
-    {% component "button" text="Reject donation" type="submit" attrs='name="status" value="REJECTED"' variant="tertiary" size="sm" icon_left="circle-x" / %}
-  </form>
+  {% if messages %}
+  <div class="space-y-3" aria-live="polite">
+    {% for message in messages %}
+    <p role="status" class="flex items-start gap-2 rounded-2xl border px-4 py-3 font-sans text-sm leading-6 {% if message.tags == 'success' %}border-primary-500 bg-primary-50 text-secondary-800{% elif message.tags == 'warning' %}border-secondary-300 bg-secondary-50 text-secondary-800{% else %}border-tertiary-400 bg-tertiary-50 text-tertiary-900{% endif %}">
+      {% lucide "info" class="w-4 h-4 mt-1 shrink-0" aria_hidden="true" %}{{ message }}
+    </p>
+    {% endfor %}
+  </div>
   {% endif %}
-</article>
+
+  <article class="overflow-hidden rounded-3xl border border-neutral-400 bg-neutral-50">
+    <header class="campaign-media px-6 py-8 sm:px-9" data-tone="primary">
+      <p class="font-sans text-xs font-semibold uppercase tracking-wider text-secondary-700">Pemeriksaan donasi</p>
+      <div class="mt-3 flex flex-wrap items-center justify-between gap-3">
+        <h1 class="font-display text-h4 leading-tight text-foreground sm:text-h3">{{ donation.campaign.title }}</h1>
+        {% include "donations/admin/_donation_status.html" with status=donation.status %}
+      </div>
+      <p class="mt-4 font-sans text-3xl font-semibold text-secondary-900">Rp {{ donation.amount|rupiah }}</p>
+    </header>
+
+    <dl class="grid gap-4 p-6 sm:grid-cols-2 sm:p-9">
+      <div class="flex items-center gap-4 rounded-2xl border border-neutral-400 bg-neutral-100 p-5 sm:col-span-2">
+        {% component "avatar" src=donation.donor.avatar_url name=donation.donor.get_full_name|default:donation.donor.username size="lg" / %}
+        <div class="min-w-0">
+          <dt class="font-sans text-xs font-semibold uppercase tracking-wider text-neutral-800">Donatur</dt>
+          <dd class="mt-1 break-words font-sans text-sm font-semibold text-secondary-900">{{ donation.donor.get_full_name|default:donation.donor.username }} · {{ donation.donor.email }}</dd>
+        </div>
+      </div>
+      <div class="rounded-2xl border border-neutral-400 bg-neutral-100 p-5">
+        <dt class="font-sans text-xs font-semibold uppercase tracking-wider text-neutral-800">Dikirim</dt>
+        <dd class="mt-2 font-sans text-sm font-semibold text-secondary-900">{{ donation.created_at|date:"j M Y, H:i" }}</dd>
+      </div>
+      <div class="rounded-2xl border border-neutral-400 bg-neutral-100 p-5">
+        <dt class="font-sans text-xs font-semibold uppercase tracking-wider text-neutral-800">Diverifikasi</dt>
+        <dd class="mt-2 font-sans text-sm font-semibold text-secondary-900">{% if donation.verified_at %}{{ donation.verified_at|date:"j M Y, H:i" }}{% else %}Belum diverifikasi{% endif %}</dd>
+      </div>
+      <div class="rounded-2xl border border-neutral-400 bg-neutral-100 p-5 sm:col-span-2">
+        <dt class="font-sans text-xs font-semibold uppercase tracking-wider text-neutral-800">Bukti transfer</dt>
+        <dd class="mt-3">
+          {% if proof_available %}
+          {% url 'donations:admin_proof' donation.pk as proof_url %}
+          {% component "button" href=proof_url text="Unduh bukti" variant="neutral" size="sm" icon_left="file-down" / %}
+          {% else %}
+          <span class="font-sans text-sm text-neutral-800">Bukti tidak tersedia.</span>
+          {% endif %}
+        </dd>
+      </div>
+      <div class="rounded-2xl border border-neutral-400 bg-neutral-100 p-5 sm:col-span-2">
+        <dt class="font-sans text-xs font-semibold uppercase tracking-wider text-neutral-800">Pesan donatur</dt>
+        <dd class="mt-2 space-y-1 font-sans text-sm text-secondary-900">
+          {% if donation.message %}<p class="italic">“{{ donation.message }}”</p>{% else %}<p class="text-neutral-800">Tanpa pesan.</p>{% endif %}
+          {% if donation.is_anonymous %}<p class="flex items-center gap-1.5 text-neutral-900">{% lucide "venetian-mask" class="w-4 h-4" aria_hidden="true" %}Tampil sebagai donatur anonim</p>{% endif %}
+        </dd>
+      </div>
+      {% if donation.status != "PENDING" %}
+      <div class="rounded-2xl border border-neutral-400 bg-neutral-100 p-5 sm:col-span-2">
+        <dt class="font-sans text-xs font-semibold uppercase tracking-wider text-neutral-800">Keputusan</dt>
+        <dd class="mt-2 font-sans text-sm text-secondary-900">
+          {{ donation.get_status_display }}{% if donation.verified_by %} oleh {{ donation.verified_by.display_name }}{% endif %}{% if donation.verified_at %} pada {{ donation.verified_at|date:"j M Y, H:i" }}{% endif %}
+          {% if donation.rejection_reason %}<p class="mt-1 text-tertiary-800">Alasan: {{ donation.rejection_reason }}</p>{% endif %}
+        </dd>
+      </div>
+      {% endif %}
+    </dl>
+
+    {% if donation.status == "PENDING" %}
+    <form method="post" class="space-y-4 border-t border-neutral-400/60 px-6 py-5 sm:px-9" data-verify-form>
+      {% csrf_token %}
+      <div class="space-y-2">
+        {% component "textarea" id="rejection_reason" name="rejection_reason" label="Alasan penolakan (dikirim ke donatur)" rows=2 maxlength=300 / %}
+        <div class="flex flex-wrap gap-2" role="group" aria-label="Alasan umum">
+          <button type="button" data-reason="Bukti transfer tidak terbaca atau buram." class="cursor-pointer rounded-full border border-neutral-400 bg-neutral-50 px-3 py-1 font-sans text-xs font-semibold text-secondary-800 hover:border-secondary-300 hover:bg-secondary-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">Bukti tidak terbaca</button>
+          <button type="button" data-reason="Nominal pada bukti tidak sama dengan nominal yang dicatat." class="cursor-pointer rounded-full border border-neutral-400 bg-neutral-50 px-3 py-1 font-sans text-xs font-semibold text-secondary-800 hover:border-secondary-300 hover:bg-secondary-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">Nominal tidak sama</button>
+          <button type="button" data-reason="Transfer belum kami terima di rekening kampanye." class="cursor-pointer rounded-full border border-neutral-400 bg-neutral-50 px-3 py-1 font-sans text-xs font-semibold text-secondary-800 hover:border-secondary-300 hover:bg-secondary-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">Belum diterima</button>
+        </div>
+        <p class="font-sans text-b4 text-neutral-800">Kosongkan untuk mengirim alasan umum. Kolom ini diabaikan saat menyetujui.</p>
+      </div>
+      <div class="flex flex-wrap items-center gap-3">
+        <p class="mr-auto font-sans text-b4 text-neutral-800">Keputusan tidak bisa diubah setelah dibuat. Donatur akan mendapat notifikasi.</p>
+        {% component "button" text="Tolak donasi" type="submit" attrs='name="status" value="REJECTED"' variant="danger-ghost" size="md" icon_left="circle-x" / %}
+        {% component "button" text="Setujui donasi" type="submit" attrs='name="status" value="APPROVED"' variant="primary" size="md" icon_left="circle-check" / %}
+      </div>
+    </form>
+    <script>
+      document.querySelectorAll("[data-verify-form] [data-reason]").forEach((chip) =>
+        chip.addEventListener("click", () => {
+          const field = document.getElementById("rejection_reason");
+          field.value = chip.dataset.reason;
+          field.dispatchEvent(new Event("input", { bubbles: true }));
+          field.focus();
+        }),
+      );
+    </script>
+    {% endif %}
+  </article>
+</div>
 {% endblock %}

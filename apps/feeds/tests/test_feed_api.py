@@ -101,7 +101,7 @@ class FeedApiTests(TestCase):
             reverse("feeds:create"),
             {
                 "content": "Large photo",
-                "image": image,
+                "images": image,
             },
         )
         self.assertEqual(response.status_code, 422)
@@ -122,7 +122,7 @@ class FeedApiTests(TestCase):
     def test_feed_page_button_opens_post_form_and_accepts_upload(self):
         response = self.client.get(reverse("feeds:list"))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "+ Buat postingan")
+        self.assertContains(response, "Buat postingan")
         self.assertContains(response, "feed-create-link")
         self.assertContains(response, reverse("feeds:create"))
 
@@ -131,9 +131,9 @@ class FeedApiTests(TestCase):
         self.assertContains(response, "Challenge (opsional)")
         self.assertContains(response, 'type="file"')
         self.assertContains(response, "feed-image-input")
-        self.assertContains(response, "::file-selector-button")
-        self.assertContains(response, "maksimal 10 MB")
-        self.assertContains(response, "Submit Postingan")
+        self.assertContains(response, "total maksimal 10 MB")
+        self.assertContains(response, "multiple")
+        self.assertContains(response, "Bagikan postingan")
         self.assertContains(response, "feed-submit-button")
 
         image = SimpleUploadedFile(
@@ -146,15 +146,16 @@ class FeedApiTests(TestCase):
             {
                 "challenge": str(self.challenge.pk),
                 "content": "  Progress from the page  ",
-                "image": image,
+                "images": image,
             },
         )
         self.assertRedirects(response, reverse("feeds:list"))
         created = Post.objects.get(author=self.user)
         self.assertEqual(created.content, "Progress from the page")
-        self.assertTrue(created.image.name.startswith("posts/"))
+        photo = created.images.get()
+        self.assertTrue(photo.image.name.startswith("posts/"))
 
-        image_response = self.client.get(created.image.url)
+        image_response = self.client.get(photo.image.url)
         image_content = b"".join(image_response.streaming_content)
         image_response.close()
         self.assertEqual(
@@ -196,7 +197,7 @@ class FeedApiTests(TestCase):
 
     def test_feed_card_has_like_button_and_like_unlike_toggle(self):
         response = self.client.get(reverse("feeds:list"))
-        self.assertContains(response, "♡ Suka")
+        self.assertContains(response, "data-like-label>Suka<")
         self.assertContains(response, "feed-like-button")
 
         response = self.client.post(
@@ -207,7 +208,7 @@ class FeedApiTests(TestCase):
         self.assertTrue(Like.objects.filter(post=self.post, user=self.user).exists())
 
         response = self.client.get(reverse("feeds:list"))
-        self.assertContains(response, "♥ Disukai")
+        self.assertContains(response, "data-like-label>Disukai<")
 
         response = self.client.post(
             reverse("feeds:like", args=(self.post.pk,)),
@@ -218,12 +219,12 @@ class FeedApiTests(TestCase):
 
     def test_like_button_is_available_to_admin(self):
         response = self.client.get(reverse("feeds:detail", args=(self.post.pk,)))
-        self.assertContains(response, "♡ Suka")
+        self.assertContains(response, "data-like-label>Suka<")
         self.assertContains(response, 'name="return_to" value="detail"')
 
         self.client.force_login(self.admin)
         response = self.client.get(reverse("feeds:list"))
-        self.assertContains(response, "♡ Suka")
+        self.assertContains(response, "data-like-label>Suka<")
 
     def test_admin_can_create_post_from_feed_page(self):
         self.client.force_login(self.admin)
@@ -300,7 +301,7 @@ class FeedApiTests(TestCase):
         self.assertEqual(response.status_code, 200)
         data = response.json()["data"]
         self.assertEqual(len(data), 1)
-        self.assertEqual(data[0]["id"], root.pk)
+        self.assertEqual(data[0]["id"], str(root.pk))
         self.assertEqual(data[0]["replies"][0]["content"], "Reply")
         self.assertNotIn("replies", data[0]["replies"][0])
 
@@ -321,13 +322,15 @@ class FeedApiTests(TestCase):
         self.assertEqual(
             payload["data"][0],
             {
-                "id": comment.pk,
-                "post_id": self.post.pk,
+                "id": str(comment.pk),
+                "post_id": str(self.post.pk),
                 "parent_id": None,
                 "content": "Serialized comment",
                 "author": {
                     "id": str(self.other_user.pk),
                     "name": self.other_user.get_username(),
+                    "avatar_url": "",
+                    "badge": None,
                 },
                 "created_at": comment.created_at.isoformat(),
                 "updated_at": comment.updated_at.isoformat(),
@@ -592,7 +595,7 @@ class FeedApiTests(TestCase):
         self.assertEqual(response.status_code, 200)
         items = response.json()["data"]
         self.assertEqual(len(items), 2)
-        own_post_data = next(item for item in items if item["id"] == own_post.pk)
+        own_post_data = next(item for item in items if item["id"] == str(own_post.pk))
         self.assertTrue(own_post_data["liked_by_me"])
         self.assertTrue(own_post_data["is_owner"])
 

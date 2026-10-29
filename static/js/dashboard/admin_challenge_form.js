@@ -17,13 +17,13 @@ if (form && preview) {
 
   // Mirrors Challenge.status on the server (ISO dates compare as strings)
   function currentStatus() {
-    if (!field("is_published")?.checked) return "Draft";
+    if (!field("is_published")?.checked) return "Draf";
     const start = field("start_date")?.value;
     const end = field("end_date")?.value;
-    if (!start || !end) return "Published";
-    if (end < today()) return "Ended";
-    if (start > today()) return "Upcoming";
-    return "Active";
+    if (!start || !end) return "Terbit";
+    if (end < today()) return "Selesai";
+    if (start > today()) return "Segera";
+    return "Berjalan";
   }
 
   const update = () => {
@@ -35,4 +35,30 @@ if (form && preview) {
     field(name)?.addEventListener("change", update);
   });
   update();
+}
+
+// Goal: the target number only applies to tracked goals; check-in uses the length
+const goalType = form?.elements.goal_type;
+const targetField = document.querySelector("[data-goal-target-field]");
+const checkinNote = document.querySelector("[data-checkin-note]");
+const goalUnit = document.querySelector("[data-goal-unit]");
+const UNITS = {
+  articles_read: "(artikel)",
+  donation_amount: "(rupiah)",
+  posts_created: "(postingan)",
+  likes_received: "(suka)",
+  comments_written: "(komentar)",
+};
+
+function paintGoal() {
+  const checkIn = goalType.value === "check_in";
+  targetField.classList.toggle("hidden", checkIn);
+  checkinNote.classList.toggle("hidden", !checkIn);
+  checkinNote.classList.toggle("flex", checkIn);
+  goalUnit.textContent = UNITS[goalType.value] ?? "";
+}
+
+if (goalType && targetField && checkinNote) {
+  goalType.addEventListener("change", paintGoal);
+  paintGoal();
 }

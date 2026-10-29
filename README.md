@@ -33,6 +33,19 @@ SELARAS provides structured challenges with daily progress tracking and badges/s
 - [x] Refined and updated some design system components
 - [x] Created 403 and 404 Page (won't visible for now since DEBUG = True)
 - [x] Reconstruct landing page
+- [x] Redesigned feeds and donations modules on the design system (new components: badge, avatar, progress, empty_state, pagination, textarea, file_drop)
+- [x] Redesigned articles on the design system
+- [x] Major update ([docs/CHANGES.md](docs/CHANGES.md)):
+  - UUID keys for posts, comments, donations and notifications
+  - Challenges tracked automatically from articles, donations and the feed, with badge rewards
+  - Featured badges next to user names
+  - Notifications in the navbar bell
+  - Up to 10 photos per post (20 for admins)
+  - Likers lists, comment likes and Instagram-style replies
+  - Articles written by users and reviewed by admins, with read tracking and category management
+  - Donor wall and rejection reasons for donations
+- [x] Gamification: community goals, per-challenge leaderboards and a personal impact summary on the profile
+- [x] Demo data seeder: `python manage.py seed_demo` (`--reset`, `--clear`)
 
 
 

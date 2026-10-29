@@ -22,8 +22,8 @@ const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)
 
 /* ================================= HELPERS ================================= */
 
-const dateFormatter = new Intl.DateTimeFormat(undefined, { dateStyle: "medium" });
-const timeFormatter = new Intl.DateTimeFormat(undefined, { timeStyle: "short" });
+const dateFormatter = new Intl.DateTimeFormat("id", { dateStyle: "medium" });
+const timeFormatter = new Intl.DateTimeFormat("id", { timeStyle: "short" });
 
 // "May 12, 2024 · 9:30 AM", like the design
 function formatDateTime(date) {
@@ -48,7 +48,7 @@ function createDateTimeElement(isoString, className = "") {
 export async function readJsonResponse(response) {
   const contentType = response.headers.get("content-type") || "";
   if (!contentType.includes("application/json"))
-    throw new Error("Server did not return JSON. Your session may be expired");
+    throw new Error("Server tidak merespons dengan benar. Sesimu mungkin sudah habis.");
   return response.json();
 }
 
@@ -118,7 +118,7 @@ function createCollapsibleText(text, boxClassName) {
     const expanded = toggle.getAttribute("aria-expanded") === "true";
     toggle.setAttribute("aria-expanded", String(!expanded));
     body.classList.toggle("line-clamp-6", expanded);
-    setButtonText(toggle, expanded ? "Show more" : "Show less");
+    setButtonText(toggle, expanded ? "Lihat lebih banyak" : "Lihat lebih sedikit");
     toggleIcon.classList.toggle("rotate-180", !expanded);
   });
 
@@ -171,7 +171,7 @@ export function createTicketDetailComponent(ticket, { animate = true } = {}) {
     "flex shrink-0 flex-col gap-0.5 font-sans md:items-end md:text-right",
   );
   submitted.append(
-    el("span", "text-xs text-neutral-800", "Submitted on"),
+    el("span", "text-xs text-neutral-800", "Dikirim pada"),
     createDateTimeElement(ticket.created_at, "text-sm font-semibold text-foreground"),
   );
   header.append(headingGroup, submitted);
@@ -184,24 +184,24 @@ export function createTicketDetailComponent(ticket, { animate = true } = {}) {
   );
   const timeline =
     ticket.status === "closed" && ticket.closed_at
-      ? createMetaElement("lock", "Closed", createTimeElement(ticket.closed_at))
-      : createMetaElement("clock", "Last updated", createTimeElement(ticket.updated_at));
+      ? createMetaElement("lock", "Ditutup", createTimeElement(ticket.closed_at))
+      : createMetaElement("clock", "Terakhir diperbarui", createTimeElement(ticket.updated_at));
 
   people.append(
     createPersonElement(ticket.requester, {
-      caption: "Requester",
-      fallbackName: "Unknown user",
+      caption: "Pengirim",
+      fallbackName: "Pengguna tidak dikenal",
     }),
     createPersonElement(ticket.assignee, {
-      caption: "Assigned coordinator",
-      fallbackName: "Awaiting assignment",
+      caption: "Koordinator",
+      fallbackName: "Menunggu koordinator",
       captionNode: ticket.assignee ? document.createTextNode(ticket.assignee.role) : null,
     }),
     timeline,
   );
 
   const description = createCollapsibleText(
-    ticket.description || "No description provided.",
+    ticket.description || "Tanpa deskripsi.",
     "rounded-2xl bg-neutral-300 p-4 sm:p-5",
   );
 
@@ -222,7 +222,7 @@ function flash(node) {
 function scrollToMessage(messageId) {
   const target = document.getElementById(`message-${messageId}`);
   if (!target) {
-    window.showToast?.({ type: "info", title: "Message not available", message: "The original message may have been removed." });
+    window.showToast?.({ type: "info", title: "Pesan tidak tersedia", message: "Pesan aslinya mungkin sudah dihapus." });
     return;
   }
   target.scrollIntoView({ behavior: prefersReducedMotion.matches ? "auto" : "smooth", block: "center" });
@@ -243,8 +243,8 @@ function createReplyQuote(replyTo) {
     }`,
   );
   quote.type = "button";
-  quote.setAttribute("aria-label", `Replying to ${replyTo.author_name}: ${replyTo.excerpt}. Go to that message`);
-  quote.title = "Go to the original message";
+  quote.setAttribute("aria-label", `Membalas ${replyTo.author_name}: ${replyTo.excerpt}. Lihat pesan itu`);
+  quote.title = "Lihat pesan asli";
   quote.append(
     el("span", "font-sans text-xs font-semibold text-secondary-800", replyTo.author_name),
     el("span", "line-clamp-2 break-words font-sans text-sm text-neutral-900", replyTo.excerpt),
@@ -262,10 +262,10 @@ function createReplyButton(message) {
   );
   button.type = "button";
   button.dataset.replyButton = "";
-  const author = message.is_own ? "your message" : `${message.author?.name ?? "Deleted user"}'s message`;
-  button.setAttribute("aria-label", `Reply to ${author}`);
-  button.title = "Reply to this message";
-  button.append(createIcon("corner-up-left", "w-3.5 h-3.5"), el("span", "", "Reply"));
+  const author = message.is_own ? "pesanmu" : `pesan ${message.author?.name ?? "Pengguna terhapus"}`;
+  button.setAttribute("aria-label", `Balas ${author}`);
+  button.title = "Balas pesan ini";
+  button.append(createIcon("corner-up-left", "w-3.5 h-3.5"), el("span", "", "Balas"));
 
   // The composer listens for this (initReplyComposer)
   button.addEventListener("click", () => {
@@ -275,7 +275,7 @@ function createReplyButton(message) {
 }
 
 function createMessageElement(message, { isNew = false } = {}) {
-  const author = message.author ?? { name: "Deleted user", role: "" };
+  const author = message.author ?? { name: "Pengguna terhapus", role: "" };
 
   // Support replies get a tinted card and accent so the back-and-forth is easy to scan
   const item = el(
@@ -307,7 +307,7 @@ function createMessageElement(message, { isNew = false } = {}) {
       el(
         "span",
         "rounded-full border border-primary-500/50 bg-primary-200 px-2 py-0.5 font-sans text-[0.6875rem] font-semibold text-primary-900",
-        "Support team",
+        "Tim bantuan",
       ),
     );
   }
@@ -316,7 +316,7 @@ function createMessageElement(message, { isNew = false } = {}) {
       el(
         "span",
         "rounded-full border border-neutral-500 bg-neutral-300 px-2 py-0.5 font-sans text-[0.6875rem] font-semibold text-neutral-900",
-        "You",
+        "Kamu",
       ),
     );
   }
@@ -360,7 +360,7 @@ function createMessagesEmptyState(text) {
   iconBox.append(createIcon("message-square-dashed", "w-6 h-6"));
   empty.append(
     iconBox,
-    el("p", "font-sans text-sm font-semibold text-foreground", "No replies yet"),
+    el("p", "font-sans text-sm font-semibold text-foreground", "Belum ada balasan"),
     el("p", "max-w-sm font-sans text-sm text-neutral-800", text),
   );
   return empty;
@@ -374,7 +374,7 @@ export function createTicketMessagesComponent(
   messages,
   {
     canReply = false,
-    emptyText = "Our support team will respond here. You can add more details below in the meantime.",
+    emptyText = "Tim bantuan akan membalas di sini. Sambil menunggu, kamu bisa menambahkan detail di bawah.",
   } = {},
 ) {
   const section = el("section", "flex flex-col gap-4");
@@ -383,7 +383,7 @@ export function createTicketMessagesComponent(
   const header = el("div", "flex items-center justify-between gap-3");
   const title = el("h2", "flex items-center gap-2 font-sans text-lg font-semibold text-foreground");
   title.id = "conversationTitle";
-  title.append(createIcon("messages-square", "w-5 h-5 text-secondary-500"), el("span", "", "Conversation history"));
+  title.append(createIcon("messages-square", "w-5 h-5 text-secondary-500"), el("span", "", "Riwayat percakapan"));
 
   const count = el(
     "span",
@@ -481,7 +481,7 @@ export function initReplyComposer({ onSent } = {}) {
   function setSending(isSending) {
     submit.disabled = isSending || textarea.value.trim() === "";
     textarea.readOnly = isSending;
-    setButtonLoading(submit, isSending, "Sending…");
+    setButtonLoading(submit, isSending, "Mengirim…");
   }
 
   /* ---- Reply to a specific message ---- */
@@ -493,7 +493,7 @@ export function initReplyComposer({ onSent } = {}) {
 
   function setReplyTo(message) {
     replyToInput.value = message.id;
-    preview.querySelector("[data-reply-author]").textContent = message.is_own ? "yourself" : message.author?.name ?? "Deleted user";
+    preview.querySelector("[data-reply-author]").textContent = message.is_own ? "yourself" : message.author?.name ?? "Pengguna terhapus";
     preview.querySelector("[data-reply-excerpt]").textContent = message.message;
     preview.hidden = false;
     markReplying(message.id);
@@ -529,7 +529,7 @@ export function initReplyComposer({ onSent } = {}) {
       });
 
       const data = await readJsonResponse(response);
-      if (!response.ok) throw new Error(data.error ?? `Failed to send reply (${response.status})`);
+      if (!response.ok) throw new Error(data.error ?? `Balasan gagal dikirim (${response.status})`);
 
       appendMessage(data.message);
       textarea.value = "";
@@ -540,14 +540,14 @@ export function initReplyComposer({ onSent } = {}) {
 
       window.showToast?.({
         type: "success",
-        title: "Reply sent",
-        message: "Your message was added to the conversation.",
+        title: "Balasan terkirim",
+        message: "Pesanmu sudah masuk ke percakapan.",
         duration: 2500,
       });
     } catch (error) {
       console.error(error);
       // The text (and the quoted message) are kept, so nothing is lost
-      window.showToast?.({ type: "error", title: "Couldn't send reply", message: error.message });
+      window.showToast?.({ type: "error", title: "Balasan gagal dikirim", message: error.message });
     } finally {
       setSending(false);
       updateState();

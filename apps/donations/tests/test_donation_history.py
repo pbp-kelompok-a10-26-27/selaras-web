@@ -138,7 +138,7 @@ class DonationHistoryAndDetailTests(TestCase):
 
                 self.assertEqual(response.status_code, 200)
                 self.assertContains(response, self.campaign.title)
-                self.assertContains(response, "Rp 125.50")
+                self.assertContains(response, "Rp 125,50")
                 self.assertContains(response, donation.created_at.strftime("%Y"))
                 self.assertContains(response, status)
                 edit_url = reverse("donations:edit", args=[donation.pk])

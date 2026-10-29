@@ -34,7 +34,7 @@
     }
   }
 
-  // Helper to map type to Tailwind classes (avoiding purge issues)
+  // Kelas Tailwind ditulis lengkap agar tidak terhapus saat build
   function getTypeClasses(type) {
     switch (type) {
       case "error":

@@ -9,6 +9,7 @@ from .views import (
     UserPasswordChangeView,
     avatar_remove,
     avatar_upload,
+    featured_badge,
 )
 
 app_name = "accounts"
@@ -20,6 +21,7 @@ urlpatterns = [
     path("profile/", ProfileView.as_view(), name="profile"),
     path("avatar/", avatar_upload, name="avatar_upload"),
     path("avatar/remove/", avatar_remove, name="avatar_remove"),
+    path("badges/featured/", featured_badge, name="featured_badge"),
     path("password/change/", UserPasswordChangeView.as_view(), name="password_change"),
     path(
         "password/change/done/",

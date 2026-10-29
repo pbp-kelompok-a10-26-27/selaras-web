@@ -67,7 +67,7 @@ class AvatarTests(UploadTestCase):
         big = upload("big.png", PNG + b"\x00" * (2 * 1024 * 1024))
         response = self.client.post(self.url, {"avatar": big})
         self.assertEqual(response.status_code, 400)
-        self.assertIn("too large", response.json()["error"])
+        self.assertIn("terlalu besar", response.json()["error"])
 
     def test_missing_file_is_rejected(self):
         self.assertEqual(self.client.post(self.url).status_code, 400)

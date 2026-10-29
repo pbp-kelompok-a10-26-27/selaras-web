@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "apps.donations",
     "apps.helpdesk",
     "apps.dashboard",
+    "apps.notifications",
 ]
 
 MIDDLEWARE = [
@@ -102,7 +103,6 @@ ASGI_APPLICATION = "config.asgi.application"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 
-# Will be provided in the environment variable
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
@@ -133,7 +133,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = "id"
 
 TIME_ZONE = "Asia/Jakarta"
 
@@ -170,3 +170,13 @@ LOGIN_URL = "accounts:login"
 LOGIN_REDIRECT_URL = "home"
 LOGOUT_REDIRECT_URL = "home"
 CSRF_FAILURE_VIEW = "apps.articles.views.csrf_failure"
+
+# Peringatan keamanan (mis. login gagal) tampil di log server
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {"console": {"class": "logging.StreamHandler"}},
+    "loggers": {
+        "apps": {"handlers": ["console"], "level": "WARNING", "propagate": False},
+    },
+}

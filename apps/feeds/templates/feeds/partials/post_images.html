@@ -1,0 +1,54 @@
+{% load lucide %}
+{% comment %}
+A post's photos. One photo shows at its own shape; several become a swipeable carousel
+(scroll snap, with arrows, dots and a counter from static/js/feeds/feed.js).
+{% endcomment %}
+{% with total=images|length %}
+{% if total == 1 %}
+  {% with image=images.0 %}
+  {% if detail %}
+  <img class="mt-4 max-h-[36rem] w-full rounded-xl object-cover" src="{{ image.image.url }}" alt="Foto postingan" loading="lazy">
+  {% else %}
+  <a href="{% url 'feeds:detail' post.id %}" tabindex="-1" class="group/img mt-4 block overflow-hidden rounded-xl bg-neutral-400">
+    <img class="max-h-[28rem] w-full object-cover transition-transform duration-500 group-hover/img:scale-[1.02] motion-reduce:transition-none" src="{{ image.image.url }}" alt="Foto postingan" loading="lazy">
+  </a>
+  {% endif %}
+  {% endwith %}
+{% elif total > 1 %}
+<div class="relative mt-4 overflow-hidden rounded-xl bg-neutral-400" data-carousel>
+  <div
+    class="post-carousel flex overflow-x-auto outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500"
+    data-carousel-track
+    tabindex="0"
+    role="region"
+    aria-roledescription="carousel"
+    aria-label="{{ total }} foto postingan. Geser atau gunakan tombol panah."
+  >
+    {% for image in images %}
+    <figure class="w-full shrink-0" role="group" aria-roledescription="slide" aria-label="Foto {{ forloop.counter }} dari {{ total }}">
+      <img
+        src="{{ image.image.url }}"
+        alt="Foto {{ forloop.counter }} dari {{ total }}"
+        class="aspect-[4/3] w-full object-cover {% if detail %}sm:aspect-[16/10]{% endif %}"
+        {% if not forloop.first %}loading="lazy"{% endif %}
+        draggable="false"
+      >
+    </figure>
+    {% endfor %}
+  </div>
+
+  <span data-carousel-counter class="pointer-events-none absolute right-3 top-3 rounded-full bg-secondary-900/75 px-2.5 py-0.5 font-sans text-xs font-semibold tabular-nums text-neutral-50 backdrop-blur-sm" aria-hidden="true">1/{{ total }}</span>
+
+  <button type="button" data-carousel-prev class="absolute left-2 top-1/2 hidden h-9 w-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-neutral-50/90 text-secondary-900 shadow-md outline-none transition-opacity hover:bg-neutral-50 focus-visible:ring-2 focus-visible:ring-primary-500 disabled:pointer-events-none disabled:opacity-0 sm:flex" aria-label="Foto sebelumnya" disabled>
+    {% lucide "chevron-left" class="h-5 w-5" aria_hidden="true" %}
+  </button>
+  <button type="button" data-carousel-next class="absolute right-2 top-1/2 hidden h-9 w-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-neutral-50/90 text-secondary-900 shadow-md outline-none transition-opacity hover:bg-neutral-50 focus-visible:ring-2 focus-visible:ring-primary-500 disabled:pointer-events-none disabled:opacity-0 sm:flex" aria-label="Foto berikutnya">
+    {% lucide "chevron-right" class="h-5 w-5" aria_hidden="true" %}
+  </button>
+
+  <div class="pointer-events-none absolute inset-x-0 bottom-3 flex justify-center gap-1.5" aria-hidden="true">
+    {% for image in images %}{% if forloop.counter <= 12 %}<span class="carousel-dot h-1.5 w-1.5 rounded-full bg-neutral-50/60 transition-all duration-300" data-carousel-dot {% if forloop.first %}aria-current="true"{% endif %}></span>{% endif %}{% endfor %}
+  </div>
+</div>
+{% endif %}
+{% endwith %}

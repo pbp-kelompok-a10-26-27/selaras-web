@@ -1,19 +1,17 @@
 {% load static lucide component_tags %}
 <!doctype html>
-<html lang="en" class="h-full">
+<html lang="id" class="h-full">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Register | SELARAS</title>
+    <title>Daftar · SELARAS</title>
 
-    <!-- Favicon -->
     <link
       rel="icon"
       type="image/svg+xml"
       href="{% static 'assets/images/logo.svg' %}"
     />
 
-    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -22,12 +20,10 @@
     />
     <link href="https://fonts.cdnfonts.com/css/transcity" rel="stylesheet" />
     <link rel="stylesheet" href="{% static 'css/output.css' %}" />
-    <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
   </head>
   <body
     class="h-full font-sans bg-[#f7f9f0] text-[#212b1c] flex items-center justify-center p-4 sm:p-6 lg:p-8 selection:bg-[#aac46d] selection:text-[#212b1c]"
   >
-    <!-- Main Authentication Container  -->
     <div
       id="falling-leaves"
       class="pointer-events-none fixed inset-0 z-0 overflow-hidden"
@@ -36,12 +32,10 @@
     <main
       class="relative z-30 w-full max-w-5xl bg-[#fffffe] rounded-3xl border border-[#e6e4df] shadow-sm overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[600px] fade-in"
     >
-      <!-- LEFT SIDE: Registration Form Panel  -->
       <section
         class="lg:col-span-7 p-8 sm:p-10 lg:p-14 flex flex-col justify-center bg-[#fffffe] order-2 lg:order-1"
       >
         <div class="max-w-md w-full mx-auto slide-in-up">
-          <!-- Django Messages Notifications -->
           {% if messages %}
           <div class="mb-6 space-y-2" role="alert">
             {% for message in messages %}
@@ -67,7 +61,6 @@
           </div>
           {% endif %}
 
-          <!-- Non-Field Form Errors -->
           {% if form.non_field_errors %}
           <div
             class="mb-6 p-3.5 rounded-xl bg-[#fbedf0] border border-[#f3c5cf] text-xs font-display text-[#6d595d] space-y-1"
@@ -82,19 +75,17 @@
           </div>
           {% endif %}
 
-          <!-- Header Title -->
           <div class="mb-8">
             <h1
               class="font-display text-3xl sm:text-4xl text-[#212b1c] tracking-tight mb-2"
             >
-              Welcome!
+              Halo, salam kenal!
             </h1>
             <p class="text-sm text-[#737270]">
-              Start building better habits, one small action at a time.
+              Mulai bangun kebiasaan baik, satu langkah kecil setiap hari.
             </p>
           </div>
 
-          <!-- Registration Form -->
           <form
             method="post"
             action="{% url 'accounts:register' %}"
@@ -103,7 +94,6 @@
           >
             {% csrf_token %}
 
-            <!-- Username Field -->
             <div class="space-y-1">
               <div class="relative flex items-center">
                 <div
@@ -135,7 +125,6 @@
               {% endif %}
             </div>
 
-            <!-- Email Field -->
             <div class="space-y-1">
               <div class="relative flex items-center">
                 <div
@@ -157,7 +146,7 @@
                   for="id_email"
                   class="floating-label absolute z-10 left-11 text-sm text-[#999895] pointer-events-none transition-all duration-200 ease-out origin-left"
                 >
-                  Email Address
+                  Alamat email
                 </label>
               </div>
               {% if form.email.errors %}
@@ -167,7 +156,6 @@
               {% endif %}
             </div>
 
-            <!-- Password Field -->
             <div class="space-y-1">
               <div class="relative flex items-center">
                 <div
@@ -188,14 +176,14 @@
                   for="id_password1"
                   class="floating-label absolute z-10 left-11 text-sm text-[#999895] pointer-events-none transition-all duration-200 ease-out origin-left"
                 >
-                  Password
+                  Kata sandi
                 </label>
 
                 <button
                   type="button"
                   class="toggle-password absolute right-3.5 w-5 h-5 text-[#999895] hover:text-[#475c3b] focus:outline-none"
                   data-target="id_password1"
-                  aria-label="Show password"
+                  aria-label="Tampilkan kata sandi"
                 >
                   <span
                     class="eye-icon absolute inset-0 flex items-center justify-center transition-all duration-200 ease-in-out opacity-100 scale-100"
@@ -216,7 +204,6 @@
               {% endif %}
             </div>
 
-            <!-- Confirm Password Field -->
             <div class="space-y-1">
               <div class="relative flex items-center">
                 <div
@@ -237,14 +224,14 @@
                   for="id_password2"
                   class="floating-label absolute z-10 left-11 text-sm text-[#999895] pointer-events-none transition-all duration-200 ease-out origin-left"
                 >
-                  Confirm Password
+                  Ulangi kata sandi
                 </label>
 
                 <button
                   type="button"
                   class="toggle-password absolute right-3.5 w-5 h-5 text-[#999895] hover:text-[#475c3b] focus:outline-none"
                   data-target="id_password2"
-                  aria-label="Show password"
+                  aria-label="Tampilkan kata sandi"
                 >
                   <span
                     class="eye-icon absolute inset-0 flex items-center justify-center transition-all duration-200 ease-in-out opacity-100 scale-100"
@@ -265,21 +252,19 @@
               {% endif %}
             </div>
 
-            <!-- Submit Button -->
-            {% component "button" text="Create Account" type="submit"
+            {% component "button" text="Buat akun" type="submit"
             variant="secondary" size="large" full_width=True
             icon_right="arrow-right" class="w-full mt-2" %} {% endcomponent %}
           </form>
 
-          <!-- Navigation Switch to Login Page -->
           <div class="mt-8 pt-6 border-t border-[#e6e4df] text-center">
             <p class="text-sm text-[#737270]">
-              Already have an account?
+              Sudah punya akun?
               <a
                 href="{% url 'accounts:login' %}"
                 class="inline-flex items-center gap-1 font-semibold text-[#475c3b] hover:text-[#212b1c] transition-all group ml-1"
               >
-                <span>Log in</span>
+                <span>Masuk</span>
                 <span
                   >{% lucide "chevron-right" class="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" %}</span
                 >
@@ -289,11 +274,9 @@
         </div>
       </section>
 
-      <!-- RIGHT SIDE: Decorative Visual Panel (Desktop 5/12 cols ~42%, Mirrored on Right) -->
       <section
         class="lg:col-span-5 bg-gradient-to-bl from-[#f2f6e9] via-[#e5edd2] to-[#f7f9f0] p-8 lg:p-12 flex flex-col justify-between relative overflow-hidden border-b lg:border-b-0 lg:border-l border-[#e6e4df] order-1 lg:order-2"
       >
-        <!-- Abstract Background Decorative Blobs & Leaves -->
         <div
           class="absolute -top-12 -right-12 w-48 h-48 bg-[#fbedf0] rounded-full blur-2xl opacity-60 pointer-events-none"
         ></div>
@@ -301,7 +284,6 @@
           class="absolute -bottom-16 -left-16 w-64 h-64 bg-[#aac46d] rounded-full blur-3xl opacity-30 pointer-events-none"
         ></div>
 
-        <!-- Brand Header Mobile/Desktop -->
         <div class="relative z-10 flex items-center gap-3">
           <div
             class="w-20 h-20 rounded-xl bg-none text-[#fffffe] flex items-center justify-center shadow-xs"
@@ -316,14 +298,12 @@
           >
         </div>
 
-        <!-- Central Welcoming Visual -->
         <div
           class="relative z-10 my-8 lg:my-0 flex flex-col items-center justify-center text-center"
         >
           <div
             class="relative w-48 h-48 sm:w-56 sm:h-56 flex items-center justify-center mb-6"
           >
-            <!-- Background Organic Shape -->
             <svg
               class="absolute inset-0 w-full h-full text-[#aac46d]/40 animate-float-reverse"
               viewBox="0 0 200 200"
@@ -335,7 +315,6 @@
               />
             </svg>
 
-            <!-- Secondary Soft Pink Shape -->
             <svg
               class="absolute inset-2 w-11/12 h-11/12 text-[#f3c5cf]/50 animate-float"
               viewBox="0 0 200 200"
@@ -347,9 +326,7 @@
               />
             </svg>
 
-            <!-- Welcoming User Plus Illustration -->
 
-            <!-- Small Decorative Dots -->
             <div
               class="absolute top-4 left-4 w-2 h-2 rounded-full bg-[#809352]"
             ></div>
@@ -361,24 +338,22 @@
           <p
             class="text-xs uppercase tracking-widest text-[#5f7a4f] font-semibold mb-1"
           >
-            Join the Community
+            Gabung komunitas
           </p>
           <p class="text-sm text-[#475c3b] max-w-xs leading-relaxed">
-            Begin your journey with thousands of others making deliberate,
-            sustainable choices.
+            Mulai perjalananmu bersama ribuan orang yang memilih hidup lebih
+            berkelanjutan.
           </p>
         </div>
 
-        <!-- Footer micro-copy -->
         <div
           class="relative z-10 text-center lg:text-left text-xs text-[#999895]"
         >
-          &copy; SELARAS. Mindful living choices.
+          &copy; SELARAS. Hidup selaras dengan bumi.
         </div>
       </section>
     </main>
 
-    <!-- Minimalistic Vanilla JavaScript -->
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         // Password Visibility Toggle for both password input fields
@@ -415,7 +390,7 @@
 
               this.setAttribute(
                 "aria-label",
-                isPassword ? "Hide password" : "Show password",
+                isPassword ? "Sembunyikan kata sandi" : "Tampilkan kata sandi",
               );
             }
           });

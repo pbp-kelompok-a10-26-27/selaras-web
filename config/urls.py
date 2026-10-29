@@ -36,6 +36,7 @@ urlpatterns = [
     path("api/v1/", include("apps.feeds.api_urls")),
     path("donations/", include("apps.donations.urls")),
     path("helpdesk/", include("apps.helpdesk.urls")),
+    path("notifications/", include("apps.notifications.urls")),
     path("design-system/", design_system, name="design_system"),
     # Not "admin/": Django's admin above already owns that prefix and 404s any path
     # it doesn't know

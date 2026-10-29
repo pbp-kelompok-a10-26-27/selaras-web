@@ -1,0 +1,29 @@
+{% load component_tags lucide %}
+{% comment %}
+Satu modal konfirmasi untuk semua aksi di halaman. Tombol pemicunya membawa:
+data-confirm-action (URL POST), data-confirm-title, data-confirm-body,
+data-confirm-label, data-confirm-tone ("danger"/"primary"),
+data-confirm-fields (JSON input tersembunyi), dan opsional data-confirm-note
+("reason" atau "review_note"), data-confirm-note-label, data-confirm-note-required.
+Diatur oleh static/js/dashboard/admin_list.js.
+{% endcomment %}
+{% component "modal" id="adminConfirmModal" title="Yakin?" size="sm" %}
+  {% fill "content" %}
+  <p id="adminConfirmBody" class="font-sans text-sm text-neutral-900"></p>
+  <div id="adminConfirmNoteWrap" class="mt-4" hidden>
+    <label for="adminConfirmNote" id="adminConfirmNoteLabel" class="mb-1.5 block font-sans text-sm font-semibold text-foreground">Alasan</label>
+    <textarea id="adminConfirmNote" form="adminConfirmForm" rows="3" maxlength="200" class="w-full rounded-xl border border-neutral-400 bg-neutral-50 px-3 py-2 font-sans text-sm text-foreground outline-none transition-colors placeholder:text-neutral-700 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/30"></textarea>
+    <p id="adminConfirmNoteHint" class="mt-1 font-sans text-xs text-neutral-800">Opsional. Penulis akan menerima alasan ini lewat notifikasi.</p>
+  </div>
+  {% endfill %}
+  {% fill "footer" %}
+  <form id="adminConfirmForm" method="post" action="" class="flex w-full items-center justify-end gap-2">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+    <span id="adminConfirmFields"></span>
+    {% component "button" text="Batal" variant="neutral" type="button" attrs="data-modal-close data-modal-autofocus" / %}
+    <span id="adminConfirmDanger">{% component "button" text="Hapus" variant="danger" type="submit" icon_left="trash-2" attrs='data-confirm-submit' / %}</span>
+    <span id="adminConfirmPrimary" hidden>{% component "button" text="Lanjutkan" variant="primary" type="submit" icon_left="check" attrs='data-confirm-submit' / %}</span>
+  </form>
+  {% endfill %}
+{% endcomponent %}

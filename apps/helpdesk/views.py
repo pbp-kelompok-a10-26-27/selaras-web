@@ -29,14 +29,14 @@ PRIORITY_ICONS = {
 # One dropdown per field, so filters combine with AND (e.g. Closed + High).
 # An empty value means "no filter" for that field.
 STATUS_FILTER_OPTIONS = {
-    "All statuses": ["", "layers"],
+    "Semua status": ["", "layers"],
     **{
         str(label): [value, STATUS_ICONS[value]]
         for value, label in Ticket.Status.choices
     },
 }
 PRIORITY_FILTER_OPTIONS = {
-    "All priorities": ["", "layers"],
+    "Semua prioritas": ["", "layers"],
     **{
         str(label): [value, PRIORITY_ICONS[value]]
         for value, label in Ticket.Priority.choices
@@ -50,9 +50,9 @@ PRIORITY_ICON_COLORS = {
     Ticket.Priority.LOW: "text-primary-700",
 }
 PRIORITY_HINTS = {
-    Ticket.Priority.LOW: "Minor issue, no rush",
-    Ticket.Priority.NORMAL: "Something isn't working",
-    Ticket.Priority.HIGH: "Blocking or urgent",
+    Ticket.Priority.LOW: "Masalah kecil, nggak buru-buru",
+    Ticket.Priority.NORMAL: "Ada yang nggak berfungsi",
+    Ticket.Priority.HIGH: "Menghambat atau mendesak",
 }
 PRIORITY_FORM_OPTIONS = [
     (
@@ -66,15 +66,15 @@ PRIORITY_FORM_OPTIONS = [
 ]
 
 SORT_OPTIONS = {
-    "-created_at": ("Latest", "calendar-arrow-down", ("-created_at",)),
-    "created_at": ("Oldest", "calendar-arrow-up", ("created_at",)),
+    "-created_at": ("Terbaru", "calendar-arrow-down", ("-created_at",)),
+    "created_at": ("Terlama", "calendar-arrow-up", ("created_at",)),
     "-priority": (
-        "Priority Descending",
+        "Prioritas tertinggi",
         "arrow-down-wide-narrow",
         ("-priority_rank", "-created_at"),
     ),
     "priority": (
-        "Priority Ascending",
+        "Prioritas terendah",
         "arrow-up-narrow-wide",
         ("priority_rank", "-created_at"),
     ),
@@ -165,11 +165,8 @@ def ticket_detail(request, ticket_id):
 
     ticket = get_object_or_404(Ticket, id=ticket_id)
 
-    # Ensure that the user has permission to view this ticket
     if not request.user.is_admin and ticket.requester != request.user:
-        return HttpResponse(
-            "You do not have permission to view this ticket.", status=403
-        )
+        return HttpResponse("Kamu tidak punya akses ke tiket ini.", status=403)
 
     messages = ticket.messages.all()
 
@@ -219,10 +216,9 @@ def ticket_message_create(request, ticket_id):
 
     ticket = get_object_or_404(Ticket, id=ticket_id)
 
-    # Ensure that the user has permission to add a message to this ticket
     if not can_post_message(request.user, ticket):
         return HttpResponse(
-            "You do not have permission to add a message to this ticket.", status=403
+            "Kamu tidak bisa menambahkan pesan di tiket ini.", status=403
         )
 
     form = TicketMessageForm(request.POST)
@@ -247,11 +243,8 @@ def ticket_update(request, ticket_id):
 
     ticket = get_object_or_404(Ticket, id=ticket_id)
 
-    # Ensure that the user has permission to update this ticket
     if not request.user.is_admin and ticket.requester != request.user:
-        return HttpResponse(
-            "You do not have permission to update this ticket.", status=403
-        )
+        return HttpResponse("Kamu tidak bisa memperbarui tiket ini.", status=403)
 
     form = AgentUpdateTicketForm(request.POST or None, instance=ticket)
 
@@ -271,11 +264,8 @@ def ticket_delete(request, ticket_id):
 
     ticket = get_object_or_404(Ticket, id=ticket_id)
 
-    # Ensure that the user has permission to delete this ticket
     if not request.user.is_admin and ticket.requester != request.user:
-        return HttpResponse(
-            "You do not have permission to delete this ticket.", status=403
-        )
+        return HttpResponse("Kamu tidak bisa menghapus tiket ini.", status=403)
 
     if request.method == "POST":
         ticket.delete()
@@ -286,7 +276,6 @@ def ticket_delete(request, ticket_id):
     return render(request, "helpdesk/ticket_confirm_delete.html", {"ticket": ticket})
 
 
-# Helper function to get ticket statistics for the current user
 def get_ticket_stats(tickets):
 
     counts = tickets.aggregate(
@@ -300,32 +289,41 @@ def get_ticket_stats(tickets):
     )
 
     return [
-        {"key": "open", "label": "Open", "value": counts["open"], "icon": "circle-dot"},
+        {
+            "key": "open",
+            "label": "Terbuka",
+            "value": counts["open"],
+            "icon": "circle-dot",
+        },
         {
             "key": "in_progress",
-            "label": "In Progress",
+            "label": "Diproses",
             "value": counts["in_progress"],
             "icon": "loader",
         },
-        {"key": "closed", "label": "Closed", "value": counts["closed"], "icon": "lock"},
+        {
+            "key": "closed",
+            "label": "Ditutup",
+            "value": counts["closed"],
+            "icon": "lock",
+        },
         {
             "key": "resolved",
-            "label": "Resolved",
+            "label": "Selesai",
             "value": counts["resolved"],
             "icon": "circle-check",
         },
-        {"key": "low", "label": "Low", "value": counts["low"], "icon": "arrow-down"},
+        {"key": "low", "label": "Rendah", "value": counts["low"], "icon": "arrow-down"},
         {
             "key": "normal",
-            "label": "Normal",
+            "label": "Sedang",
             "value": counts["normal"],
             "icon": "equal",
         },
-        {"key": "high", "label": "High", "value": counts["high"], "icon": "arrow-up"},
+        {"key": "high", "label": "Tinggi", "value": counts["high"], "icon": "arrow-up"},
     ]
 
 
-# Helper functions to get ticket as single source of truth
 def get_tickets(user):
 
     if user.is_admin:
@@ -389,8 +387,7 @@ def paginate(queryset, page_number, per_page=TICKETS_PER_PAGE):
     }
 
 
-# Helper function to serialize a ticket for the ticket cards (list + create API).
-# Expects `messages_count` to be annotated (or set) on the ticket.
+# Data kartu tiket (list + create API). Butuh `messages_count` di tiket.
 def serialize_ticket_summary(ticket):
     return {
         "id": str(ticket.id),
@@ -420,7 +417,6 @@ def serialize_attachment(attachment):
     }
 
 
-# Helper function to serialize the requester / assignee of a ticket
 def serialize_ticket_user(user):
 
     if user is None:
@@ -464,7 +460,7 @@ def serialize_reply_preview(message):
         "id": message.id,
         "author_name": (message.author.get_full_name() or message.author.username)
         if message.author
-        else "Deleted user",
+        else "Pengguna terhapus",
         "is_admin_response": message.is_admin_response,
         "excerpt": message.message[:160],
     }
@@ -478,8 +474,7 @@ def create_ticket_message(request, ticket):
         return JsonResponse(
             {
                 "error": (
-                    "Only the requester and the assigned coordinator can reply to "
-                    "this ticket."
+                    "Hanya pengirim dan koordinator tiket yang bisa membalas tiket ini."
                 )
             },
             status=403,
@@ -487,7 +482,7 @@ def create_ticket_message(request, ticket):
 
     if not can_reply_to_ticket(ticket):
         return JsonResponse(
-            {"error": "This ticket is closed and no longer accepts replies."},
+            {"error": "Tiket ini sudah ditutup dan tidak menerima balasan."},
             status=409,
         )
 
@@ -495,11 +490,11 @@ def create_ticket_message(request, ticket):
     text = request.POST.get("message", "").strip()
 
     if not form.is_valid() or not text:
-        return JsonResponse({"error": "Your reply can't be empty."}, status=400)
+        return JsonResponse({"error": "Balasan tidak boleh kosong."}, status=400)
 
     if len(text) > MESSAGE_MAX_LENGTH:
         return JsonResponse(
-            {"error": f"Replies are limited to {MESSAGE_MAX_LENGTH} characters."},
+            {"error": f"Balasan maksimal {MESSAGE_MAX_LENGTH} karakter."},
             status=400,
         )
 
@@ -516,7 +511,7 @@ def create_ticket_message(request, ticket):
         )
         if reply_to is None:
             return JsonResponse(
-                {"error": "The message you're replying to no longer exists."},
+                {"error": "Pesan yang kamu balas sudah tidak ada."},
                 status=400,
             )
 
@@ -554,7 +549,7 @@ def ticket_detail_api(request: HttpRequest, ticket_id):
 
     if not can_view_ticket(request.user, ticket):
         return JsonResponse(
-            {"error": "You do not have permission to view this ticket."}, status=403
+            {"error": "Kamu tidak punya akses ke tiket ini."}, status=403
         )
 
     messages = ticket.messages.select_related("author", "reply_to__author")
@@ -600,7 +595,7 @@ def ticket_message_api(request: HttpRequest, ticket_id):
 
     if not can_view_ticket(request.user, ticket):
         return JsonResponse(
-            {"error": "You do not have permission to reply to this ticket."}, status=403
+            {"error": "Kamu tidak bisa membalas tiket ini."}, status=403
         )
 
     return create_ticket_message(request, ticket)
@@ -623,7 +618,7 @@ def ticket_create_api(request: HttpRequest):
     if len(form.cleaned_data.get("description", "")) > TICKET_DESCRIPTION_MAX_LENGTH:
         form.add_error(
             "description",
-            f"Keep the description under {TICKET_DESCRIPTION_MAX_LENGTH} characters.",
+            f"Deskripsi maksimal {TICKET_DESCRIPTION_MAX_LENGTH} karakter.",
         )
 
     if not form.is_valid():

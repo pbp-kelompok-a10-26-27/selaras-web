@@ -46,20 +46,19 @@ class PublicChallengePageTests(TestCase):
         cls.ended = make_challenge("Old Cleanup", start=-20, end=-10)
         cls.draft = make_challenge("Secret Draft", published=False)
 
-    def test_list_extends_base_and_is_english(self):
+    def test_list_extends_base_and_is_indonesian(self):
         response = self.client.get(reverse("challenges:list"))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, '<html lang="en">')
+        self.assertContains(response, '<html lang="id">')
         self.assertContains(response, "Plastic Free Week")
-        self.assertContains(response, "Challenges")
-        self.assertNotContains(response, "Program Tantangan")
-        self.assertNotContains(response, "Tantangan Lingkungan")
+        self.assertContains(response, "Bangun kebiasaan ramah lingkungan")
+        self.assertNotContains(response, "Build eco-friendly habits")
         self.assertNotContains(response, "Secret Draft")
 
     def test_list_shows_result_count(self):
         response = self.client.get(reverse("challenges:list"))
         self.assertEqual(response.context["result_count"], 3)
-        self.assertContains(response, "3 challenges")
+        self.assertContains(response, "3 challenge")
 
     def test_status_filters(self):
         url = reverse("challenges:list")
@@ -95,14 +94,14 @@ class PublicChallengePageTests(TestCase):
 
     def test_empty_state_has_reset_button(self):
         response = self.client.get(reverse("challenges:list"), {"search": "zzz"})
-        self.assertContains(response, "No challenges found")
+        self.assertContains(response, "Challenge nggak ditemukan")
         self.assertContains(response, "btn-reset-filters")
 
     def test_detail_for_anonymous_prompts_login(self):
         response = self.client.get(
             reverse("challenges:detail", args=[self.active.slug])
         )
-        self.assertContains(response, "Log in to join")
+        self.assertContains(response, "Masuk untuk gabung")
 
     def test_draft_detail_is_hidden(self):
         response = self.client.get(reverse("challenges:detail", args=[self.draft.slug]))
@@ -124,7 +123,7 @@ class PublicChallengePageTests(TestCase):
         )
         self.assertEqual(ChallengeProgress.objects.count(), 1)
         self.assertContains(response, "Carried my own bottle")
-        self.assertContains(response, "was saved")
+        self.assertContains(response, "tersimpan")
 
         response = self.client.post(
             reverse("challenges:leave", args=[self.active.slug]),
@@ -132,7 +131,7 @@ class PublicChallengePageTests(TestCase):
             follow=True,
         )
         self.assertFalse(ChallengeParticipation.objects.exists())
-        self.assertContains(response, "You left")
+        self.assertContains(response, "Kamu keluar dari")
 
     def test_cannot_join_ended_challenge(self):
         self.client.force_login(self.user)
@@ -140,20 +139,19 @@ class PublicChallengePageTests(TestCase):
             reverse("challenges:join", args=[self.ended.slug]), follow=True
         )
         self.assertFalse(ChallengeParticipation.objects.exists())
-        self.assertContains(response, "has ended")
+        self.assertContains(response, "sudah berakhir")
 
     def test_history_requires_login(self):
         response = self.client.get(reverse("challenges:history"))
         self.assertEqual(response.status_code, 302)
 
-    def test_history_page_renders_in_english(self):
+    def test_history_page_renders_in_indonesian(self):
         ChallengeParticipation.objects.create(user=self.user, challenge=self.active)
         self.client.force_login(self.user)
         response = self.client.get(reverse("challenges:history"))
-        self.assertContains(response, "My challenges")
-        self.assertContains(response, "In progress")
-        self.assertNotContains(response, "Riwayat")
-        self.assertNotContains(response, "Tantangan Saya")
+        self.assertContains(response, "Challenge saya")
+        self.assertContains(response, "Berjalan")
+        self.assertNotContains(response, "My challenges")
 
     def test_old_admin_routes_redirect_to_dashboard(self):
         admin = User.objects.create_user(
@@ -175,8 +173,8 @@ class PublicChallengePageTests(TestCase):
         )
         self.client.force_login(admin)
         response = self.client.get(reverse("challenges:list"))
-        self.assertContains(response, "Manage challenges")
+        self.assertContains(response, "Kelola challenge")
         response = self.client.get(
             reverse("challenges:detail", args=[self.active.slug])
         )
-        self.assertContains(response, "Edit in dashboard")
+        self.assertContains(response, "Edit di dashboard")

@@ -1,0 +1,23 @@
+<span
+  class="relative inline-flex shrink-0 select-none items-center justify-center overflow-hidden rounded-full font-sans font-semibold
+
+    {% if size == 'xs' %}h-6 w-6 text-[0.625rem]
+    {% elif size == 'sm' %}h-8 w-8 text-xs
+    {% elif size == 'lg' %}h-12 w-12 text-base
+    {% elif size == 'xl' %}h-16 w-16 text-lg
+    {% else %}h-10 w-10 text-sm{% endif %}
+
+    {% if src %}bg-neutral-400
+    {% elif tone == 'secondary' %}bg-secondary-200 text-secondary-900
+    {% elif tone == 'tertiary' %}bg-tertiary-200 text-tertiary-800
+    {% else %}bg-primary-200 text-secondary-800{% endif %}
+
+    {{ class_ }}"
+  data-avatar
+>
+  {% if src %}
+    <img src="{{ src }}" alt="" loading="lazy" class="h-full w-full object-cover" />
+  {% else %}
+    <span aria-hidden="true">{{ initials }}</span>
+  {% endif %}
+</span>

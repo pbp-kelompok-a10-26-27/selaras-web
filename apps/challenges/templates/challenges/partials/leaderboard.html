@@ -1,0 +1,28 @@
+{% load component_tags lucide ui_extras %}
+{# Peringkat dalam satu challenge, hanya untuk peserta dan admin #}
+<section class="rounded-2xl border border-neutral-400 bg-neutral-50 p-5 sm:p-8" aria-labelledby="leaderboardTitle" id="leaderboard">
+  <div class="mb-1 flex flex-wrap items-center justify-between gap-2">
+    <h2 id="leaderboardTitle" class="flex items-center gap-2 font-display text-h5 text-foreground">
+      <span class="text-secondary-500">{% lucide "trophy" class="w-5 h-5" %}</span>
+      Papan peringkat
+    </h2>
+    <span class="font-sans text-b4 text-neutral-800">{{ ranked_total }} peserta</span>
+  </div>
+  <p class="mb-5 font-sans text-b4 text-neutral-800">Peringkat ini cuma bisa dilihat peserta challenge. Semua mulai dari nol saat gabung.</p>
+
+  {% if ranking %}
+  <ol class="space-y-1.5">
+    {% for row in ranking %}
+    {% include "challenges/partials/leaderboard_row.html" %}
+    {% endfor %}
+  </ol>
+  {% if my_rank %}
+  <div class="my-2 flex items-center gap-2 px-3 font-sans text-xs text-neutral-700" aria-hidden="true"><span class="h-px flex-1 bg-neutral-400"></span>···<span class="h-px flex-1 bg-neutral-400"></span></div>
+  <ol>
+    {% include "challenges/partials/leaderboard_row.html" with row=my_rank %}
+  </ol>
+  {% endif %}
+  {% else %}
+  <p class="rounded-xl border border-dashed border-neutral-500 p-5 text-center font-sans text-sm text-neutral-900">Belum ada yang gabung.</p>
+  {% endif %}
+</section>

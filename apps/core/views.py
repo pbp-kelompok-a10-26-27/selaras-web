@@ -78,9 +78,11 @@ def design_system(request):
 
 def home(request):
     """Landing page: the growth rings, filled with live numbers from each app."""
-    from .landing import get_landing_context
+    from .landing import get_community_goals, get_landing_context
 
-    return render(request, "landing/home.html", get_landing_context())
+    context = get_landing_context()
+    context["community_goals"] = get_community_goals(request.user)
+    return render(request, "landing/home.html", context)
 
 
 # Wired up as handler404 / handler403 in config/urls.py. Django only calls these when

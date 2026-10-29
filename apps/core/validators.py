@@ -14,7 +14,7 @@ IMAGE_SIGNATURES = (
     (b"GIF89a", "gif"),
 )
 
-IMAGE_TYPES_LABEL = "JPG, PNG, WebP or GIF"
+IMAGE_TYPES_LABEL = "JPG, PNG, WebP, atau GIF"
 IMAGE_URL_MAX_LENGTH = 500
 
 
@@ -35,14 +35,14 @@ def clean_image_upload(file, max_bytes: int):
 
     if file.size > max_bytes:
         raise ValidationError(
-            f"{file.name} is too large. The limit is {max_bytes // (1024 * 1024)} MB."
+            f"{file.name} terlalu besar. Maksimal {max_bytes // (1024 * 1024)} MB."
         )
 
     file.seek(0)
     extension = detect_image_extension(file.read(12))
     file.seek(0)
     if extension is None:
-        raise ValidationError(f"{file.name} isn't a {IMAGE_TYPES_LABEL} image.")
+        raise ValidationError(f"{file.name} bukan gambar {IMAGE_TYPES_LABEL}.")
 
     file.name = f"{uuid.uuid4().hex}.{extension}"
     return file
@@ -54,11 +54,9 @@ def clean_image_url(value: str) -> str:
 
     value = value.strip()
     if len(value) > IMAGE_URL_MAX_LENGTH:
-        raise ValidationError(
-            f"Links are limited to {IMAGE_URL_MAX_LENGTH} characters."
-        )
+        raise ValidationError(f"Tautan maksimal {IMAGE_URL_MAX_LENGTH} karakter.")
 
     parts = urlsplit(value)
     if parts.scheme not in ("http", "https") or not parts.netloc or " " in value:
-        raise ValidationError(f"“{value[:60]}” isn't a valid http(s) link.")
+        raise ValidationError(f"“{value[:60]}” bukan tautan http(s) yang valid.")
     return value

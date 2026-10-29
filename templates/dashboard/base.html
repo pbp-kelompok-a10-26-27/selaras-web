@@ -1,6 +1,6 @@
 {% load static component_tags %}
 <!doctype html>
-<html lang="en">
+<html lang="id">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -17,7 +17,6 @@
       } catch (e) {}
     </script>
 
-    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -33,7 +32,7 @@
     <a
       href="#dashboard-main"
       class="sr-only z-[70] rounded-xl bg-secondary-700 px-4 py-2 font-sans text-sm font-semibold text-neutral-50 focus:not-sr-only focus:fixed focus:top-4 focus:left-4"
-    >Skip to content</a>
+    >Langsung ke konten</a>
 
     {% component "sidebar" sections=sidebar_sections home_url=dashboard_home_url logout_url=logout_url / %}
 
@@ -45,7 +44,7 @@
     </div>
 
     <script type="module" src="{% static 'js/main.js' %}" defer></script>
-    <script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+    <script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js" integrity="sha384-hJnF5AwidE18GSWTAGHv3ByzzvfNZ1Tcx5y1UUV3WkauuMCEzBJBMSwSt/PUPXnM" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     {% block scripts %}{% endblock %}
   </body>
 </html>

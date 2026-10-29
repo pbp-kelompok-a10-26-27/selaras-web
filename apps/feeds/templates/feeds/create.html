@@ -1,115 +1,46 @@
 {% extends "base.html" %}
+{% load static component_tags lucide %}
 
-{% block title %}Buat Postingan | SELARAS{% endblock %}
+{% block title %}Buat Postingan · SELARAS{% endblock %}
 
 {% block content %}
-<style>
-  .feed-image-input {
-    display: block;
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #cbd5e1;
-    border-radius: 0.75rem;
-    background: #f8fafc;
-    color: #475569;
-  }
+<div class="relative isolate">
+  <div class="page-aura" aria-hidden="true"></div>
 
-  .feed-image-input::file-selector-button {
-    margin-right: 1rem;
-    padding: 0.5rem 1rem;
-    border: 0;
-    border-radius: 0.5rem;
-    background: #047857;
-    color: white;
-    font-weight: 600;
-    cursor: pointer;
-  }
+  <main id="feedPage" class="mx-auto w-full max-w-3xl px-4 pb-24 pt-36 sm:px-6 sm:pt-40">
+    <nav aria-label="Kembali" class="mb-6">
+      {% url 'feeds:list' as list_url %}
+      {% component "button" text="Kembali ke feed" variant="neutral-ghost" size="sm" icon_left="arrow-left" href=list_url / %}
+    </nav>
 
-  .feed-image-input::file-selector-button:hover {
-    background: #065f46;
-  }
+    <header class="mb-6">
+      {% component "badge" text="Postingan baru" variant="primary" icon="pencil-line" / %}
+      <h1 class="mt-3 font-display text-h3 leading-tight text-foreground sm:text-h2">Buat postingan</h1>
+      <p class="mt-2 max-w-xl font-sans text-b3 text-neutral-900">
+        Bagikan progres atau kegiatan ramah lingkunganmu. Hubungkan dengan challenge yang sedang kamu ikuti agar lebih bermakna.
+      </p>
+    </header>
 
-  .feed-image-input:focus-visible {
-    outline: 2px solid #047857;
-    outline-offset: 2px;
-  }
-
-  .feed-submit-button {
-    display: block;
-    width: 100%;
-    min-height: 52px;
-    margin-top: 1.5rem;
-    padding: 0.875rem 1.5rem;
-    border: 2px solid #047857;
-    border-radius: 0.75rem;
-    background: #047857;
-    color: #fff;
-    font-size: 1rem;
-    font-weight: 700;
-    cursor: pointer;
-    box-shadow: 0 4px 10px rgb(4 120 87 / 20%);
-  }
-
-  .feed-submit-button:hover {
-    border-color: #065f46;
-    background: #065f46;
-  }
-
-  .feed-submit-button:focus-visible {
-    outline: 3px solid #6ee7b7;
-    outline-offset: 3px;
-  }
-</style>
-<main class="mx-auto max-w-3xl px-4 py-10">
-  <a href="{% url 'feeds:list' %}" class="mb-5 inline-block text-emerald-800 underline">
-    Kembali ke feed
-  </a>
-  <form
-    action="{% url 'feeds:create' %}"
-    method="post"
-    enctype="multipart/form-data"
-    class="space-y-4 rounded-2xl bg-white p-6 shadow-sm"
-  >
-    {% csrf_token %}
-    <h1 class="text-2xl font-semibold">Buat postingan</h1>
-    {% if form.non_field_errors %}
-      <div role="alert" class="rounded-lg bg-red-50 p-3 text-red-700">
-        {{ form.non_field_errors }}
-      </div>
-    {% endif %}
-    <div>
-      <label for="{{ form.challenge.id_for_label }}" class="mb-1 block font-medium">
-        Challenge (opsional)
-      </label>
-      {{ form.challenge }}
-      {% for error in form.challenge.errors %}
-        <p role="alert" class="mt-1 text-sm text-red-700">{{ error }}</p>
-      {% endfor %}
-    </div>
-    <div>
-      <label for="{{ form.content.id_for_label }}" class="mb-1 block font-medium">
-        Cerita progres
-      </label>
-      {{ form.content }}
-      {% for error in form.content.errors %}
-        <p role="alert" class="mt-1 text-sm text-red-700">{{ error }}</p>
-      {% endfor %}
-    </div>
-    <div>
-      <label for="{{ form.image.id_for_label }}" class="mb-1 block font-medium">
-        Foto (opsional, JPEG/PNG/WebP, maksimal 10 MB)
-      </label>
-      {{ form.image }}
-      {% for error in form.image.errors %}
-        <p role="alert" class="mt-1 text-sm text-red-700">{{ error }}</p>
-      {% endfor %}
-    </div>
-    <button
-      type="submit"
-      class="feed-submit-button"
+    <form
+      action="{% url 'feeds:create' %}"
+      method="post"
+      enctype="multipart/form-data"
+      class="space-y-6 rounded-2xl border border-neutral-400 bg-neutral-50 p-5 sm:p-8"
+      data-submit-loading
     >
-      Submit Postingan
-    </button>
-  </form>
-</main>
+      {% csrf_token %}
+      {% include "feeds/partials/composer_fields.html" %}
+
+      <div class="flex flex-col-reverse gap-3 border-t border-neutral-400/60 pt-5 sm:flex-row sm:items-center sm:justify-end">
+        <p class="font-sans text-b4 text-neutral-800 sm:mr-auto">Ctrl + Enter untuk mengirim</p>
+        {% component "button" href=list_url text="Batal" variant="neutral" size="lg" / %}
+        {% component "button" type="submit" text="Bagikan postingan" variant="secondary" size="lg" icon_left="send" class_="feed-submit-button" / %}
+      </div>
+    </form>
+  </main>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script type="module" src="{% static 'js/feeds/feed.js' %}"></script>
 {% endblock %}

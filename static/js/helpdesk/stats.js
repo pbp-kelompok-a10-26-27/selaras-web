@@ -33,17 +33,17 @@ async function fetchJson(url, resourceName, { signal } = {}) {
   });
 
   if (!response.ok)
-    throw new Error(`Failed to fetch ${resourceName} (${response.status})`);
+    throw new Error(`Gagal memuat ${resourceName} (${response.status})`);
 
   const contentType = response.headers.get("content-type") || "";
   if (!contentType.includes("application/json"))
-    throw new Error("Server did not return JSON. Your session may be expired");
+    throw new Error("Server tidak merespons dengan benar. Sesimu mungkin sudah habis.");
 
   return response.json();
 }
 
 async function fetchTicketStats() {
-  const data = await fetchJson(STATS_API_URL, "ticket statistics");
+  const data = await fetchJson(STATS_API_URL, "statistik tiket");
   return data.stats ?? [];
 }
 
@@ -108,7 +108,7 @@ function createTicketsCardElement(ticket, index = 0) {
   const ticketDescription = el(
     "p",
     "line-clamp-3 font-sans text-sm leading-relaxed text-neutral-900",
-    ticket.description || "No description provided.",
+    ticket.description || "Tanpa deskripsi.",
   );
   ticketBody.append(ticketTitle, ticketDescription);
 
@@ -118,8 +118,8 @@ function createTicketsCardElement(ticket, index = 0) {
     "flex flex-col gap-3 rounded-xl bg-neutral-300 p-3 @sm:flex-row @sm:items-center",
   );
   const ticketRequesterContainer = createPersonElement(ticket.requester, {
-    caption: "Requested by",
-    fallbackName: "Unknown user",
+    caption: "Dibuat oleh",
+    fallbackName: "Pengguna tidak dikenal",
     captionNode: createTimeElement(ticket.created_at),
   });
 
@@ -129,8 +129,8 @@ function createTicketsCardElement(ticket, index = 0) {
   );
 
   const ticketTaker = createPersonElement(ticket.assignee, {
-    caption: "Assigned to",
-    fallbackName: "Awaiting assignment",
+    caption: "Ditangani oleh",
+    fallbackName: "Menunggu koordinator",
     captionNode: ticket.assignee
       ? document.createTextNode(ticket.assignee.role)
       : null,
@@ -166,13 +166,13 @@ function createTicketsCardElement(ticket, index = 0) {
   const ticketLastUpdated = el("span", "inline-flex items-center gap-1.5 mt-3 mb-3");
   ticketLastUpdated.append(
     createIcon("clock", "w-4 h-4"),
-    createTimeElement(ticket.updated_at, "Updated "),
+    createTimeElement(ticket.updated_at, "Diperbarui "),
   );
   ticketMeta.append(ticketCommentsCount, ticketLastUpdated);
 
   const CTAButton = cloneTemplate("tpl-button-view-ticket");
   CTAButton.href = ticket.detail_url ?? "#";
-  CTAButton.setAttribute("aria-label", `View ticket: ${ticket.title}`);
+  CTAButton.setAttribute("aria-label", `Lihat tiket: ${ticket.title}`);
 
   ticketFooter.append(ticketMeta, CTAButton);
 
@@ -411,7 +411,7 @@ function createStatsErrorState() {
     el(
       "p",
       "font-sans text-sm text-foreground",
-      "We couldn't load your ticket statistics.",
+      "Statistik tiketmu gagal dimuat.",
     ),
   );
 
@@ -446,11 +446,11 @@ function renderTicketStats(stats) {
     "inline-flex items-baseline gap-1.5 rounded-full border border-neutral-400 bg-neutral-50 px-3 py-1 font-sans text-xs text-neutral-800",
   );
   const totalValue = el("strong", "text-sm font-bold tabular-nums text-foreground", "0");
-  totalBadge.append(totalValue, el("span", "", total === 1 ? "ticket in total" : "tickets in total"));
+  totalBadge.append(totalValue, el("span", "", "tiket total"));
   animateCount(totalValue, total);
 
   const statusHeader = createPanelHeader(
-    "Tickets by status",
+    "Tiket per status",
     "",
     totalBadge,
   );
@@ -470,7 +470,7 @@ function renderTicketStats(stats) {
   priorityPanel.setAttribute("aria-labelledby", "ticketPriorityStatsTitle");
 
   const priorityHeader = createPanelHeader(
-    "Tickets by priority",
+    "Tiket per prioritas",
     "",
   );
   priorityHeader.querySelector("h2").id = "ticketPriorityStatsTitle";
@@ -645,7 +645,7 @@ function renderActiveFilterChips(query) {
       createFilterChip({
         label,
         config: TICKET_STATUS_CONFIG[query.status] ?? TICKET_STATUS_CONFIG.open,
-        removeLabel: `Remove status filter: ${label}`,
+        removeLabel: `Hapus filter status: ${label}`,
         onRemove: () => resetDropdown(ticketStatusInput),
       }),
     );
@@ -658,7 +658,7 @@ function renderActiveFilterChips(query) {
         label: `${label} priority`,
         config:
           TICKET_PRIORITY_CONFIG[query.priority] ?? TICKET_PRIORITY_CONFIG.normal,
-        removeLabel: `Remove priority filter: ${label}`,
+        removeLabel: `Hapus filter prioritas: ${label}`,
         onRemove: () => resetDropdown(ticketPriorityInput),
       }),
     );
@@ -669,7 +669,7 @@ function renderActiveFilterChips(query) {
       createFilterChip({
         label: `“${query.search}”`,
         config: SEARCH_CHIP_CONFIG,
-        removeLabel: `Remove search: ${query.search}`,
+        removeLabel: `Hapus pencarian: ${query.search}`,
         onRemove: () => {
           ticketSearchInput.value = "";
         },
@@ -691,10 +691,9 @@ function renderActiveFilterChips(query) {
 function renderTicketsResultCount(pagination, totalCount, query) {
   if (!ticketsResultCount) return;
 
-  // "Showing 11–20 of 23 matching tickets" / "Showing 11–20 of 47 tickets"
-  ticketsResultCount.textContent = totalCount === 0
+    ticketsResultCount.textContent = totalCount === 0
     ? ""
-    : formatPageRange(pagination, hasActiveTicketFilters(query) ? "matching tickets" : "tickets");
+    : formatPageRange(pagination, hasActiveTicketFilters(query) ? "tiket yang cocok" : "tiket");
 }
 
 function renderTicketsPagination(pagination, query) {
@@ -703,7 +702,7 @@ function renderTicketsPagination(pagination, query) {
     createPagination({
       page: pagination.page,
       totalPages: pagination.total_pages,
-      label: "Ticket pages",
+      label: "Halaman tiket",
       hrefFor: (page) => {
         const queryString = buildTicketParams(query, page).toString();
         return queryString ? `${location.pathname}?${queryString}` : location.pathname;
@@ -733,8 +732,8 @@ function renderTickets(tickets, totalCount, query, pagination) {
     content = [
       createTicketsEmptyState({
         icon: "inbox",
-        title: "No tickets yet",
-        message: "When you file a complaint, bug or report, it will show up here.",
+        title: "Belum ada tiket",
+        message: "Keluhan, laporan bug, atau masukan yang kamu kirim akan muncul di sini.",
       }),
     ];
   } else {
@@ -742,8 +741,8 @@ function renderTickets(tickets, totalCount, query, pagination) {
     content = [
       createTicketsEmptyState({
         icon: "search-x",
-        title: "No tickets match these filters",
-        message: "Try a different search term or filter.",
+        title: "Nggak ada tiket yang cocok",
+        message: "Coba kata kunci atau filter lain.",
         action: createClearFiltersButton(),
       }),
     ];
@@ -789,7 +788,7 @@ async function loadTickets({ page = 1 } = {}) {
     console.error(error);
     window.showToast?.({
       type: "error",
-      title: "Couldn't load tickets",
+      title: "Tiket gagal dimuat",
       message: error.message,
     });
   } finally {
@@ -858,8 +857,8 @@ async function handleTicketCreated(event) {
   if (!ticketMatchesQuery(ticket, query)) {
     window.showToast?.({
       type: "info",
-      title: "Your new ticket is hidden",
-      message: "It doesn't match the current filters or search. Clear them to see it.",
+      title: "Tiket barumu tersembunyi",
+      message: "Tiketnya nggak cocok dengan filter atau pencarian saat ini. Hapus filternya untuk melihat.",
     });
     return;
   }

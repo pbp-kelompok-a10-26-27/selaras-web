@@ -97,8 +97,8 @@ class CampaignPageTests(TestCase):
         campaign = response.context["campaign"]
         self.assertEqual(campaign.approved_total, Decimal("40.00"))
         self.assertEqual(campaign.progress_percent, Decimal("40.0"))
-        self.assertContains(response, "Rp 40.00")
-        self.assertContains(response, "Rp 100.00")
+        self.assertContains(response, "Rp 40")
+        self.assertContains(response, "Rp 100")
 
     def test_progress_is_capped_but_actual_approved_total_is_preserved(self):
         self.add_donation(self.published, "125.50", Donation.Status.APPROVED)
@@ -110,7 +110,7 @@ class CampaignPageTests(TestCase):
         campaign = response.context["campaign"]
         self.assertEqual(campaign.approved_total, Decimal("125.50"))
         self.assertEqual(campaign.progress_percent, Decimal("100"))
-        self.assertContains(response, "Rp 125.50")
+        self.assertContains(response, "Rp 125,50")
         self.assertContains(response, 'aria-valuenow="100"')
 
     def test_unpublished_campaign_detail_is_not_public(self):

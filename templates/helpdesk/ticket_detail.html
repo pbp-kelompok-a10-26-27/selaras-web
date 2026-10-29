@@ -1,18 +1,17 @@
 {% extends 'base.html' %}
 {% load static lucide component_tags %}
-{% block title %}Ticket #{{ ticket.id|stringformat:"s"|slice:":8"|upper }} · Helpdesk{% endblock %}
+{% block title %}Ticket #{{ ticket.id|stringformat:"s"|slice:":8"|upper }} · Bantuan · SELARAS{% endblock %}
 
 {% block content %}
 <main class="mx-auto mt-28 flex min-h-screen w-full max-w-5xl flex-col gap-6 px-4 pb-24 sm:mt-32 sm:px-8">
-  <!-- Breadcrumb -->
-  <nav aria-label="Breadcrumb">
+  <nav aria-label="Navigasi">
     <ol class="flex flex-wrap items-center gap-1.5 font-sans text-sm">
       <li>
-        <a href="{% url 'helpdesk:ticket_list' %}" class="rounded-md px-1 py-0.5 text-neutral-800 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">Helpdesk</a>
+        <a href="{% url 'helpdesk:ticket_list' %}" class="rounded-md px-1 py-0.5 text-neutral-800 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">Bantuan</a>
       </li>
       <li aria-hidden="true" class="text-neutral-700">{% lucide "chevron-right" class="w-4 h-4" %}</li>
       <li>
-        <a href="{% url 'helpdesk:ticket_list' %}" class="rounded-md px-1 py-0.5 text-neutral-800 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">Tickets</a>
+        <a href="{% url 'helpdesk:ticket_list' %}" class="rounded-md px-1 py-0.5 text-neutral-800 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">Tiket</a>
       </li>
       <li aria-hidden="true" class="text-neutral-700">{% lucide "chevron-right" class="w-4 h-4" %}</li>
       <li>
@@ -21,7 +20,6 @@
     </ol>
   </nav>
 
-  <!-- Ticket card + conversation history (rendered by ticket_detail.js) -->
   <section
     class="flex w-full flex-col gap-8"
     id="ticketCardSection"
@@ -29,8 +27,6 @@
     aria-busy="true"
   ></section>
 
-  <!-- Reply composer: a real form, so replying still works without JS.
-       ticket_detail.js submits it in the background instead of reloading. -->
   <section aria-labelledby="ticketReplyTitle" id="ticketReplySection">
     {% if can_post %}
       {% url 'helpdesk:ticket_message_create' ticket.id as action_url %}
@@ -40,8 +36,8 @@
     <div class="flex items-start gap-3 rounded-2xl border border-neutral-400 bg-neutral-50 p-4 font-sans text-sm text-neutral-900 sm:p-5">
       {% lucide "eye" class="w-5 h-5 shrink-0 mt-0.5 text-secondary-500" %}
       <div>
-        <h2 id="ticketReplyTitle" class="font-semibold text-foreground">View only</h2>
-        <p>Only the requester and the assigned coordinator can reply here.</p>
+        <h2 id="ticketReplyTitle" class="font-semibold text-foreground">Hanya lihat</h2>
+        <p>Hanya pengirim dan koordinator tiket yang bisa membalas di sini.</p>
       </div>
     </div>
     {% endif %}

@@ -3,10 +3,13 @@ from decimal import Decimal
 from django.db import IntegrityError, transaction
 from django.db.models import DecimalField, Q, Sum, Value
 from django.db.models.functions import Coalesce
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.text import slugify
 
 from apps.core.permissions import is_admin
+from apps.core.templatetags.ui_extras import rupiah
+from apps.notifications.services import Kind, notify, notify_admins
 
 from .models import Campaign, Donation
 
@@ -88,14 +91,108 @@ def campaign_accepts_donations(campaign, now=None):
     return True
 
 
-def verify_pending_donation(donation_id, status, now=None):
-    """Atomically verify a pending donation, leaving completed records untouched."""
+DEFAULT_REJECTION_REASON = "Bukti transfer belum dapat kami verifikasi."
+
+
+def verify_pending_donation(donation_id, status, now=None, admin=None, reason=""):
+    """Atomically verify a pending donation, leaving completed records untouched.
+
+    Saved through the model (not a queryset update) so post_save listeners, such as
+    challenge tracking, see the approval.
+    """
     allowed_statuses = (Donation.Status.APPROVED, Donation.Status.REJECTED)
     if status not in allowed_statuses:
         raise ValueError("Verification status must be APPROVED or REJECTED.")
 
     now = now or timezone.now()
-    updated = Donation.objects.filter(
-        pk=donation_id, status=Donation.Status.PENDING
-    ).update(status=status, verified_at=now, updated_at=now)
-    return updated == 1
+    with transaction.atomic():
+        donation = (
+            Donation.objects.select_for_update()
+            .select_related("campaign", "donor")
+            .filter(pk=donation_id, status=Donation.Status.PENDING)
+            .first()
+        )
+        if donation is None:
+            return False
+        donation.status = status
+        donation.verified_at = now
+        donation.verified_by = admin
+        donation.rejection_reason = (
+            (reason.strip() or DEFAULT_REJECTION_REASON)[:300]
+            if status == Donation.Status.REJECTED
+            else ""
+        )
+        donation.save(
+            update_fields=(
+                "status",
+                "verified_at",
+                "verified_by",
+                "rejection_reason",
+                "updated_at",
+            )
+        )
+        transaction.on_commit(lambda: _notify_donor(donation))
+    return True
+
+
+def _notify_donor(donation):
+    url = reverse("donations:detail", args=(donation.pk,))
+    amount = f"Rp {rupiah(donation.amount)}"
+    if donation.status == Donation.Status.APPROVED:
+        notify(
+            donation.donor,
+            Kind.DONATION_APPROVED,
+            "Donasimu sudah diverifikasi",
+            f"{amount} untuk “{donation.campaign.title}” kini tercatat. Terima kasih!",
+            url=url,
+        )
+    else:
+        notify(
+            donation.donor,
+            Kind.DONATION_REJECTED,
+            "Donasimu belum dapat diverifikasi",
+            donation.rejection_reason,
+            url=url,
+        )
+
+
+def notify_new_donation(donation):
+    notify_admins(
+        Kind.DONATION_SUBMITTED,
+        "Donasi baru menunggu verifikasi",
+        f"Rp {rupiah(donation.amount)} untuk “{donation.campaign.title}”.",
+        url=reverse("donations:verify", args=(donation.pk,)),
+        actor=donation.donor,
+    )
+
+
+def recent_donors(campaign, limit=8):
+    """Latest approved donations for the campaign's donor wall."""
+    return (
+        Donation.objects.filter(campaign=campaign, status=Donation.Status.APPROVED)
+        .select_related("donor")
+        .order_by("-verified_at", "-created_at")[:limit]
+    )
+
+
+def campaign_stats(campaign):
+    approved = Donation.objects.filter(
+        campaign=campaign, status=Donation.Status.APPROVED
+    )
+    return {
+        "donor_count": approved.values("donor").distinct().count(),
+        "donation_count": approved.count(),
+    }
+
+
+def donor_impact(user):
+    """Totals for a donor's history page."""
+    donations = Donation.objects.filter(donor=user)
+    approved = donations.filter(status=Donation.Status.APPROVED)
+    return {
+        "approved_total": approved.aggregate(total=Sum("amount"))["total"]
+        or Decimal("0"),
+        "campaigns_supported": approved.values("campaign").distinct().count(),
+        "pending_count": donations.filter(status=Donation.Status.PENDING).count(),
+        "rejected_count": donations.filter(status=Donation.Status.REJECTED).count(),
+    }

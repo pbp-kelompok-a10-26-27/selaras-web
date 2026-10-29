@@ -1,73 +1,74 @@
 {% extends "dashboard/base.html" %}
 {% load static lucide component_tags %}
 
-{% block title %}Challenges{% endblock %}
+{% block title %}Challenge{% endblock %}
 
 {% block content %}
 <div class="flex flex-col gap-8" id="adminChallenges">
-  <!-- Header -->
   <header class="flex flex-col gap-3">
-    <nav aria-label="Breadcrumb">
+    <nav aria-label="Navigasi">
       <ol class="flex flex-wrap items-center gap-1.5 font-sans text-sm">
         <li><a href="{{ dashboard_home_url }}" class="rounded-md px-1 py-0.5 text-neutral-800 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">Dashboard</a></li>
         <li aria-hidden="true" class="text-neutral-700">{% lucide "chevron-right" class="w-4 h-4" %}</li>
-        <li><span aria-current="page" class="px-1 font-semibold text-primary-800">Challenges</span></li>
+        <li><span aria-current="page" class="px-1 font-semibold text-primary-800">Challenge</span></li>
       </ol>
     </nav>
     <div class="flex flex-wrap items-end justify-between gap-3">
       <div class="flex flex-col gap-1">
-        <h1 class="font-display text-h3 leading-tight text-foreground sm:text-h2">Challenges</h1>
-        <p class="max-w-2xl font-sans text-b3 text-neutral-900">Create challenges, watch participation and control what is published on SELARAS.</p>
+        <h1 class="font-display text-h3 leading-tight text-foreground sm:text-h2">Challenge</h1>
+        <p class="max-w-2xl font-sans text-b3 text-neutral-900">Buat challenge, pantau partisipasi, dan atur apa yang tampil di SELARAS.</p>
       </div>
       <div class="flex flex-wrap items-center gap-2">
         {% url 'challenges:list' as public_challenges_url %}
-        {% component "button" text="View public page" variant="neutral" size="sm" icon_left="external-link" href=public_challenges_url attrs='target="_blank" rel="noopener"' / %}
+        {% component "button" text="Lihat halaman publik" variant="neutral" size="sm" icon_left="external-link" href=public_challenges_url attrs='target="_blank" rel="noopener"' / %}
+        {% url 'dashboard:admin_goal_list' as goals_url %}
+        {% component "button" text="Target komunitas" variant="neutral" size="sm" icon_left="users-round" href=goals_url / %}
+        {% url 'dashboard:admin_badge_list' as badges_url %}
+        {% component "button" text="Lencana" variant="neutral" size="sm" icon_left="award" href=badges_url / %}
         {% url 'dashboard:admin_challenge_create' as create_url %}
-        {% component "button" text="New challenge" variant="primary" size="sm" icon_left="circle-plus" href=create_url / %}
+        {% component "button" text="Challenge baru" variant="primary" size="sm" icon_left="circle-plus" href=create_url / %}
       </div>
     </div>
   </header>
 
-  <!-- 1. Snapshot -->
-  <section aria-label="Challenge statistics">
+  <section aria-label="Statistik challenge">
     <dl class="grid grid-cols-2 gap-3 lg:grid-cols-4 sm:gap-4">
       <div class="flex items-center gap-4 rounded-2xl border border-neutral-400 bg-neutral-50 p-4 sm:p-5">
         <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-100 text-primary-700">{% lucide "trophy" class="w-5 h-5" %}</span>
         <div class="flex flex-col">
           <dt class="font-sans text-sm font-semibold text-neutral-900">Total</dt>
           <dd class="font-sans text-2xl font-bold tabular-nums text-foreground">{{ metrics.total }}</dd>
-          <dd class="font-sans text-xs text-neutral-800">challenges</dd>
+          <dd class="font-sans text-xs text-neutral-800">challenge</dd>
         </div>
       </div>
       <div class="flex items-center gap-4 rounded-2xl border border-neutral-400 bg-neutral-50 p-4 sm:p-5">
         <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-orange-100/50 bg-orange-100/15 text-orange-100">{% lucide "flame" class="w-5 h-5" %}</span>
         <div class="flex flex-col">
-          <dt class="font-sans text-sm font-semibold text-neutral-900">Active</dt>
+          <dt class="font-sans text-sm font-semibold text-neutral-900">Berjalan</dt>
           <dd class="font-sans text-2xl font-bold tabular-nums text-foreground">{{ metrics.active }}</dd>
-          <dd class="font-sans text-xs text-neutral-800">running today</dd>
+          <dd class="font-sans text-xs text-neutral-800">aktif hari ini</dd>
         </div>
       </div>
       <div class="flex items-center gap-4 rounded-2xl border border-neutral-400 bg-neutral-50 p-4 sm:p-5">
         <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-blue-100/40 bg-blue-100/10 text-blue-200">{% lucide "users" class="w-5 h-5" %}</span>
         <div class="flex flex-col">
-          <dt class="font-sans text-sm font-semibold text-neutral-900">Participants</dt>
+          <dt class="font-sans text-sm font-semibold text-neutral-900">Peserta</dt>
           <dd class="font-sans text-2xl font-bold tabular-nums text-foreground">{{ metrics.participants }}</dd>
-          <dd class="font-sans text-xs text-neutral-800">across all challenges</dd>
+          <dd class="font-sans text-xs text-neutral-800">dari semua challenge</dd>
         </div>
       </div>
       <div class="flex items-center gap-4 rounded-2xl border border-neutral-400 bg-neutral-50 p-4 sm:p-5">
         <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-neutral-300 text-neutral-900">{% lucide "file-pen" class="w-5 h-5" %}</span>
         <div class="flex flex-col">
-          <dt class="font-sans text-sm font-semibold text-neutral-900">Drafts</dt>
+          <dt class="font-sans text-sm font-semibold text-neutral-900">Draf</dt>
           <dd class="font-sans text-2xl font-bold tabular-nums text-foreground">{{ metrics.draft }}</dd>
-          <dd class="font-sans text-xs text-neutral-800">not published</dd>
+          <dd class="font-sans text-xs text-neutral-800">belum terbit</dd>
         </div>
       </div>
     </dl>
   </section>
 
-  <!-- 2. Search and filter -->
-  <section aria-label="Search and filter challenges" class="flex flex-col gap-4">
+  <section aria-label="Cari dan saring challenge" class="flex flex-col gap-4">
     <form
       id="adminChallengesFilter"
       method="GET"
@@ -75,21 +76,21 @@
       class="grid grid-cols-1 items-end gap-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]"
     >
       <search class="flex flex-col">
-        {% component "input" type="search" id="adminChallengesSearch" name="search" label="Search by title or description" placeholder=" " icon="search" value=search_query attrs='maxlength="100"' / %}
+        {% component "input" type="search" id="adminChallengesSearch" name="search" label="Cari judul atau deskripsi" placeholder=" " icon="search" value=search_query attrs='maxlength="100"' / %}
       </search>
       {% component "dropdown" id="adminChallengesStatus" name="status" label="Status" placeholder=status_label options=status_options initial_value=status_filter default_label=status_label / %}
     </form>
 
     <div class="flex flex-wrap items-center justify-between gap-3">
-      <div class="flex flex-wrap items-center gap-2" role="group" aria-label="Active filters">
+      <div class="flex flex-wrap items-center gap-2" role="group" aria-label="Filter aktif">
         {% if search_query %}
-        <a href="{{ clear_search_url }}" title="Clear search" aria-label="Clear search" class="group/chip inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full border border-neutral-500 bg-neutral-50 py-1 pl-3 pr-1.5 font-sans text-sm font-semibold text-foreground outline-none transition-all duration-200 hover:shadow-sm focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 active:scale-[0.97]">
+        <a href="{{ clear_search_url }}" title="Hapus pencarian" aria-label="Hapus pencarian" class="group/chip inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full border border-neutral-500 bg-neutral-50 py-1 pl-3 pr-1.5 font-sans text-sm font-semibold text-foreground outline-none transition-all duration-200 hover:shadow-sm focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 active:scale-[0.97]">
           <span>&ldquo;{{ search_query }}&rdquo;</span>
           <span class="flex h-6 w-6 items-center justify-center rounded-full text-neutral-800 transition-colors group-hover/chip:bg-neutral-900/10" aria-hidden="true">{% lucide "x" class="w-4 h-4" %}</span>
         </a>
         {% endif %}
         {% if status_filter != "all" %}
-        <a href="{{ clear_status_url }}" title="Clear status filter" aria-label="Clear status filter" class="group/chip inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full border border-neutral-500 bg-neutral-50 py-1 pl-3 pr-1.5 font-sans text-sm font-semibold text-foreground outline-none transition-all duration-200 hover:shadow-sm focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 active:scale-[0.97]">
+        <a href="{{ clear_status_url }}" title="Hapus filter status" aria-label="Hapus filter status" class="group/chip inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full border border-neutral-500 bg-neutral-50 py-1 pl-3 pr-1.5 font-sans text-sm font-semibold text-foreground outline-none transition-all duration-200 hover:shadow-sm focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 active:scale-[0.97]">
           <span>{{ status_label }}</span>
           <span class="flex h-6 w-6 items-center justify-center rounded-full text-neutral-800 transition-colors group-hover/chip:bg-neutral-900/10" aria-hidden="true">{% lucide "x" class="w-4 h-4" %}</span>
         </a>
@@ -101,20 +102,19 @@
     </div>
   </section>
 
-  <!-- 3. List -->
   <section aria-labelledby="allChallengesTitle" class="flex flex-col gap-3">
     <div class="flex flex-col">
       <h2 id="allChallengesTitle" class="flex items-center gap-2 font-sans text-lg font-semibold text-foreground">
         <span class="text-secondary-500">{% lucide "layers" class="w-5 h-5" %}</span>
-        All challenges
+        Semua challenge
         <span class="rounded-full bg-neutral-300 px-2 py-0.5 font-sans text-xs font-bold tabular-nums text-secondary-900">{{ pagination.count }}</span>
       </h2>
-      <p class="font-sans text-xs text-neutral-800">Challenges with participants cannot be deleted. Switch them to a draft instead.</p>
+      <p class="font-sans text-xs text-neutral-800">Challenge yang sudah punya peserta tidak bisa dihapus. Ubah jadi draf saja.</p>
     </div>
 
     {% if challenges %}
     <div class="hidden grid-cols-[minmax(0,2fr)_12rem_8rem_8rem_10rem] gap-4 px-5 font-sans text-[0.6875rem] font-semibold uppercase tracking-wider text-neutral-800 xl:grid" aria-hidden="true">
-      <span>Challenge</span><span>Period</span><span>Participants</span><span>Status</span><span class="text-right">Actions</span>
+      <span>Challenge</span><span>Periode</span><span>Peserta</span><span>Status</span><span class="text-right">Aksi</span>
     </div>
 
     <ul class="flex flex-col gap-2">
@@ -137,31 +137,31 @@
           </div>
         </div>
 
-        <p class="font-sans text-xs font-medium text-foreground">{{ challenge.start_date|date:"M j, Y" }} &ndash; {{ challenge.end_date|date:"M j, Y" }}</p>
+        <p class="font-sans text-xs font-medium text-foreground">{{ challenge.start_date|date:"j M Y" }} &ndash; {{ challenge.end_date|date:"j M Y" }}</p>
 
         <p class="flex items-center gap-1.5 font-sans text-xs font-semibold tabular-nums text-secondary-800">
           {% lucide "users" class="w-3.5 h-3.5 text-secondary-600" %}
-          {{ challenge.participants_count }}<span class="sr-only"> participants</span>
+          {{ challenge.participants_count }}<span class="sr-only"> peserta</span>
         </p>
 
         <div>{% include "challenges/_status_badge.html" with status=challenge.status %}</div>
 
         <div class="flex w-full items-center justify-end gap-2 border-t border-neutral-300 pt-3 xl:w-auto xl:border-t-0 xl:pt-0">
           {% component "button" text="Edit" variant="neutral" size="xs" icon_left="pencil" href=edit_url / %}
-          {% component "button" text="" variant="neutral-ghost" size="xs" icon_left="external-link" class_="w-8! px-0!" href=public_detail_url aria_label="View public page" attrs='target="_blank" rel="noopener" title="View public page"' / %}
-          {% component "button" text="" variant="danger-ghost" size="xs" icon_left="trash-2" class_="w-8! px-0!" aria_label="Delete challenge" attrs="data-delete-trigger data-modal-open='deleteChallengeModal' title='Delete challenge'" / %}
+          {% component "button" text="" variant="neutral-ghost" size="xs" icon_left="external-link" class_="w-8! px-0!" href=public_detail_url aria_label="Lihat halaman publik" attrs='target="_blank" rel="noopener" title="Lihat halaman publik"' / %}
+          {% component "button" text="" variant="danger-ghost" size="xs" icon_left="trash-2" class_="w-8! px-0!" aria_label="Hapus challenge" attrs="data-delete-trigger data-modal-open='deleteChallengeModal' title='Hapus challenge'" / %}
         </div>
       </li>
       {% endfor %}
     </ul>
 
     {% if pagination.total_pages > 1 %}
-    <nav aria-label="Challenges pages" class="mt-2 flex flex-wrap items-center justify-between gap-3">
-      <p class="font-sans text-sm text-neutral-800">Showing {{ pagination.start }}&ndash;{{ pagination.end }} of {{ pagination.count }}</p>
+    <nav aria-label="Halaman challenge" class="mt-2 flex flex-wrap items-center justify-between gap-3">
+      <p class="font-sans text-sm text-neutral-800">Menampilkan {{ pagination.start }}&ndash;{{ pagination.end }} dari {{ pagination.count }}</p>
       <div class="flex items-center gap-2">
-        {% if pagination.prev_url %}{% component "button" text="Previous" variant="neutral" size="sm" icon_left="arrow-left" href=pagination.prev_url / %}{% endif %}
-        <span class="px-2 font-sans text-sm font-semibold tabular-nums text-foreground">Page {{ pagination.page }} of {{ pagination.total_pages }}</span>
-        {% if pagination.next_url %}{% component "button" text="Next" variant="neutral" size="sm" icon_right="arrow-right" href=pagination.next_url / %}{% endif %}
+        {% if pagination.prev_url %}{% component "button" text="Sebelumnya" variant="neutral" size="sm" icon_left="arrow-left" href=pagination.prev_url / %}{% endif %}
+        <span class="px-2 font-sans text-sm font-semibold tabular-nums text-foreground">Halaman {{ pagination.page }} dari {{ pagination.total_pages }}</span>
+        {% if pagination.next_url %}{% component "button" text="Berikutnya" variant="neutral" size="sm" icon_right="arrow-right" href=pagination.next_url / %}{% endif %}
       </div>
     </nav>
     {% endif %}
@@ -169,42 +169,41 @@
     {% else %}
     <div class="rounded-2xl border border-neutral-400 bg-neutral-50 p-12 text-center">
       <span class="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-neutral-200 text-neutral-700">{% lucide "trophy" class="w-7 h-7" %}</span>
-      <h3 class="font-display text-h5 text-foreground">No challenges found</h3>
+      <h3 class="font-display text-h5 text-foreground">Challenge nggak ditemukan</h3>
       <p class="mx-auto mt-1 mb-4 max-w-md font-sans text-sm text-neutral-900">
-        {% if search_query or status_filter != "all" %}Nothing matches your search or filters.{% else %}No challenges yet. Create the first one for the SELARAS community.{% endif %}
+        {% if search_query or status_filter != "all" %}Belum ada yang cocok dengan pencarian atau filternya.{% else %}Belum ada challenge. Buat yang pertama untuk komunitas SELARAS.{% endif %}
       </p>
       {% if search_query or status_filter != "all" %}
-      {% component "button" text="Reset filters" variant="neutral" size="sm" icon_left="rotate-ccw" href=reset_url / %}
+      {% component "button" text="Hapus filter" variant="neutral" size="sm" icon_left="rotate-ccw" href=reset_url / %}
       {% else %}
       {% url 'dashboard:admin_challenge_create' as create_url %}
-      {% component "button" text="New challenge" variant="primary" size="sm" icon_left="circle-plus" href=create_url / %}
+      {% component "button" text="Challenge baru" variant="primary" size="sm" icon_left="circle-plus" href=create_url / %}
       {% endif %}
     </div>
     {% endif %}
   </section>
 </div>
 
-<!-- Delete confirmation -->
-{% component "modal" id="deleteChallengeModal" title="Delete this challenge?" size="sm" %}
+{% component "modal" id="deleteChallengeModal" title="Hapus challenge ini?" size="sm" %}
   {% fill "content" %}
-  <p class="font-sans text-sm text-neutral-900">Are you sure you want to delete <strong id="deleteModalChallengeTitle" class="text-foreground"></strong>?</p>
+  <p class="font-sans text-sm text-neutral-900">Yakin mau menghapus <strong id="deleteModalChallengeTitle" class="text-foreground"></strong>?</p>
 
   <p id="deleteModalParticipantWarning" class="mt-3 hidden items-start gap-2.5 rounded-xl border border-tertiary-700 bg-tertiary-50 p-3 font-sans text-xs text-tertiary-900">
     {% lucide "circle-alert" class="w-4 h-4 text-tertiary-700 shrink-0 mt-0.5" %}
-    <span>It has <strong id="deleteModalParticipantsCount"></strong> participant(s), so it cannot be deleted. Edit it and switch it to a draft instead.</span>
+    <span>Challenge ini punya <strong id="deleteModalParticipantsCount"></strong> peserta, jadi tidak bisa dihapus. Edit dan ubah jadi draf saja.</span>
   </p>
 
   <p id="deleteModalSafeNotice" class="mt-3 flex items-start gap-2.5 rounded-xl border border-red-100/40 bg-red-100/10 p-3 font-sans text-xs text-red-100">
     {% lucide "triangle-alert" class="w-4 h-4 shrink-0 mt-0.5" %}
-    <span>This is permanent and cannot be undone.</span>
+    <span>Tindakan ini permanen dan tidak bisa dibatalkan.</span>
   </p>
   {% endfill %}
 
   {% fill "footer" %}
   <form id="deleteChallengeForm" method="POST" action="" class="flex w-full items-center justify-end gap-2">
     {% csrf_token %}
-    {% component "button" text="Cancel" variant="neutral" type="button" attrs="data-modal-close data-modal-autofocus" / %}
-    <span id="deleteConfirmBtnContainer">{% component "button" text="Delete challenge" variant="danger" type="submit" icon_left="trash-2" / %}</span>
+    {% component "button" text="Batal" variant="neutral" type="button" attrs="data-modal-close data-modal-autofocus" / %}
+    <span id="deleteConfirmBtnContainer">{% component "button" text="Hapus challenge" variant="danger" type="submit" icon_left="trash-2" / %}</span>
   </form>
   {% endfill %}
 {% endcomponent %}

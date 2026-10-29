@@ -1,13 +1,12 @@
 {% extends "errors/base.html" %}
 {% load lucide component_tags %}
 
-{% block title %}Akses dibatasi | SELARAS{% endblock %}
+{% block title %}Akses dibatasi · SELARAS{% endblock %}
 {% block code_label %}Forbidden 403{% endblock %}
 
 {% block content %}
 <div class="grid w-full items-center gap-12 lg:grid-cols-12 lg:gap-10">
 
-  <!-- ============================ The protected ring ============================ -->
   {# Tapping the lock shakes it and the ranger says something new each time #}
   <section aria-label="Kawasan lindung 403" class="hero-rise order-2 lg:order-1 lg:col-span-6" style="--i: 3">
     <div class="error-garden error-garden--locked relative isolate overflow-hidden rounded-[2rem] border border-secondary-200/70 bg-neutral-50/60 px-4 py-10 shadow-[0_32px_64px_-40px_rgb(33_43_28/0.45)] backdrop-blur-sm sm:px-8 sm:py-14">
@@ -44,7 +43,6 @@
     </div>
   </section>
 
-  <!-- ============================ Message ============================ -->
   <section aria-labelledby="errorTitle" class="order-1 lg:order-2 lg:col-span-6">
     <p class="hero-rise inline-flex items-center gap-2 rounded-full bg-tertiary-200 px-3 py-1 text-b4 font-semibold text-tertiary-900" style="--i: 0">
       {% lucide "shield-alert" class="h-4 w-4" %}
@@ -64,12 +62,12 @@
     {% if user.is_authenticated %}
       <p class="hero-rise mt-6 max-w-xl text-b3 leading-relaxed text-secondary-800" style="--i: 3">
         Akun <span class="font-semibold text-secondary-900">@{{ user.username }}</span> belum memiliki izin
-        untuk membuka halaman ini. Jika menurut Anda ini keliru, tim kami siap membantu.
+        untuk membuka halaman ini. Jika menurut kamu ini keliru, tim kami siap membantu.
       </p>
     {% else %}
       <p class="hero-rise mt-6 max-w-xl text-b3 leading-relaxed text-secondary-800" style="--i: 3">
-        Halaman ini hanya bisa dibuka setelah Anda masuk. Masuk dulu, lalu kami antar
-        Anda kembali ke sini.
+        Halaman ini hanya bisa dibuka setelah kamu masuk. Masuk dulu, lalu kami antar
+        kamu kembali ke sini.
       </p>
     {% endif %}
 
@@ -87,7 +85,6 @@
       {% component "button" text="Halaman sebelumnya" variant="secondary-ghost" size="lg" icon_left="arrow-left" attrs="data-back hidden" / %}
     </div>
 
-    <!-- Why -->
     <div class="hero-rise mt-12" style="--i: 5">
       <h2 class="text-s6 font-sans font-semibold tracking-widest text-secondary-600 uppercase">
         Kenapa ini terjadi?
@@ -103,7 +100,7 @@
         <li class="landing-card flex items-start gap-3 p-4" data-spotlight tabindex="-1">
           <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary-200 text-secondary-700">{% lucide "clock-alert" class="h-5 w-5" %}</span>
           <span>
-            <span class="block text-b3 font-semibold text-secondary-900">Sesi Anda mungkin berakhir</span>
+            <span class="block text-b3 font-semibold text-secondary-900">Sesimu mungkin berakhir</span>
             <span class="block text-b4 text-neutral-800">Coba masuk kembali, lalu buka halaman ini lagi.</span>
           </span>
         </li>

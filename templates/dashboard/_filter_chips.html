@@ -1,0 +1,15 @@
+{% load lucide %}
+<div class="flex flex-wrap items-center justify-between gap-3">
+  <div class="flex flex-wrap items-center gap-2" role="group" aria-label="Filter aktif">
+    {% for chip in chips %}
+    <a href="{{ chip.url }}" title="Hapus filter" aria-label="Hapus filter {{ chip.label }}" class="group/chip inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full border border-neutral-500 bg-neutral-50 py-1 pl-3 pr-1.5 font-sans text-sm font-semibold text-foreground outline-none transition-all duration-200 hover:shadow-sm focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 active:scale-[0.97]">
+      <span>{{ chip.label }}</span>
+      <span class="flex h-6 w-6 items-center justify-center rounded-full text-neutral-800 transition-colors group-hover/chip:bg-neutral-900/10" aria-hidden="true">{% lucide "x" class="w-4 h-4" %}</span>
+    </a>
+    {% endfor %}
+    {% if chips|length > 1 %}
+    <a href="{{ reset_url }}" class="inline-flex min-h-9 items-center rounded-lg px-2 font-sans text-sm font-semibold text-secondary-700 outline-none hover:text-secondary-900 hover:underline focus-visible:ring-2 focus-visible:ring-primary-500">Hapus semua</a>
+    {% endif %}
+  </div>
+  <p class="font-sans text-sm text-neutral-800" role="status" aria-live="polite">{{ count_text }}</p>
+</div>

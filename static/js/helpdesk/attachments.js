@@ -71,7 +71,7 @@ export function openImageViewer(items, index = 0) {
   );
   overlay.setAttribute("role", "dialog");
   overlay.setAttribute("aria-modal", "true");
-  overlay.setAttribute("aria-label", "Image viewer");
+  overlay.setAttribute("aria-label", "Penampil gambar");
 
   const iconButton = (icon, label, extra = "") => {
     const button = el(
@@ -92,8 +92,8 @@ export function openImageViewer(items, index = 0) {
   );
   openLink.target = "_blank";
   openLink.rel = "noopener noreferrer";
-  openLink.append(createIcon("external-link", "w-4 h-4"), el("span", "max-sm:sr-only", "Open original"));
-  const close = iconButton("x", "Close viewer (Esc)");
+  openLink.append(createIcon("external-link", "w-4 h-4"), el("span", "max-sm:sr-only", "Buka asli"));
+  const close = iconButton("x", "Tutup (Esc)");
 
   const bar = el("div", "flex items-center justify-between gap-3 p-3 sm:p-4");
   const actions = el("div", "flex items-center gap-2");
@@ -104,8 +104,8 @@ export function openImageViewer(items, index = 0) {
   const picture = el("img", "max-h-full max-w-full rounded-xl object-contain shadow-2xl transition-opacity duration-200");
   picture.referrerPolicy = "no-referrer";
   const fallback = el("p", "hidden max-w-sm text-center font-sans text-sm text-neutral-50");
-  const previous = iconButton("chevron-left", "Previous image", "absolute left-2 sm:left-4");
-  const next = iconButton("chevron-right", "Next image", "absolute right-2 sm:right-4");
+  const previous = iconButton("chevron-left", "Gambar sebelumnya", "absolute left-2 sm:left-4");
+  const next = iconButton("chevron-right", "Gambar berikutnya", "absolute right-2 sm:right-4");
   stage.append(picture, fallback, previous, next);
   overlay.append(bar, stage);
 
@@ -128,7 +128,7 @@ export function openImageViewer(items, index = 0) {
   picture.addEventListener("error", () => {
     picture.classList.add("hidden");
     fallback.classList.remove("hidden");
-    fallback.textContent = "This image couldn't be loaded. It may have been removed, or the link may not point to a picture.";
+    fallback.textContent = "Gambar ini gagal dimuat. Mungkin sudah dihapus, atau tautannya bukan gambar.";
   });
 
   function onKey(event) {
@@ -195,7 +195,7 @@ export function createAttachmentGallery(attachments) {
   }));
 
   const section = el("section", "flex flex-col gap-3");
-  section.setAttribute("aria-label", "Attachments");
+  section.setAttribute("aria-label", "Lampiran");
   const heading = el("h2", "flex items-center gap-2 font-sans text-sm font-semibold text-foreground");
   heading.append(
     createIcon("paperclip", "w-4 h-4 text-secondary-500"),
@@ -210,7 +210,7 @@ export function createAttachmentGallery(attachments) {
       "group relative block aspect-4/3 w-full cursor-zoom-in overflow-hidden rounded-2xl border border-neutral-400 bg-neutral-300 outline-none transition-all duration-200 hover:-translate-y-0.5 hover:border-primary-400 hover:shadow-md focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2",
     );
     button.type = "button";
-    button.setAttribute("aria-label", `View ${item.name} full size`);
+    button.setAttribute("aria-label", `Lihat ${item.name} ukuran penuh`);
     button.append(createThumbnail(item.url, { label: item.name }));
 
     if (item.kind === "link") {
@@ -242,7 +242,7 @@ export function createAttachmentGallery(attachments) {
 
 const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-const plural = (count, noun) => `${count} ${noun}${count === 1 ? "" : "s"}`;
+const plural = (count, noun) => `${count} ${noun}`;
 
 // root: the [data-attachments] block. Returns what the form needs: how many files and
 // links are attached, how to add them to the request body, upload progress, and how
@@ -300,13 +300,13 @@ export function createAttachmentPicker(root) {
 
     status.hidden = items.length === 0;
     if (uploading !== null) {
-      statusText.textContent = `Uploading ${plural(items.length, "attachment")}… ${Math.round(uploading * 100)}%`;
+      statusText.textContent = `Mengunggah ${plural(items.length, "lampiran")}… ${Math.round(uploading * 100)}%`;
       return;
     }
     const parts = [];
-    if (files) parts.push(plural(files, "image"));
-    if (links) parts.push(plural(links, "link"));
-    statusText.textContent = `${parts.join(" and ")} attached${full ? " (the limit)" : ""}. They'll be sent with your ticket.`;
+    if (files) parts.push(plural(files, "gambar"));
+    if (links) parts.push(plural(links, "tautan"));
+    statusText.textContent = `${parts.join(" dan ")} terlampir${full ? " (batas maksimal)" : ""}. Akan dikirim bersama tiketmu.`;
   }
 
   function createTile(item) {
@@ -320,7 +320,7 @@ export function createAttachmentPicker(root) {
       "span",
       "absolute top-1.5 left-1.5 flex items-center gap-1 rounded-full bg-primary-500 px-2 py-0.5 font-sans text-[0.6875rem] font-semibold text-neutral-50 shadow-sm",
     );
-    badge.append(createIcon("check", "w-3 h-3"), document.createTextNode("Attached"));
+    badge.append(createIcon("check", "w-3 h-3"), document.createTextNode("Terlampir"));
 
     const caption = el(
       "div",
@@ -329,7 +329,7 @@ export function createAttachmentPicker(root) {
     caption.append(
       createIcon(item.kind === "link" ? "link" : "image", "w-3 h-3 shrink-0"),
       el("span", "min-w-0 flex-1 truncate", item.name),
-      el("span", "shrink-0 font-normal opacity-80", item.kind === "link" ? "Link" : formatSize(item.size)),
+      el("span", "shrink-0 font-normal opacity-80", item.kind === "link" ? "Tautan" : formatSize(item.size)),
     );
 
     // Filled while the ticket uploads (files only: links are just text)
@@ -387,22 +387,22 @@ export function createAttachmentPicker(root) {
     const added = [];
     for (const file of files) {
       if (items.length >= maxItems) {
-        problems.push(`You can attach up to ${maxItems} images or links.`);
+        problems.push(`Maksimal ${maxItems} gambar atau tautan.`);
         break;
       }
       if (!ACCEPTED_TYPES.includes(file.type)) {
-        problems.push(`${file.name || "That file"} isn't a JPG, PNG, WebP or GIF image.`);
+        problems.push(`${file.name || "File itu"} bukan gambar JPG, PNG, WebP, atau GIF.`);
         continue;
       }
       if (file.size > maxBytes) {
-        problems.push(`${file.name} is larger than ${root.dataset.maxMb} MB.`);
+        problems.push(`${file.name} lebih dari ${root.dataset.maxMb} MB.`);
         continue;
       }
       const item = {
         id: nextId++,
         kind: "file",
         file,
-        name: file.name || "Pasted image",
+        name: file.name || "Gambar tempelan",
         size: file.size,
         preview: URL.createObjectURL(file),
       };
@@ -436,7 +436,7 @@ export function createAttachmentPicker(root) {
     const token = ++previewToken;
     preview.box.hidden = false;
     preview.host.textContent = hostOf(url);
-    setPreviewState("loading", "Loading preview…");
+    setPreviewState("loading", "Memuat pratinjau…");
 
     // Loaded off-screen first, so a broken link never flashes a broken image
     const probe = new Image();
@@ -444,11 +444,11 @@ export function createAttachmentPicker(root) {
     probe.onload = () => {
       if (token !== previewToken) return;
       preview.image.src = url;
-      setPreviewState("ok", `Image found · ${probe.naturalWidth} × ${probe.naturalHeight}px`);
+      setPreviewState("ok", `Gambar ditemukan · ${probe.naturalWidth} × ${probe.naturalHeight}px`);
     };
     probe.onerror = () => {
       if (token !== previewToken) return;
-      setPreviewState("error", "No preview. The link may not point straight to an image, but you can still attach it.");
+      setPreviewState("error", "Pratinjau tidak tersedia. Tautannya mungkin bukan langsung ke gambar, tapi tetap bisa dilampirkan.");
     };
     probe.src = url;
   }
@@ -470,10 +470,10 @@ export function createAttachmentPicker(root) {
       return;
     }
     setError("");
-    if (items.length >= maxItems) return setError(`You can attach up to ${maxItems} images or links.`);
-    if (value.length > URL_MAX_LENGTH) return setError(`Links are limited to ${URL_MAX_LENGTH} characters.`);
-    if (!isHttpUrl(value)) return setError("Paste a full link that starts with http:// or https://.");
-    if (items.some((item) => item.url === value)) return setError("You've already added that link.");
+    if (items.length >= maxItems) return setError(`Maksimal ${maxItems} gambar atau tautan.`);
+    if (value.length > URL_MAX_LENGTH) return setError(`Tautan maksimal ${URL_MAX_LENGTH} karakter.`);
+    if (!isHttpUrl(value)) return setError("Tempel tautan lengkap yang diawali http:// atau https://.");
+    if (items.some((item) => item.url === value)) return setError("Tautan itu sudah ditambahkan.");
 
     const item = { id: nextId++, kind: "link", url: value, name: hostOf(value), preview: value };
     addItem(item);

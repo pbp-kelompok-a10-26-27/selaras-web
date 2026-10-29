@@ -1,89 +1,111 @@
 {% extends "base.html" %}
-{% load component_tags %}
+{% load static component_tags lucide %}
 
-{% block title %}Donations · SELARAS{% endblock %}
+{% block title %}Donasi · SELARAS{% endblock %}
+
+{% block extra_head %}
+<noscript><style>.scroll-reveal { opacity: 1; transform: none; }</style></noscript>
+{% endblock %}
 
 {% block content %}
-<main class="mx-auto w-full max-w-7xl px-4 py-12 text-secondary-900 sm:px-6 lg:px-10 lg:py-16">
-  <header class="mx-auto max-w-3xl text-center">
-    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-secondary-600">Aksi lingkungan</p>
-    <h1 class="mt-3 font-display text-4xl leading-tight sm:text-5xl">Dukung perubahan yang tumbuh.</h1>
-    <p class="mx-auto mt-4 max-w-2xl text-sm leading-6 text-neutral-800 sm:text-base">
-      Pilih kampanye lingkungan dan bantu mewujudkan langkah kecil yang berdampak.
-    </p>
-    {% if is_admin %}
-    <div class="mt-5 flex flex-wrap justify-center gap-3">
-      {% component "button" href="{% url 'donations:campaign_create' %}" text="Buat kampanye" variant="primary" size="sm" icon_left="plus" / %}
-      {% component "button" href="{% url 'donations:verification_queue' %}" text="Tinjau donasi" variant="neutral" size="sm" icon_left="clipboard-check" / %}
-    </div>
-    {% endif %}
-  </header>
+<div class="relative isolate">
+  <div class="page-aura" aria-hidden="true"></div>
 
-  <form method="get" class="mx-auto mt-8 flex max-w-3xl flex-col gap-3 rounded-2xl border border-neutral-400 bg-neutral-50 p-4 sm:flex-row sm:items-end">
-    <label class="min-w-0 flex-1 text-sm font-semibold text-secondary-800">
-      Cari kampanye
-      <input type="search" name="search" value="{{ search }}" placeholder="Judul atau deskripsi" class="mt-2 min-h-11 w-full rounded-xl border border-neutral-400 bg-white px-4 font-normal outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-200" />
-    </label>
-    {% if is_admin %}
-    <label class="text-sm font-semibold text-secondary-800">
-      Status
-      <select name="status" class="mt-2 min-h-11 w-full rounded-xl border border-neutral-400 bg-white px-4 font-normal outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-200 sm:w-44">
-        <option value="">Semua status</option>
+  <main
+    id="donationsPage"
+    class="mx-auto w-full max-w-7xl px-4 pb-24 pt-36 sm:px-6 sm:pt-40 lg:px-8"
+    data-list-url="{% url 'donations:campaign_list' %}"
+    data-status="{{ status_filter }}"
+  >
+    <header class="mb-10 grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:items-stretch lg:gap-10">
+      <div class="flex flex-col justify-center">
+        <div>{% component "badge" text="Aksi lingkungan" variant="primary" icon="hand-heart" / %}</div>
+        <h1 class="mt-4 font-display text-h3 leading-tight text-foreground sm:text-h2">Dukung perubahan yang tumbuh.</h1>
+        <p class="mt-3 max-w-xl font-sans text-b3 text-neutral-900">
+          Pilih kampanye lingkungan dan bantu mewujudkan langkah kecil yang berdampak. Setiap donasi diverifikasi agar progresnya bisa dipercaya.
+        </p>
+        <div class="mt-6 flex flex-wrap items-center gap-3">
+          {% if user.is_authenticated %}
+          {% url 'donations:history' as history_url %}
+          {% component "button" href=history_url text="Riwayat donasiku" variant="neutral" size="md" icon_left="history" / %}
+          {% endif %}
+          {% if is_admin %}
+          {% url 'donations:campaign_create' as create_url %}
+          {% url 'donations:verification_queue' as queue_url %}
+          {% component "button" href=create_url text="Buat kampanye" variant="primary" size="md" icon_left="plus" / %}
+          {% component "button" href=queue_url text="Tinjau donasi" variant="neutral" size="md" icon_left="clipboard-check" / %}
+          {% endif %}
+        </div>
+      </div>
+
+      <section aria-labelledby="stepsTitle" class="relative overflow-hidden rounded-3xl bg-secondary-900 p-6 text-neutral-50 sm:p-8">
+        <span class="pointer-events-none absolute -right-16 -top-20 aspect-square w-64 rounded-full border border-secondary-700/70" aria-hidden="true"></span>
+        <span class="pointer-events-none absolute -right-4 -top-8 aspect-square w-36 rounded-full border border-secondary-700/70" aria-hidden="true"></span>
+        <h2 id="stepsTitle" class="relative font-display text-h5">Berdonasi dalam 3 langkah</h2>
+        <ol class="relative mt-5 space-y-4 font-sans text-sm">
+          <li class="flex items-start gap-3">
+            <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-300 font-semibold text-secondary-900">1</span>
+            <span><strong class="block text-neutral-50">Pilih kampanye</strong><span class="text-secondary-200">Baca tujuan dan target penggalangannya.</span></span>
+          </li>
+          <li class="flex items-start gap-3">
+            <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-300 font-semibold text-secondary-900">2</span>
+            <span><strong class="block text-neutral-50">Catat donasi &amp; unggah bukti</strong><span class="text-secondary-200">Masukkan nominal dan bukti transfer.</span></span>
+          </li>
+          <li class="flex items-start gap-3">
+            <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-300 font-semibold text-secondary-900">3</span>
+            <span><strong class="block text-neutral-50">Diverifikasi admin</strong><span class="text-secondary-200">Setelah disetujui, donasimu menambah progres kampanye.</span></span>
+          </li>
+        </ol>
+      </section>
+    </header>
+
+    <section aria-label="Cari dan filter kampanye" class="mb-6 rounded-2xl border border-neutral-400 bg-neutral-50 p-4 sm:p-5">
+      <form id="donationsFilterForm" method="get" action="{% url 'donations:campaign_list' %}" class="flex flex-col gap-3 sm:flex-row sm:items-start">
+        <search class="min-w-0 flex-1">
+          {% component "input" type="search" id="donationsSearch" name="search" label="Cari berdasarkan judul atau deskripsi" placeholder=" " icon="search" value=search attrs='maxlength="100"' / %}
+        </search>
+        {% if status_filter %}<input type="hidden" name="status" value="{{ status_filter }}" id="donationsStatus">{% else %}<input type="hidden" name="status" value="" id="donationsStatus">{% endif %}
+        {% component "button" type="submit" text="Cari" variant="secondary" size="lg" icon_left="search" / %}
+      </form>
+
+      {% if is_admin %}
+      <div class="mt-4 flex flex-wrap items-center gap-2 border-t border-neutral-400/60 pt-4" role="group" aria-label="Filter status kampanye">
+        <span class="mr-1 font-sans text-b4 font-semibold text-neutral-800">Status</span>
+        {% if status_filter == "" %}
+          {% component "button" href="?" text="Semua" variant="neutral" size="sm" selected=True attrs='data-status-filter=""' / %}
+        {% else %}
+          {% component "button" href="?" text="Semua" variant="neutral" size="sm" attrs='data-status-filter=""' / %}
+        {% endif %}
         {% for value, label in status_choices %}
-        <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+          {% if status_filter == value %}
+            {% component "button" href="?status="|add:value text=label variant="neutral" size="sm" selected=True attrs='data-status-filter="'|add:value|add:'"' / %}
+          {% else %}
+            {% component "button" href="?status="|add:value text=label variant="neutral" size="sm" attrs='data-status-filter="'|add:value|add:'"' / %}
+          {% endif %}
         {% endfor %}
-      </select>
-    </label>
-    {% endif %}
-    {% component "button" href="" text="Cari" variant="secondary" size="sm" type="submit" / %}
-  </form>
+      </div>
+      {% endif %}
+    </section>
 
-  {% if campaigns %}
-  <section aria-label="Daftar kampanye" class="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-    {% for campaign in campaigns %}
-    <article class="flex flex-col rounded-3xl border border-neutral-400 bg-neutral-50 p-6 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-secondary-200 hover:shadow-md">
-      <div class="flex items-start justify-between gap-3">
-        <span class="rounded-full bg-primary-100 px-3 py-1 text-xs font-semibold text-secondary-800">{{ campaign.get_status_display }}</span>
-        {% if campaign.accepts_donations %}
-        <span class="text-xs font-semibold text-secondary-600">Sedang menerima donasi</span>
-        {% endif %}
-      </div>
-      <h2 class="mt-5 font-display text-2xl leading-snug text-secondary-900">
-        <a href="{% url 'donations:campaign_detail' campaign.slug %}" class="rounded-sm outline-none hover:text-secondary-600 focus-visible:ring-2 focus-visible:ring-primary-500">{{ campaign.title }}</a>
-      </h2>
-      <p class="mt-3 line-clamp-3 flex-1 text-sm leading-6 text-neutral-800">{{ campaign.description }}</p>
+    <p id="donationsResultCount" class="mb-5 font-sans text-sm text-neutral-800" role="status" aria-live="polite">
+      {{ campaigns|length }} kampanye
+    </p>
 
-      <div class="mt-6 flex items-end justify-between gap-4 text-sm">
-        <div>
-          <p class="text-xs text-neutral-700">Terkumpul</p>
-          <p class="mt-1 font-semibold text-secondary-900">Rp {{ campaign.approved_total|floatformat:2 }}</p>
-        </div>
-        <div class="text-right">
-          <p class="text-xs text-neutral-700">Target</p>
-          <p class="mt-1 font-semibold text-secondary-800">Rp {{ campaign.target_amount|floatformat:2 }}</p>
-        </div>
-      </div>
-      <div class="mt-3" role="progressbar" aria-label="Progres {{ campaign.title }}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ campaign.progress_percent|floatformat:0 }}">
-        <div class="h-2 overflow-hidden rounded-full bg-secondary-100">
-          <div class="h-full rounded-full bg-primary-500" style="width: {{ campaign.progress_percent }}%"></div>
-        </div>
-        <p class="mt-2 text-right text-xs font-semibold text-secondary-700">{{ campaign.progress_percent|floatformat:0 }}% dari target</p>
-      </div>
+    <section id="donationsGrid" aria-label="Daftar kampanye" tabindex="-1" class="outline-none transition-opacity duration-200 aria-busy:opacity-60">
+      {% include "donations/partials/campaign_grid.html" %}
+    </section>
 
-      <div class="mt-5 flex flex-wrap gap-3">
-        {% component "button" href="{% url 'donations:campaign_detail' campaign.slug %}" text="Lihat kampanye" variant="neutral" size="sm" / %}
-        {% if campaign.accepts_donations and user.is_authenticated %}
-        {% component "button" href="{% url 'donations:donate' campaign.slug %}" text="Donasi" variant="primary" size="sm" icon_left="hand-heart" / %}
-        {% endif %}
+    <template id="tpl-donations-skeleton">
+      <div class="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3" aria-hidden="true">
+        {% for i in "123456" %}{% component "skeleton" variant="rect" height="h-80" rounded="rounded-3xl" / %}{% endfor %}
       </div>
-    </article>
-    {% endfor %}
-  </section>
-  {% else %}
-  <section class="mx-auto mt-10 max-w-2xl rounded-3xl border border-dashed border-secondary-200 bg-primary-50 px-6 py-14 text-center">
-    <p class="font-display text-2xl text-secondary-900">Belum ada kampanye yang cocok.</p>
-    <p class="mt-3 text-sm leading-6 text-neutral-800">Coba kata pencarian lain atau kembali lagi nanti untuk melihat aksi lingkungan berikutnya.</p>
-  </section>
-  {% endif %}
-</main>
+    </template>
+  </main>
+</div>
+
+{% include "accounts/_messages.html" %}
+{% endblock %}
+
+{% block scripts %}
+<script type="module" src="{% static 'js/donations/list.js' %}"></script>
 {% endblock %}

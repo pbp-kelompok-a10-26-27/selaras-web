@@ -33,15 +33,15 @@ async function post(url, body) {
     body,
   });
   const data = await readJsonResponse(response);
-  if (!response.ok) throw new Error(data.error ?? `Request failed (${response.status})`);
+  if (!response.ok) throw new Error(data.error ?? `Permintaan gagal (${response.status})`);
   return data;
 }
 
 /* ============================== PERMISSIONS ============================== */
 
 const NOTICES = {
-  owner: { icon: "shield-check", tone: "bg-primary-100 text-primary-900", text: "You're the coordinator for this ticket: you can reply and change its status." },
-  unassigned: { icon: "inbox", tone: "bg-yellow-100/50 text-secondary-900", text: "Unassigned. Assign it to yourself to reply and change its status." },
+  owner: { icon: "shield-check", tone: "bg-primary-100 text-primary-900", text: "Kamu koordinator tiket ini: kamu bisa membalas dan mengubah statusnya." },
+  unassigned: { icon: "inbox", tone: "bg-yellow-100/50 text-secondary-900", text: "Belum ada koordinator. Ambil tiket ini untuk membalas dan mengubah statusnya." },
   others: { icon: "eye", tone: "bg-neutral-300 text-neutral-900", text: "" },
 };
 
@@ -52,7 +52,7 @@ function applyPermissions() {
   statusButtons.forEach((button) => {
     button.disabled = !isOwner;
     button.setAttribute("aria-pressed", String(button.dataset.statusAction === ticket.status));
-    button.title = isOwner ? `Set status to ${button.dataset.statusLabel}` : "Only the assigned coordinator can change the status";
+    button.title = isOwner ? `Ubah status jadi ${button.dataset.statusLabel}` : "Hanya koordinator tiket yang bisa mengubah status";
   });
 
   assignButton.hidden = !ticket.can_assign_to_me;
@@ -66,7 +66,7 @@ function applyPermissions() {
   const iconSlot = notice.querySelector("[data-notice-icon]");
   iconSlot.innerHTML = `<i data-lucide="${icon}" class="w-4 h-4" aria-hidden="true"></i>`;
   notice.querySelector("[data-notice-text]").textContent =
-    kind === "others" ? `View only. This ticket is assigned to ${ticket.assignee.name}, only they can reply or change its status.` : text;
+    kind === "others" ? `Hanya lihat. Tiket ini ditangani ${ticket.assignee.name}, jadi cuma dia yang bisa membalas atau mengubah status.` : text;
   renderLucideIcons(notice);
 }
 
@@ -75,7 +75,7 @@ function adjustSidebarBadge(delta) {
   const countEl = document.querySelector('[data-sidebar-key="helpdesk"] [data-sidebar-badge-count]');
   if (!countEl || !delta) return;
   const next = Math.max(0, Number(countEl.textContent) + delta);
-  window.setSidebarBadge?.("helpdesk", next, `${next} active ticket${next === 1 ? "" : "s"} assigned to you`);
+  window.setSidebarBadge?.("helpdesk", next, `${next} tiket aktif ditugaskan ke kamu`);
 }
 
 function isActiveForMe(t) {
@@ -98,7 +98,7 @@ async function loadDetail() {
   try {
     const response = await fetch(root.dataset.detailUrl, { headers: { Accept: "application/json" } });
     const data = await readJsonResponse(response);
-    if (!response.ok) throw new Error(data.error ?? `Failed to load ticket (${response.status})`);
+    if (!response.ok) throw new Error(data.error ?? `Tiket gagal dimuat (${response.status})`);
 
     ticket = data.ticket;
     container.replaceChildren(
@@ -106,14 +106,14 @@ async function loadDetail() {
       createTicketMessagesComponent(data.messages ?? [], {
         canReply: ticket.can_reply,
         emptyText: ticket.can_reply
-          ? "No messages yet. Start the conversation below."
-          : "No messages yet.",
+          ? "Belum ada pesan. Mulai percakapan di bawah."
+          : "Belum ada pesan.",
       }),
     );
     applyPermissions();
   } catch (error) {
     console.error(error);
-    container.replaceChildren(createDetailErrorState("We couldn't load this ticket.", loadDetail));
+    container.replaceChildren(createDetailErrorState("Tiket ini gagal dimuat.", loadDetail));
   } finally {
     container.removeAttribute("aria-busy");
     renderLucideIcons(container);
@@ -143,15 +143,15 @@ async function setStatus(button) {
       type: "success",
       title: `Status: ${button.dataset.statusLabel}`,
       message: status === "closed"
-        ? "The conversation is closed for both sides."
+        ? "Percakapan ditutup untuk kedua pihak."
         : status === "resolved"
-          ? "The requester can still reply if something's not fixed."
-          : "The ticket is back in progress.",
+          ? "Pengirim masih bisa membalas kalau masalahnya belum beres."
+          : "Tiket kembali diproses.",
     });
     button.focus();
   } catch (error) {
     console.error(error);
-    window.showToast?.({ type: "error", title: "Couldn't change status", message: error.message });
+    window.showToast?.({ type: "error", title: "Status gagal diubah", message: error.message });
   } finally {
     statusButtons.forEach((b) => b.removeAttribute("aria-busy"));
   }
@@ -182,18 +182,18 @@ async function confirmClose() {
 
 async function assignToMe() {
   if (assignButton.getAttribute("aria-busy") === "true") return;
-  setButtonLoading(assignButton, true, "Assigning…");
+  setButtonLoading(assignButton, true, "Mengambil tiket…");
 
   try {
     await post(root.dataset.assignUrl);
-    window.showToast?.({ type: "success", title: "Assigned to you", message: "You can now reply and change the status." });
+    window.showToast?.({ type: "success", title: "Tiket jadi milikmu", message: "Sekarang kamu bisa membalas dan mengubah statusnya." });
     // Permissions change across the page; reload the ticket with the new ones
     await loadDetail();
     adjustSidebarBadge(Number(isActiveForMe(ticket)));
     document.getElementById("ticketReplyMessage")?.focus();
   } catch (error) {
     console.error(error);
-    window.showToast?.({ type: "error", title: "Couldn't assign ticket", message: error.message });
+    window.showToast?.({ type: "error", title: "Tiket gagal diambil", message: error.message });
     loadDetail();
   } finally {
     setButtonLoading(assignButton, false);
@@ -203,20 +203,20 @@ async function assignToMe() {
 async function confirmDelete() {
   const confirmButton = document.getElementById("deleteTicketConfirm");
   if (confirmButton.getAttribute("aria-busy") === "true") return;
-  setButtonLoading(confirmButton, true, "Deleting…");
+  setButtonLoading(confirmButton, true, "Menghapus…");
 
   try {
     await post(root.dataset.deleteUrl);
     // Shown by admin_tickets.js on the list page we're going back to
     try {
-      sessionStorage.setItem(FLASH_KEY, JSON.stringify({ type: "success", title: "Ticket deleted", message: ticket?.title ?? "" }));
+      sessionStorage.setItem(FLASH_KEY, JSON.stringify({ type: "success", title: "Tiket dihapus", message: ticket?.title ?? "" }));
     } catch {
       /* storage unavailable: the list still loads, just without the toast */
     }
     window.location.href = root.dataset.listUrl;
   } catch (error) {
     console.error(error);
-    window.showToast?.({ type: "error", title: "Couldn't delete ticket", message: error.message });
+    window.showToast?.({ type: "error", title: "Tiket gagal dihapus", message: error.message });
     setButtonLoading(confirmButton, false);
   }
 }

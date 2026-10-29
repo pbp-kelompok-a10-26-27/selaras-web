@@ -27,6 +27,8 @@ class ArticleHTMLViewTests(TestCase):
             password="test-password",
             role=User.Role.USER,
         )
+        # Start without the starter categories seeded by migration 0004
+        ArticleCategory.objects.all().delete()
         cls.category = ArticleCategory.objects.create(name="Lingkungan")
         cls.tag = Tag.objects.create(name="Konsumsi Sadar")
         cls.published = Article.objects.create(
@@ -264,15 +266,25 @@ class ArticleHTMLViewTests(TestCase):
                 self.assertEqual(invalid.status_code, 200)
                 self.assertContains(invalid, "gambar JPEG")
 
-    def test_non_admin_cannot_manage_articles_and_api_routes_remain_json(self):
+    def test_users_write_but_cannot_manage_others_and_api_routes_remain_json(self):
         create_url = reverse("articles:html-create")
         anonymous = self.client.get(create_url)
         self.assertEqual(anonymous.status_code, 302)
         self.assertIn("/accounts/login/", anonymous.url)
 
+        # Signed-in users may write (their articles go to review)...
         self.client.force_login(self.user)
-        forbidden = self.client.get(create_url)
-        self.assertEqual(forbidden.status_code, 403)
+        editor = self.client.get(create_url)
+        self.assertEqual(editor.status_code, 200)
+        self.assertContains(editor, "Kirim untuk review")
+        self.assertNotContains(editor, "Terbitkan artikel")
+        # ...but not edit or delete someone else's article
+        self.assertEqual(
+            self.client.get(
+                reverse("articles:html-update", args=[self.published.slug])
+            ).status_code,
+            403,
+        )
         denied_delete = self.client.post(
             reverse("articles:html-delete", args=[self.published.slug])
         )

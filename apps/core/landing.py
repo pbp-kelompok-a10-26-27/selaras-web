@@ -174,9 +174,7 @@ def _ring_info(learn, act, share, give):
         "share": {
             "kicker": f"Lapisan ketiga · {share['count']} cerita",
             "title": "Berbagi",
-            "text": (
-                "Bagikan perjalanan Anda dan saling menyemangati di feed komunitas."
-            ),
+            "text": ("Bagikan perjalananmu dan saling menyemangati di feed komunitas."),
             "swatch": "bg-tertiary-300",
         },
         "give": {
@@ -241,7 +239,7 @@ def get_landing_context():
             (
                 "award",
                 "Raih lencana",
-                "Selesaikan tantangan dan lencananya menjadi milik Anda.",
+                "Selesaikan tantangan dan lencananya jadi milikmu.",
             ),
         ],
         # Impact estimator: rough per-person, per-day figures, for illustration only
@@ -287,7 +285,7 @@ def get_landing_context():
             (365, "1 tahun"),
         ],
         "impact_people": [
-            (1, "Anda"),
+            (1, "Kamu"),
             (30, "Satu kelas"),
             (100, "Satu RT"),
             (1000, "Satu kampus"),
@@ -390,3 +388,14 @@ def get_landing_context():
             "login": _url("accounts:login"),
         },
     }
+
+
+def get_community_goals(user):
+    """Running community goals with the visitor's own share (if signed in)."""
+
+    def build():
+        from apps.challenges.services import community_goals
+
+        return community_goals(user, limit=3)
+
+    return _safe("community goals", [], build)

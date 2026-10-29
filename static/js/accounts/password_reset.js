@@ -16,8 +16,8 @@ if (form) {
       email.setAttribute("aria-invalid", "true");
       window.showToast?.({
         type: "error",
-        title: "Check your email",
-        message: "Enter the email address you signed up with.",
+        title: "Cek email kamu",
+        message: "Isi alamat email yang kamu pakai saat daftar.",
       });
       return;
     }

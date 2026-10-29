@@ -28,6 +28,8 @@ class ArticleAPITests(TestCase):
             password="test-password",
             role=User.Role.USER,
         )
+        # Start without the starter categories seeded by migration 0004
+        ArticleCategory.objects.all().delete()
         cls.category = ArticleCategory.objects.create(name="Lingkungan")
         cls.published = Article.objects.create(
             title="Published article",

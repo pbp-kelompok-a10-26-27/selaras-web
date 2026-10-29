@@ -1,48 +1,46 @@
 {% extends "base.html" %}
-{% load component_tags %}
+{% load static component_tags lucide %}
 
 {% block title %}Edit Donasi · SELARAS{% endblock %}
 
 {% block content %}
-<main class="mx-auto w-full max-w-3xl px-4 py-12 text-secondary-900 sm:px-6 lg:px-10 lg:py-16">
-  <a href="{% url 'donations:detail' donation.pk %}" class="inline-flex items-center gap-2 rounded-sm text-sm font-semibold text-secondary-700 outline-none hover:text-secondary-900 focus-visible:ring-2 focus-visible:ring-primary-500">← Kembali ke detail</a>
+<div class="relative isolate">
+  <div class="page-aura" aria-hidden="true"></div>
 
-  <header class="mt-6">
-    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-secondary-600">Donasi menunggu verifikasi</p>
-    <h1 class="mt-3 font-display text-4xl leading-tight">Edit donasi</h1>
-    <p class="mt-3 text-sm leading-6 text-neutral-800">Perbarui nominal atau ganti bukti untuk {{ donation.campaign.title }}. Donasi yang sudah diverifikasi tidak dapat diedit.</p>
-  </header>
+  <main id="donationFormPage" class="mx-auto w-full max-w-3xl px-4 pb-24 pt-36 sm:px-6 sm:pt-40">
+    <nav aria-label="Kembali" class="mb-6">
+      {% url 'donations:detail' donation.pk as detail_url %}
+      {% component "button" text="Kembali ke detail" variant="neutral-ghost" size="sm" icon_left="arrow-left" href=detail_url / %}
+    </nav>
 
-  <form method="post" enctype="multipart/form-data" class="mt-8 space-y-6 rounded-3xl border border-neutral-400 bg-neutral-50 p-6 shadow-sm sm:p-8">
-    {% csrf_token %}
+    <header class="mb-8">
+      {% component "badge" text="Menunggu verifikasi" variant="warning" icon="clock" / %}
+      <h1 class="mt-3 font-display text-h3 leading-tight text-foreground sm:text-h2">Edit donasi</h1>
+      <p class="mt-2 max-w-2xl font-sans text-b3 text-neutral-900">
+        Perbarui nominal atau ganti bukti untuk {{ donation.campaign.title }}. Donasi yang sudah diverifikasi tidak dapat diedit.
+      </p>
+    </header>
 
-    {% if form.non_field_errors %}
-    <div role="alert" class="rounded-xl border border-tertiary-400 bg-tertiary-50 p-4 text-sm text-tertiary-900">
-      {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
-    </div>
-    {% endif %}
+    <form
+      method="post"
+      enctype="multipart/form-data"
+      class="space-y-6 rounded-3xl border border-neutral-400 bg-neutral-50 p-5 sm:p-8"
+      data-donation-form
+    >
+      {% csrf_token %}
+      {% include "donations/partials/donation_fields.html" %}
 
-    <div>
-      <label for="{{ form.amount.id_for_label }}" class="block text-sm font-semibold text-secondary-800">Nominal donasi (Rp)</label>
-      <input type="number" name="{{ form.amount.html_name }}" id="{{ form.amount.id_for_label }}" value="{{ form.amount.value|default_if_none:'' }}" min="0.01" step="0.01" required class="mt-2 min-h-12 w-full rounded-xl border border-neutral-400 bg-white px-4 outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-200 {% if form.amount.errors %}border-red-100{% endif %}" />
-      {% for error in form.amount.errors %}<p class="mt-2 text-sm text-red-100">{{ error }}</p>{% endfor %}
-    </div>
+      <div class="flex flex-col-reverse gap-3 border-t border-neutral-400/60 pt-5 sm:flex-row sm:items-center sm:justify-end">
+        {% component "button" href=detail_url text="Batal" variant="neutral" size="lg" / %}
+        {% component "button" type="submit" text="Simpan perubahan" variant="secondary" size="lg" icon_left="check" / %}
+      </div>
+    </form>
+  </main>
+</div>
 
-    <div>
-      <label for="{{ form.proof.id_for_label }}" class="block text-sm font-semibold text-secondary-800">Bukti transfer</label>
-      {% if proof_available %}
-      <p class="mt-2 text-sm text-neutral-700">Bukti saat ini tersedia. Unggah file baru hanya jika ingin menggantinya.</p>
-      {% else %}
-      <p class="mt-2 text-sm text-neutral-700">Unggah bukti transfer. Format gambar umum atau PDF, maksimal 5 MB.</p>
-      {% endif %}
-      <input type="file" name="{{ form.proof.html_name }}" id="{{ form.proof.id_for_label }}" accept=".bmp,.gif,.jpg,.jpeg,.png,.tif,.tiff,.webp,.pdf" {% if form.proof.field.required %}required{% endif %} class="mt-2 block w-full rounded-xl border border-neutral-400 bg-white p-3 text-sm text-neutral-800 file:mr-4 file:rounded-full file:border-0 file:bg-primary-100 file:px-4 file:py-2 file:font-semibold file:text-secondary-800 hover:file:bg-primary-200" />
-      {% for error in form.proof.errors %}<p class="mt-2 text-sm text-red-100">{{ error }}</p>{% endfor %}
-    </div>
+{% include "accounts/_messages.html" %}
+{% endblock %}
 
-    <div class="flex flex-wrap items-center gap-3 border-t border-neutral-400 pt-5">
-      {% component "button" text="Simpan perubahan" type="submit" variant="primary" size="md" / %}
-      {% component "button" href="{% url 'donations:detail' donation.pk %}" text="Batal" variant="neutral" size="md" / %}
-    </div>
-  </form>
-</main>
+{% block scripts %}
+<script type="module" src="{% static 'js/donations/form.js' %}"></script>
 {% endblock %}

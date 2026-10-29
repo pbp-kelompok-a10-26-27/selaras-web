@@ -205,7 +205,7 @@ class AdminDonationVerificationTests(TestCase):
         donation.refresh_from_db()
         self.assertEqual(donation.status, Donation.Status.PENDING)
         self.assertIsNone(donation.verified_at)
-        self.assertContains(response, "keputusan approve atau reject yang valid")
+        self.assertContains(response, "Pilih setujui atau tolak")
 
     def test_verification_post_requires_csrf(self):
         donation = self.make_donation()

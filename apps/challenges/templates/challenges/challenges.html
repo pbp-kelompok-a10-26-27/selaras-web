@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static component_tags lucide %}
 
-{% block title %}Challenges{% endblock %}
+{% block title %}Challenge · SELARAS{% endblock %}
 
 {% block content %}
 <main
@@ -13,26 +13,26 @@
   data-weather-custom="{{ weather.is_custom_location|yesno:'true,false' }}"
   data-status="{{ status_filter }}"
 >
-  <!-- Header -->
   <header class="mb-8 flex flex-col gap-4 border-b border-neutral-400/60 pb-8 sm:flex-row sm:items-end sm:justify-between">
     <div class="flex flex-col gap-1">
-      <h1 class="font-display text-h3 leading-tight text-foreground sm:text-h2">Challenges</h1>
-      <p class="max-w-2xl font-sans text-b3 text-neutral-900">Build eco-friendly habits with daily and weekly challenges. Earn badges and track the difference you make.</p>
+      <h1 class="font-display text-h3 leading-tight text-foreground sm:text-h2">Challenge</h1>
+      <p class="max-w-2xl font-sans text-b3 text-neutral-900">Bangun kebiasaan ramah lingkungan lewat challenge harian dan mingguan. Kumpulkan lencana dan lihat dampak yang kamu buat.</p>
     </div>
     <div class="flex flex-wrap items-center gap-2">
       {% if user.is_authenticated %}
       {% url 'challenges:history' as history_url %}
-      {% component "button" text="My challenges" variant="neutral" size="md" icon_left="history" href=history_url / %}
+      {% component "button" text="Challenge saya" variant="neutral" size="md" icon_left="history" href=history_url / %}
       {% endif %}
       {% if user.is_authenticated and user.is_admin %}
       {% url 'dashboard:admin_challenge_list' as admin_dashboard_url %}
-      {% component "button" text="Manage challenges" variant="primary" size="md" icon_left="layout-dashboard" href=admin_dashboard_url / %}
+      {% component "button" text="Kelola challenge" variant="primary" size="md" icon_left="layout-dashboard" href=admin_dashboard_url / %}
       {% endif %}
     </div>
   </header>
 
+  {% include "challenges/partials/community_goals.html" with class_="mb-8" %}
+
   {% if weather %}
-  <!-- Weather suggestion (Open-Meteo) -->
   <section aria-labelledby="weatherTitle" class="mb-8 rounded-2xl border border-neutral-400 bg-neutral-50 p-4 sm:p-5">
     <div class="flex flex-col justify-between gap-4 md:flex-row md:items-center">
       <div class="flex min-w-0 flex-1 items-start gap-4 sm:items-center">
@@ -46,7 +46,7 @@
         </div>
         <div class="min-w-0 flex-1">
           <h2 id="weatherTitle" class="font-sans text-lg font-semibold text-foreground">
-            Today's weather: <span id="weather-cond-text">{{ weather.condition }}</span>
+            Cuaca hari ini: <span id="weather-cond-text">{{ weather.condition }}</span>
           </h2>
           <p id="weather-suggestion" class="mt-0.5 font-sans text-sm text-neutral-900">{{ weather.suggestion }}</p>
         </div>
@@ -58,17 +58,16 @@
             {% lucide "map-pin" class="w-3.5 h-3.5 text-secondary-700" %}
             <span id="weather-location-label">{{ weather.location_label }}</span>
           </span>
-          {% component "button" id="btn-detect-location" text="Use my location" variant="neutral" size="sm" icon_left="locate-fixed" / %}
+          {% component "button" id="btn-detect-location" text="Pakai lokasiku" variant="neutral" size="sm" icon_left="locate-fixed" / %}
         </div>
-        <span class="font-sans text-b4 text-neutral-800 md:text-right">Powered by Open-Meteo</span>
+        <span class="font-sans text-b4 text-neutral-800 md:text-right">Data cuaca dari Open-Meteo</span>
       </div>
     </div>
     <p id="weather-location-status" class="mt-3 hidden border-t border-neutral-300 pt-3 font-sans text-b4" role="status"></p>
   </section>
   {% endif %}
 
-  <!-- Search and filter -->
-  <section aria-label="Search and filter challenges" class="mb-6 flex flex-col gap-4">
+  <section aria-label="Cari dan saring challenge" class="mb-6 flex flex-col gap-4">
     <form
       id="challengesFilterForm"
       method="GET"
@@ -76,25 +75,23 @@
       class="grid grid-cols-1 items-end gap-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]"
     >
       <search class="flex flex-col">
-        {% component "input" type="search" id="challengesSearch" name="search" label="Search by title or topic" placeholder=" " icon="search" value=search_query attrs='maxlength="100"' / %}
+        {% component "input" type="search" id="challengesSearch" name="search" label="Cari judul atau topik" placeholder=" " icon="search" value=search_query attrs='maxlength="100"' / %}
       </search>
       {% component "dropdown" id="challengesStatus" name="status" label="Status" placeholder=status_label options=status_options initial_value=status_filter default_label=status_label / %}
     </form>
 
     <div class="flex flex-wrap items-center justify-between gap-3">
-      <div id="challengesActiveFilters" class="flex flex-wrap items-center gap-2" role="group" aria-label="Active filters"></div>
+      <div id="challengesActiveFilters" class="flex flex-wrap items-center gap-2" role="group" aria-label="Filter aktif"></div>
       <p id="challengesResultCount" class="font-sans text-sm text-neutral-800" role="status" aria-live="polite">
-        {{ result_count }} challenge{{ result_count|pluralize }}
+        {{ result_count }} challenge
       </p>
     </div>
   </section>
 
-  <!-- Challenge grid (swapped by challenges/list.js) -->
-  <section id="challengesGrid" aria-label="Challenges" tabindex="-1" class="outline-none transition-opacity duration-200 aria-busy:opacity-60">
+  <section id="challengesGrid" aria-label="Daftar challenge" tabindex="-1" class="outline-none transition-opacity duration-200 aria-busy:opacity-60">
     {% include "challenges/partials/challenge_grid.html" %}
   </section>
 
-  <!-- Loading placeholder, cloned by list.js while results load -->
   <template id="tpl-challenges-skeleton">
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3" aria-hidden="true">
       {% for i in "123456" %}{% component "skeleton" variant="rect" height="h-64" rounded="rounded-2xl" / %}{% endfor %}
@@ -102,18 +99,17 @@
   </template>
 </main>
 
-<!-- Leave confirmation -->
-{% component "modal" id="leave-challenge-modal" title="Leave this challenge?" size="md" %}
+{% component "modal" id="leave-challenge-modal" title="Keluar dari challenge?" size="md" %}
   {% fill "content" %}
-  <p class="font-sans text-sm text-neutral-900">Are you sure you want to leave <strong id="leave-modal-challenge-title" class="text-secondary-900"></strong>?</p>
-  <p class="mt-2 rounded-xl border border-red-100/40 bg-red-100/10 p-3 font-sans text-b4 font-medium text-red-100">All your check-ins and notes for this challenge will be permanently deleted.</p>
+  <p class="font-sans text-sm text-neutral-900">Yakin mau keluar dari <strong id="leave-modal-challenge-title" class="text-secondary-900"></strong>?</p>
+  <p class="mt-2 rounded-xl border border-red-100/40 bg-red-100/10 p-3 font-sans text-b4 font-medium text-red-100">Semua check-in dan catatanmu di challenge ini akan terhapus permanen.</p>
   {% endfill %}
   {% fill "footer" %}
   <form id="leave-modal-form" method="POST" action="" class="flex w-full items-center justify-end gap-3">
     {% csrf_token %}
     <input type="hidden" name="next" value="{{ request.get_full_path }}" />
-    {% component "button" text="Cancel" variant="neutral" size="sm" attrs="data-modal-close" / %}
-    {% component "button" type="submit" text="Leave challenge" variant="danger" size="sm" icon_left="circle-x" / %}
+    {% component "button" text="Batal" variant="neutral" size="sm" attrs="data-modal-close" / %}
+    {% component "button" type="submit" text="Ya, keluar" variant="danger" size="sm" icon_left="circle-x" / %}
   </form>
   {% endfill %}
 {% endcomponent %}

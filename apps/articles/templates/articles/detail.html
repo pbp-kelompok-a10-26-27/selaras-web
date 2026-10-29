@@ -1,110 +1,203 @@
 {% extends "base.html" %}
-{% load static lucide %}
+{% load static component_tags lucide %}
 
-{% block meta %}
-    <title>{{ article.title }} - SELARAS</title>
-{% endblock meta %}
-
-{% block extra_head %}
-    <link rel="stylesheet" href="{% static 'css/articles.css' %}">
-{% endblock extra_head %}
+{% block title %}{{ article.title }} · SELARAS{% endblock %}
 
 {% block content %}
-    <main class="articles-page articles-detail-page">
-        <section class="articles-shell articles-detail-shell">
-            <a class="articles-back-link"
-               href="{% url 'articles:html-list' %}">
-                {% lucide "arrow-left" size=17 aria_hidden="true" %}
-                Kembali ke semua artikel
-            </a>
+{% widthratio article.content|wordcount 200 1 as reading_minutes %}
+{% with author_name=article.author.display_name %}
+<div class="pointer-events-none fixed inset-x-0 top-0 z-[60] h-1 bg-transparent" aria-hidden="true">
+  <div data-read-progress class="article-read-progress h-full origin-left bg-gradient-to-r from-secondary-300 to-primary-500"></div>
+</div>
 
-            {% if messages %}
-                <div class="articles-messages" aria-live="polite">
-                    {% for message in messages %}
-                        <p class="articles-message">{{ message }}</p>
-                    {% endfor %}
-                </div>
-            {% endif %}
+<div class="relative isolate">
+  <div class="page-aura" aria-hidden="true"></div>
 
-            <header class="articles-detail-header">
-                <div class="articles-card-meta">
-                    <a href="{% url 'articles:html-list' %}?category={{ article.category.slug|urlencode }}">
-                        {{ article.category.name }}
-                    </a>
+  <main id="articleDetailPage" class="mx-auto w-full max-w-6xl px-4 pb-24 pt-36 sm:px-6 sm:pt-40 lg:px-8">
+    <nav aria-label="Kembali" class="mb-6 flex flex-wrap items-center justify-between gap-3">
+      {% url 'articles:html-list' as list_url %}
+      {% component "button" text="Kembali ke semua artikel" variant="neutral-ghost" size="sm" icon_left="arrow-left" href=list_url / %}
+      {% if can_edit %}
+      {% url 'articles:html-update' article.slug as edit_url %}
+      {% component "button" href=edit_url text="Edit artikel" variant="neutral" size="sm" icon_left="pencil" / %}
+      {% endif %}
+    </nav>
 
-                    {% if article.published_at %}
-                        <span aria-hidden="true"></span>
-                        <time datetime="{{ article.published_at|date:'c' }}">
-                            {{ article.published_at|date:"j F Y" }}
-                        </time>
-                    {% endif %}
+    {% if article.status != "PUBLISHED" %}
+    <section id="review" class="mx-auto mb-10 max-w-3xl scroll-mt-32 rounded-3xl border p-5 sm:p-6 {% if article.status == 'REJECTED' %}border-tertiary-400 bg-tertiary-50{% elif article.status == 'PENDING' %}border-orange-100/60 bg-orange-100/10{% else %}border-neutral-400 bg-neutral-50{% endif %}" aria-labelledby="reviewTitle">
+      <div class="flex flex-wrap items-center gap-2">
+        {% include "articles/partials/status_badge.html" with status=article.status %}
+        {% if article.submitted_at and article.status == "PENDING" %}<span class="font-sans text-b4 text-neutral-800">Dikirim {{ article.submitted_at|date:"j M Y, H:i" }}</span>{% endif %}
+      </div>
+      <h2 id="reviewTitle" class="mt-3 font-display text-h5 text-foreground">
+        {% if article.status == "PENDING" %}{% if is_admin %}Tinjau kiriman ini{% else %}Menunggu review admin{% endif %}
+        {% elif article.status == "REJECTED" %}Perlu sedikit perubahan
+        {% else %}{% if is_admin %}Draf · hanya terlihat oleh admin{% else %}Draf · hanya terlihat olehmu{% endif %}{% endif %}
+      </h2>
+      {% if article.status == "PENDING" and not is_admin %}
+      <p class="mt-1 font-sans text-sm text-neutral-900">Admin akan membaca tulisanmu. Kamu akan mendapat notifikasi saat artikel terbit atau ada catatan.</p>
+      {% elif article.status == "DRAFT" and not is_admin %}
+      <p class="mt-1 font-sans text-sm text-neutral-900">Belum ada yang bisa membacanya. Kirim untuk review saat sudah siap.</p>
+      {% endif %}
+      {% if article.review_note and article.status == "REJECTED" %}
+      <blockquote class="mt-3 rounded-2xl border border-tertiary-300 bg-neutral-50 p-4 font-sans text-sm text-tertiary-900">
+        <p class="whitespace-pre-line">{{ article.review_note }}</p>
+        <footer class="mt-2 text-b4 text-tertiary-800">{{ article.reviewed_by.display_name|default:"Admin" }}{% if article.reviewed_at %} · {{ article.reviewed_at|date:"j M Y" }}{% endif %}</footer>
+      </blockquote>
+      {% endif %}
 
-                    {% if is_admin and article.status == "DRAFT" %}
-                        <span class="articles-draft-badge">
-                            Draf · hanya terlihat oleh admin
-                        </span>
-                    {% endif %}
-                </div>
+      {% if is_admin and article.status == "PENDING" %}
+      <form method="post" action="{% url 'articles:review' article.slug %}" class="mt-4 space-y-3">
+        {% csrf_token %}
+        {% component "textarea" id="review_note" name="review_note" label="Catatan untuk penulis (wajib jika dikembalikan)" rows=3 maxlength=1000 / %}
+        <div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          {% component "button" type="submit" text="Kembalikan ke penulis" variant="danger-ghost" size="md" icon_left="undo-2" attrs='name="decision" value="reject"' / %}
+          {% component "button" type="submit" text="Terbitkan" variant="primary" size="md" icon_left="globe" attrs='name="decision" value="approve"' / %}
+        </div>
+      </form>
+      {% elif can_edit and not is_admin %}
+      <div class="mt-4 flex flex-wrap gap-2">
+        {% component "button" href=edit_url text="Lanjutkan menulis" variant="secondary" size="sm" icon_left="pencil" / %}
+        {% url 'articles:mine' as mine_url %}
+        {% component "button" href=mine_url text="Artikel saya" variant="neutral" size="sm" icon_left="library" / %}
+      </div>
+      {% endif %}
+    </section>
+    {% endif %}
 
-                <h1>{{ article.title }}</h1>
+    <header class="mx-auto max-w-3xl text-center">
+      <div class="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 font-sans text-b4 text-neutral-800">
+        <a href="{% url 'articles:html-list' %}?category={{ article.category.slug|urlencode }}" class="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
+          {% component "badge" text=article.category.name variant="primary" icon="folder-open" / %}
+        </a>
+        {% if article.published_at %}
+        <time datetime="{{ article.published_at|date:'c' }}">{{ article.published_at|date:"j F Y" }}</time>
+        <span aria-hidden="true">·</span>
+        {% endif %}
+        <span class="inline-flex items-center gap-1">{% lucide "clock" class="w-3.5 h-3.5" aria_hidden="true" %}{% if reading_minutes == "0" %}1{% else %}{{ reading_minutes }}{% endif %} menit baca</span>
+        {% if article.read_by_me %}
+        {% component "badge" text="Sudah kamu baca" variant="primary" size="sm" icon="book-open-check" attrs="data-read-badge" / %}
+        {% endif %}
+      </div>
 
-                {% if article.summary %}
-                    <p class="articles-detail-summary">
-                        {{ article.summary }}
-                    </p>
-                {% endif %}
+      <h1 class="mt-5 font-display text-h3 leading-tight text-foreground sm:text-h2 lg:text-h1">{{ article.title }}</h1>
 
-                {% if article.tags.all %}
-                    <div class="articles-detail-tags">
-                        {% for tag in article.tags.all %}
-                            <a class="articles-chip articles-tag-chip"
-                               href="{% url 'articles:html-list' %}?tag={{ tag.slug|urlencode }}">
-                                #{{ tag.name }}
-                            </a>
-                        {% endfor %}
-                    </div>
-                {% endif %}
+      {% if article.summary %}
+      <p class="mx-auto mt-4 max-w-2xl font-sans text-b3 leading-relaxed text-neutral-900 sm:text-b2">{{ article.summary }}</p>
+      {% endif %}
 
-                {% if is_admin %}
-                    <a class="articles-admin-link articles-detail-edit"
-                       href="{% url 'articles:html-update' article.slug %}">
-                        {% lucide "pencil" size=16 aria_hidden="true" %}
-                        Edit artikel
-                    </a>
-                {% endif %}
-            </header>
+      <div class="mt-6 inline-flex items-center gap-3 rounded-full border border-neutral-400 bg-neutral-50 py-1.5 pl-1.5 pr-4">
+        {% component "avatar" src=article.author.avatar_url name=author_name size="sm" / %}
+        <span class="font-sans text-sm text-neutral-900">Ditulis oleh</span>
+        {% component "user_name" user=article.author name_class="font-sans text-sm font-semibold text-foreground" / %}
+      </div>
+    </header>
 
-            {% if article.image %}
-                <figure class="articles-detail-cover">
-                    <img src="{{ article.image.url }}"
-                         alt="Gambar artikel {{ article.title }}">
-                </figure>
-            {% else %}
-                <div class="articles-detail-cover articles-detail-cover-empty"
-                     role="img"
-                     aria-label="Artikel ini tidak memiliki gambar">
-                    {% lucide "sprout" size=46 aria_hidden="true" %}
-                </div>
-            {% endif %}
+    {% if article.image %}
+    <figure class="mx-auto mt-10 max-w-5xl overflow-hidden rounded-3xl border border-neutral-400 bg-neutral-400">
+      <img src="{{ article.image.url }}" alt="Gambar artikel {{ article.title }}" class="max-h-[34rem] w-full object-cover">
+    </figure>
+    {% else %}
+    <div class="campaign-media mx-auto mt-10 flex h-56 max-w-5xl items-center justify-center rounded-3xl border border-neutral-400 sm:h-72" data-tone="primary" role="img" aria-label="Artikel ini tidak memiliki gambar">
+      <span class="animate-float flex h-20 w-20 items-center justify-center rounded-3xl border border-neutral-50/70 bg-neutral-50/70 text-secondary-700 shadow-sm backdrop-blur-sm" aria-hidden="true">
+        {% lucide "sprout" class="w-10 h-10" %}
+      </span>
+    </div>
+    {% endif %}
 
-            <article class="articles-body">
-                <p class="articles-byline">
-                    Ditulis oleh
-                    <strong>{{ article.author.username }}</strong>
-                </p>
+    <div class="mx-auto mt-10 grid max-w-5xl gap-10 lg:grid-cols-[minmax(0,1fr)_16rem]">
+      <article class="min-w-0" aria-labelledby="articleTitle">
+        <h2 id="articleTitle" class="sr-only">{{ article.title }}</h2>
+        <div class="article-prose" data-article-prose>
+          {{ article.content|linebreaks }}
+        </div>
 
-                <div class="articles-prose">
-                    {{ article.content|linebreaks }}
-                </div>
+        {% if article.status == "PUBLISHED" %}
+        <div
+          class="mt-10 flex items-center gap-3 rounded-2xl border border-primary-300 bg-primary-50 p-4 transition-all duration-500"
+          data-read-marker
+          {% if user.is_authenticated %}data-read-url="{% url 'articles:mark-read' article.slug %}"{% endif %}
+          {% if article.read_by_me %}data-read-done{% endif %}
+          aria-live="polite"
+        >
+          <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-200 text-primary-800" aria-hidden="true">{% lucide "book-open-check" class="w-5 h-5" %}</span>
+          <p class="font-sans text-sm text-secondary-900" data-read-text>
+            {% if not user.is_authenticated %}Masuk agar bacaanmu tercatat dan ikut menambah progres challenge membaca.
+            {% elif article.read_by_me %}Sudah tercatat sebagai bacaanmu. Terima kasih sudah membaca sampai akhir!
+            {% else %}Baca sampai akhir, dan artikel ini tercatat sebagai bacaanmu.{% endif %}
+          </p>
+        </div>
+        {% endif %}
 
-                <footer class="articles-article-footer">
-                    <a class="articles-back-link"
-                       href="{% url 'articles:html-list' %}">
-                        {% lucide "arrow-left" size=16 aria_hidden="true" %}
-                        Jelajahi artikel lainnya
-                    </a>
-                </footer>
-            </article>
+        {% if article.tags.all %}
+        <div class="mt-10 flex flex-wrap items-center gap-2 border-t border-neutral-400/60 pt-6">
+          <span class="mr-1 font-sans text-b4 font-semibold text-neutral-800">Topik</span>
+          {% for tag in article.tags.all %}
+          <a href="{% url 'articles:html-list' %}?tag={{ tag.slug|urlencode }}" class="inline-flex min-h-8 items-center rounded-full border border-neutral-400 bg-neutral-50 px-3 font-sans text-b4 font-semibold text-secondary-700 outline-none transition-all duration-200 hover:-translate-y-0.5 hover:border-secondary-300 hover:text-secondary-900 focus-visible:ring-2 focus-visible:ring-primary-500">#{{ tag.name }}</a>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if related_articles %}
+        <section class="mt-10" aria-labelledby="relatedTitle">
+          <h2 id="relatedTitle" class="font-display text-h5 text-foreground">Masih di {{ article.category.name }}</h2>
+          <ul class="mt-4 grid gap-3 sm:grid-cols-3">
+            {% for item in related_articles %}
+            <li>
+              <a href="{% url 'articles:html-detail' item.slug %}" class="group flex h-full flex-col rounded-2xl border border-neutral-400 bg-neutral-50 p-4 outline-none transition-all duration-200 hover:-translate-y-0.5 hover:border-neutral-500 hover:shadow-md focus-visible:ring-2 focus-visible:ring-primary-500">
+                <span class="font-sans text-b4 text-neutral-800">{{ item.reading_minutes }} menit baca</span>
+                <span class="mt-1 line-clamp-3 font-display text-h6 leading-snug text-foreground group-hover:text-secondary-600">{{ item.title }}</span>
+              </a>
+            </li>
+            {% endfor %}
+          </ul>
         </section>
-    </main>
-{% endblock content %}
+        {% endif %}
+
+        <footer class="mt-10 flex flex-col gap-4 rounded-3xl bg-secondary-900 p-6 text-neutral-50 sm:flex-row sm:items-center sm:justify-between sm:p-8">
+          <div>
+            <p class="font-display text-h5">Siap mempraktikkannya?</p>
+            <p class="mt-1 font-sans text-sm text-secondary-200">Ubah bacaan jadi kebiasaan lewat challenge harian.</p>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            {% url 'challenges:list' as challenges_url %}
+            {% component "button" href=challenges_url text="Ikuti challenge" variant="primary" size="md" icon_left="flame" / %}
+            {% component "button" href=list_url text="Artikel lainnya" variant="neutral" size="md" icon_right="arrow-right" / %}
+          </div>
+        </footer>
+      </article>
+
+      <aside class="order-first lg:order-none" aria-label="Alat baca">
+        <div class="space-y-5 rounded-2xl border border-neutral-400 bg-neutral-50 p-5 lg:sticky lg:top-28">
+          <div>
+            <p class="font-sans text-xs font-semibold uppercase tracking-wider text-neutral-800">Ukuran teks</p>
+            <div class="mt-2 grid grid-cols-3 gap-1 rounded-xl border border-neutral-400 bg-neutral-100 p-1" role="group" aria-label="Ukuran teks">
+              <button type="button" data-text-size="sm" aria-pressed="false" class="min-h-9 cursor-pointer rounded-lg font-sans text-xs font-semibold text-secondary-700 outline-none transition-colors hover:bg-neutral-300 focus-visible:ring-2 focus-visible:ring-primary-500 aria-pressed:bg-secondary-700 aria-pressed:text-neutral-50">A</button>
+              <button type="button" data-text-size="md" aria-pressed="true" class="min-h-9 cursor-pointer rounded-lg font-sans text-sm font-semibold text-secondary-700 outline-none transition-colors hover:bg-neutral-300 focus-visible:ring-2 focus-visible:ring-primary-500 aria-pressed:bg-secondary-700 aria-pressed:text-neutral-50">A</button>
+              <button type="button" data-text-size="lg" aria-pressed="false" class="min-h-9 cursor-pointer rounded-lg font-sans text-base font-semibold text-secondary-700 outline-none transition-colors hover:bg-neutral-300 focus-visible:ring-2 focus-visible:ring-primary-500 aria-pressed:bg-secondary-700 aria-pressed:text-neutral-50">A</button>
+            </div>
+          </div>
+
+          <div class="hidden lg:block">
+            <p class="font-sans text-xs font-semibold uppercase tracking-wider text-neutral-800">Progres baca</p>
+            <p class="mt-1 font-sans text-2xl font-semibold text-secondary-900"><span data-read-percent>0</span>%</p>
+            {% if reads_count %}<p class="mt-1 font-sans text-b4 text-neutral-800">{{ reads_count }} pembaca menyelesaikan artikel ini</p>{% endif %}
+          </div>
+
+          <div class="flex flex-col gap-2 border-t border-neutral-400/60 pt-5">
+            {% component "button" text="Salin tautan" variant="neutral" size="sm" full_width=True icon_left="link-2" attrs="data-copy-link" / %}
+            {% component "button" text="Bagikan" variant="neutral-ghost" size="sm" full_width=True icon_left="share-2" class_="hidden" attrs="data-native-share" / %}
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+</div>
+{% endwith %}
+
+{% include "accounts/_messages.html" %}
+{% endblock %}
+
+{% block scripts %}
+<script type="module" src="{% static 'js/articles/detail.js' %}"></script>
+{% endblock %}

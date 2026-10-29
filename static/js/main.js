@@ -6,3 +6,7 @@ import "./components/skeleton/skeleton.js";
 import "./components/tooltip/tooltip.js";
 import "./components/input/input.js";
 import "./components/sidebar/sidebar.js";
+import "./components/textarea/textarea.js";
+import "./components/file-drop/file-drop.js";
+import "./components/notifications/bell.js";
+import "./components/photo-picker/photo-picker.js";

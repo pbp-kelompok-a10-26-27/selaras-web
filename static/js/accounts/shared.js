@@ -1,10 +1,10 @@
 // Code shared by the account pages (profile.js, password.js, password_reset.js).
 
 const TOAST_TITLES = {
-  success: "Done",
-  error: "Something went wrong",
-  warning: "Heads up",
-  info: "Note",
+  success: "Berhasil",
+  error: "Ada yang salah",
+  warning: "Perhatian",
+  info: "Info",
 };
 
 export const prefersReducedMotion = () =>

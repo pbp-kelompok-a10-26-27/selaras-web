@@ -46,7 +46,7 @@ class AuthenticationTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "A user with this email already exists.")
+        self.assertContains(response, "Email ini sudah terdaftar.")
 
     def test_login_and_logout(self):
         login_response = self.client.post(
@@ -188,7 +188,7 @@ class ProfileLayoutTests(TestCase):
         response = self.client.get(reverse("accounts:profile"))
         self.assertEqual(
             [stat["label"] for stat in response.context["stats"]],
-            ["Tickets filed", "In progress", "Resolved"],
+            ["Tiket dibuat", "Sedang diproses", "Terjawab"],
         )
 
     def test_profile_no_longer_offers_a_reset_email(self):
@@ -209,7 +209,7 @@ class ProfileLayoutTests(TestCase):
             self.assertIn("sidebar_sections", response.context)
 
         response = self.client.get(reverse("accounts:profile"))
-        self.assertEqual(response.context["stats"][0]["label"], "Assigned to you")
+        self.assertEqual(response.context["stats"][0]["label"], "Ditugaskan ke kamu")
 
     def test_profile_completion_counts_filled_fields(self):
         self.client.force_login(self.user)
@@ -257,7 +257,7 @@ class PasswordPagesTests(TestCase):
         self.client.force_login(self.user)
         response = self.client.get(reverse("accounts:password_change_done"))
         self.assertTemplateUsed(response, "base.html")
-        self.assertContains(response, "Password changed")
+        self.assertContains(response, "Kata sandi berhasil diganti")
 
     def test_reset_flow_pages_render_with_their_step(self):
         response = self.client.get(reverse("accounts:password_reset_done"))
@@ -265,7 +265,7 @@ class PasswordPagesTests(TestCase):
         self.assertContains(response, 'data-cooldown="30"')
 
         response = self.client.get(reverse("accounts:password_reset_complete"))
-        self.assertContains(response, "Password reset")
+        self.assertContains(response, "Kata sandi berhasil diatur ulang")
         self.assertContains(response, reverse("accounts:login"))
 
     def test_reset_confirm_shows_form_for_valid_link_and_notice_for_bad_one(self):
@@ -297,4 +297,4 @@ class PasswordPagesTests(TestCase):
         )
         response = self.client.get(bad)
         self.assertFalse(response.context["validlink"])
-        self.assertContains(response, "This link has expired")
+        self.assertContains(response, "Tautan ini sudah kedaluwarsa")

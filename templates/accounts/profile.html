@@ -1,7 +1,7 @@
 {% extends base_template|default:"base.html" %}
 {% load static lucide component_tags %}
 
-{% block title %}{% if in_dashboard %}Profile{% else %}Profile | SELARAS{% endif %}{% endblock %}
+{% block title %}{% if in_dashboard %}Profil{% else %}Profil · SELARAS{% endif %}{% endblock %}
 
 {% block content %}
 {% with u=profile_user %}
@@ -12,16 +12,16 @@
   class="{% if not in_dashboard %}mx-auto w-full max-w-6xl px-4 pt-32 pb-20 sm:px-6 lg:px-8{% endif %}"
 >
   {# Breadcrumb #}
-  <nav aria-label="Breadcrumb" class="mb-5 fade-in">
+  <nav aria-label="Navigasi" class="mb-5 fade-in">
     <ol class="flex flex-wrap items-center gap-1.5 font-sans text-sm">
       <li>
         <a
           href="{% if in_dashboard %}{{ dashboard_home_url }}{% else %}{% url 'home' %}{% endif %}"
           class="rounded-md px-1 py-0.5 text-neutral-800 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
-        >{% if in_dashboard %}Dashboard{% else %}Home{% endif %}</a>
+        >{% if in_dashboard %}Dashboard{% else %}Beranda{% endif %}</a>
       </li>
       <li aria-hidden="true" class="text-neutral-700">{% lucide "chevron-right" class="w-4 h-4" %}</li>
-      <li><span aria-current="page" class="px-1 py-0.5 text-primary-800">Profile</span></li>
+      <li><span aria-current="page" class="px-1 py-0.5 text-primary-800">Profil</span></li>
     </ol>
   </nav>
 
@@ -63,7 +63,7 @@
               <img
                 data-avatar-image
                 src="{{ u.avatar_url }}"
-                alt="Your profile picture"
+                alt="Foto profil kamu"
                 class="absolute inset-0 h-full w-full object-cover {% if not u.avatar %}hidden{% endif %}"
               />
               <div
@@ -77,7 +77,7 @@
                 data-avatar-open
                 data-modal-open="avatarModal"
                 aria-haspopup="dialog"
-                aria-label="Change profile picture"
+                aria-label="Ganti foto profil"
                 class="avatar-edit group absolute inset-0 flex cursor-pointer items-center justify-center rounded-full bg-secondary-900/55 text-neutral-50 opacity-0 backdrop-blur-[1px] transition-opacity duration-200 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary-500 [@media(hover:none)]:opacity-100 [@media(hover:none)]:bg-transparent"
               >
                 <span class="flex h-9 w-9 items-center justify-center rounded-full bg-secondary-900/70 transition-transform duration-200 group-hover:scale-110 [@media(hover:none)]:absolute [@media(hover:none)]:left-0 [@media(hover:none)]:bottom-0 [@media(hover:none)]:h-8 [@media(hover:none)]:w-8 [@media(hover:none)]:scale-100">{% lucide "camera" class="w-5 h-5" aria_hidden="true" %}</span>
@@ -85,7 +85,7 @@
             </div>
             <span
               class="absolute -right-1 bottom-1 inline-flex items-center rounded-full border border-neutral-400 bg-neutral-50 px-2 py-0.5 font-sans text-xs font-semibold text-secondary-800 shadow-sm"
-            ><span data-completion-percent>{{ completion.percent }}</span>%<span class="sr-only"> profile complete</span></span>
+            ><span data-completion-percent>{{ completion.percent }}</span>%<span class="sr-only"> profil lengkap</span></span>
           </div>
 
           <div class="min-w-0 sm:pb-1">
@@ -104,11 +104,11 @@
 
             <div class="mt-1 flex items-center gap-1 font-sans text-sm text-neutral-800">
               <span>@{{ u.username }}</span>
-              {% component "tooltip" text="Copy username" position="bottom" %}
+              {% component "tooltip" text="Salin username" position="bottom" %}
               <button
                 type="button"
                 data-copy="{{ u.username }}"
-                aria-label="Copy username"
+                aria-label="Salin username"
                 class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-neutral-700 transition-colors hover:bg-secondary-50 hover:text-secondary-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
               >{% lucide "copy" class="w-4 h-4" aria_hidden="true" %}</button>
               {% endcomponent %}
@@ -117,17 +117,17 @@
         </div>
 
         <div class="flex flex-wrap gap-2 md:pb-1">
-          {% component "button" text="Edit profile" variant="secondary" icon_left="pencil" class_="max-sm:flex-1" attrs='data-edit-profile' / %}
+          {% component "button" text="Edit profil" variant="secondary" icon_left="pencil" class_="max-sm:flex-1" attrs='data-edit-profile' / %}
           {% url 'accounts:password_change' as password_change_url %}
-          {% component "button" text="Password" href=password_change_url variant="neutral" icon_left="key-round" class_="max-sm:flex-1" / %}
+          {% component "button" text="Kata sandi" href=password_change_url variant="neutral" icon_left="key-round" class_="max-sm:flex-1" / %}
         </div>
       </div>
 
       <p
         data-preview-bio
-        data-empty-text="No bio yet. Tell the community a little about your green habits."
+        data-empty-text="Belum ada bio. Ceritakan sedikit kebiasaan hijaumu ke komunitas."
         class="mt-5 max-w-2xl font-sans text-sm leading-relaxed {% if u.bio %}text-secondary-700{% else %}italic text-neutral-700{% endif %}"
-      >{{ u.bio|default:"No bio yet. Tell the community a little about your green habits." }}</p>
+      >{{ u.bio|default:"Belum ada bio. Ceritakan sedikit kebiasaan hijaumu ke komunitas." }}</p>
 
       <ul class="mt-5 flex flex-wrap gap-2 font-sans text-xs text-secondary-700">
         <li class="inline-flex items-center gap-1.5 rounded-full border border-neutral-400 bg-neutral-300 px-3 py-1.5">
@@ -147,7 +147,7 @@
   </section>
 
   {# ============================ Stats ============================ #}
-  <ul class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3" aria-label="{% if u.is_admin %}Your help desk work{% else %}Your help desk activity{% endif %}">
+  <ul class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3" aria-label="{% if u.is_admin %}Pekerjaan helpdesk kamu{% else %}Aktivitas helpdesk kamu{% endif %}">
     {% for stat in stats %}
     <li class="scroll-reveal {% cycle 'delay-0' 'delay-100' 'delay-200' %}">
       <a
@@ -169,18 +169,22 @@
     {% endfor %}
   </ul>
 
+  {% include "accounts/_impact.html" %}
+
+  {% include "accounts/_badges.html" %}
+
   <div class="mt-6 grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
     {# ============================ Tabs ============================ #}
     <section class="scroll-reveal rounded-3xl border border-neutral-400 bg-neutral-50 lg:col-span-8" data-tabs>
-      <div role="tablist" aria-label="Profile settings" class="relative flex gap-1 overflow-x-auto border-b border-neutral-400 px-3 pt-3 sm:px-6">
+      <div role="tablist" aria-label="Pengaturan profil" class="relative flex gap-1 overflow-x-auto border-b border-neutral-400 px-3 pt-3 sm:px-6">
         <button
           type="button" role="tab" id="tab-details" aria-controls="panel-details" aria-selected="true" data-tab="details"
           class="profile-tab"
-        >{% lucide "user-round" class="w-4 h-4" aria_hidden="true" %} Personal info</button>
+        >{% lucide "user-round" class="w-4 h-4" aria_hidden="true" %} Data diri</button>
         <button
           type="button" role="tab" id="tab-security" aria-controls="panel-security" aria-selected="false" tabindex="-1" data-tab="security"
           class="profile-tab"
-        >{% lucide "shield-check" class="w-4 h-4" aria_hidden="true" %} Security</button>
+        >{% lucide "shield-check" class="w-4 h-4" aria_hidden="true" %} Keamanan</button>
         <span data-tab-indicator aria-hidden="true" class="absolute bottom-0 left-0 h-0.5 w-0 rounded-full bg-secondary-700 transition-[translate,width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"></span>
       </div>
 
@@ -198,17 +202,17 @@
           {% endif %}
 
           <div class="mb-7">
-            <h2 class="text-h5">Personal information</h2>
-            <p class="mt-1 font-sans text-sm text-neutral-800">This is how other members see you across SELARAS.</p>
+            <h2 class="text-h5">Data diri</h2>
+            <p class="mt-1 font-sans text-sm text-neutral-800">Begini kamu terlihat oleh pengguna lain di SELARAS.</p>
           </div>
 
           <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-            {% component "input" id="id_first_name" name="first_name" label="First name" placeholder=" " icon="user" value=form.first_name.value errors=form.first_name.errors autocomplete="given-name" attrs='maxlength="150" data-field="first_name"' / %}
-            {% component "input" id="id_last_name" name="last_name" label="Last name" placeholder=" " icon="user-round" value=form.last_name.value errors=form.last_name.errors autocomplete="family-name" attrs='maxlength="150" data-field="last_name"' / %}
+            {% component "input" id="id_first_name" name="first_name" label="Nama depan" placeholder=" " icon="user" value=form.first_name.value errors=form.first_name.errors autocomplete="given-name" attrs='maxlength="150" data-field="first_name"' / %}
+            {% component "input" id="id_last_name" name="last_name" label="Nama belakang" placeholder=" " icon="user-round" value=form.last_name.value errors=form.last_name.errors autocomplete="family-name" attrs='maxlength="150" data-field="last_name"' / %}
 
             <div class="sm:col-span-2" data-email-wrapper>
-              {% component "input" type="email" id="id_email" name="email" label="Email address" placeholder=" " icon="mail" value=form.email.value errors=form.email.errors autocomplete="email" required=True attrs='data-field="email"' / %}
-              <p data-email-error class="hidden pt-1 pl-1 font-sans text-xs text-tertiary-600" aria-live="polite">Enter a valid email address, like name@example.com.</p>
+              {% component "input" type="email" id="id_email" name="email" label="Alamat email" placeholder=" " icon="mail" value=form.email.value errors=form.email.errors autocomplete="email" required=True attrs='data-field="email"' / %}
+              <p data-email-error class="hidden pt-1 pl-1 font-sans text-xs text-tertiary-600" aria-live="polite">Isi alamat email yang valid, misalnya nama@contoh.com.</p>
             </div>
 
             <div class="space-y-1 sm:col-span-2">
@@ -230,7 +234,7 @@
                 {% if form.bio.errors %}
                 <span id="bio-hint" class="text-tertiary-600">{{ form.bio.errors.0 }}</span>
                 {% else %}
-                <span id="bio-hint" class="text-neutral-800">A sentence or two about you and the habits you're building.</span>
+                <span id="bio-hint" class="text-neutral-800">Satu atau dua kalimat tentang kamu dan kebiasaan yang sedang dibangun.</span>
                 {% endif %}
                 <span id="bio-count" data-bio-count aria-live="polite" class="shrink-0 tabular-nums text-neutral-800">0/200</span>
               </div>
@@ -244,12 +248,12 @@
           >
             <p class="flex items-center gap-2 font-sans text-sm text-neutral-800" aria-live="polite">
               <span data-save-dot class="h-2 w-2 rounded-full bg-primary-500 transition-colors"></span>
-              <span data-save-status>All changes saved</span>
+              <span data-save-status>Semua perubahan tersimpan</span>
             </p>
             <div class="flex gap-2">
               {# type="reset" puts every field back to its saved value, even without JS #}
-              {% component "button" id="profileDiscard" type="reset" text="Discard" variant="neutral" size="sm" icon_left="rotate-ccw" class_="max-sm:flex-1" attrs='data-discard' / %}
-              {% component "button" id="profileSave" type="submit" text="Save changes" variant="secondary" size="sm" icon_left="save" class_="max-sm:flex-1" / %}
+              {% component "button" id="profileDiscard" type="reset" text="Batalkan" variant="neutral" size="sm" icon_left="rotate-ccw" class_="max-sm:flex-1" attrs='data-discard' / %}
+              {% component "button" id="profileSave" type="submit" text="Simpan perubahan" variant="secondary" size="sm" icon_left="save" class_="max-sm:flex-1" / %}
             </div>
           </div>
         </form>
@@ -258,32 +262,32 @@
       {# ---------- Security ---------- #}
       <div role="tabpanel" id="panel-security" aria-labelledby="tab-security" tabindex="0" hidden class="p-5 outline-none sm:p-8">
         <div class="mb-6">
-          <h2 class="text-h5">Security</h2>
-          <p class="mt-1 font-sans text-sm text-neutral-800">Keep your account safe and in your hands.</p>
+          <h2 class="text-h5">Keamanan</h2>
+          <p class="mt-1 font-sans text-sm text-neutral-800">Jaga akunmu tetap aman dan di tanganmu.</p>
         </div>
 
         <ul class="divide-y divide-neutral-400 rounded-2xl border border-neutral-400">
           <li class="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:p-5">
             <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-200 text-secondary-700">{% lucide "key-round" class="w-5 h-5" aria_hidden="true" %}</span>
             <div class="min-w-0 flex-1">
-              <h3 class="font-sans text-sm font-semibold text-secondary-900">Password</h3>
-              <p class="font-sans text-sm text-neutral-800">Use a long passphrase you don't use anywhere else.</p>
+              <h3 class="font-sans text-sm font-semibold text-secondary-900">Kata sandi</h3>
+              <p class="font-sans text-sm text-neutral-800">Pakai frasa sandi panjang yang nggak kamu pakai di tempat lain.</p>
             </div>
-            {% component "button" text="Change password" href=password_change_url variant="secondary" size="sm" icon_right="arrow-right" / %}
+            {% component "button" text="Ganti kata sandi" href=password_change_url variant="secondary" size="sm" icon_right="arrow-right" / %}
           </li>
 
           <li class="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:p-5">
             <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-secondary-100 text-secondary-600">{% lucide "monitor-smartphone" class="w-5 h-5" aria_hidden="true" %}</span>
             <div class="min-w-0 flex-1">
-              <h3 class="font-sans text-sm font-semibold text-secondary-900">This session</h3>
+              <h3 class="font-sans text-sm font-semibold text-secondary-900">Sesi ini</h3>
               <p class="font-sans text-sm text-neutral-800">
-                {% if u.last_login %}Signed in {{ u.last_login|date:"j M Y, H:i" }}.{% else %}Signed in now.{% endif %}
-                Log out when you're on a shared device.
+                {% if u.last_login %}Masuk sejak {{ u.last_login|date:"j M Y, H:i" }}.{% else %}Baru saja masuk.{% endif %}
+                Keluar kalau kamu memakai perangkat bersama.
               </p>
             </div>
             <form method="post" action="{% url 'accounts:logout' %}">
               {% csrf_token %}
-              {% component "button" type="submit" text="Log out" variant="danger-ghost" size="sm" icon_left="log-out" class_="max-sm:w-full" / %}
+              {% component "button" type="submit" text="Keluar" variant="danger-ghost" size="sm" icon_left="log-out" class_="max-sm:w-full" / %}
             </form>
           </li>
 
@@ -291,8 +295,8 @@
           <li class="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:p-5">
             <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-tertiary-200 text-tertiary-800">{% lucide "shield-check" class="w-5 h-5" aria_hidden="true" %}</span>
             <div class="min-w-0 flex-1">
-              <h3 class="font-sans text-sm font-semibold text-secondary-900">Admin access</h3>
-              <p class="font-sans text-sm text-neutral-800">You can manage users, content and support tickets. Roles can only be changed by another admin.</p>
+              <h3 class="font-sans text-sm font-semibold text-secondary-900">Akses admin</h3>
+              <p class="font-sans text-sm text-neutral-800">Kamu bisa mengelola pengguna, konten, dan tiket bantuan. Peran hanya bisa diubah admin lain.</p>
             </div>
             {% url 'dashboard:home' as dashboard_url %}
             {% component "button" text="Dashboard" href=dashboard_url variant="neutral" size="sm" icon_left="layout-dashboard" / %}
@@ -307,14 +311,14 @@
       {# Profile strength #}
       <section class="scroll-reveal rounded-3xl border border-neutral-400 bg-neutral-50 p-5 sm:p-6" aria-labelledby="completion-title">
         <div class="flex items-center justify-between gap-3">
-          <h2 id="completion-title" class="text-h6">Profile strength</h2>
+          <h2 id="completion-title" class="text-h6">Kelengkapan profil</h2>
           <span class="font-sans text-sm font-semibold text-secondary-800 tabular-nums"><span data-completion-percent>{{ completion.percent }}</span>%</span>
         </div>
-        <div class="mt-3 h-2 overflow-hidden rounded-full bg-neutral-400" role="progressbar" aria-label="Profile completion" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ completion.percent }}" data-completion-bar>
+        <div class="mt-3 h-2 overflow-hidden rounded-full bg-neutral-400" role="progressbar" aria-label="Kelengkapan profil" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ completion.percent }}" data-completion-bar>
           <div class="h-full rounded-full bg-linear-to-r from-primary-300 to-secondary-500 w-(--fill) transition-[width] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none" style="--fill: {{ completion.percent }}%" data-completion-fill></div>
         </div>
         <p class="mt-3 font-sans text-xs text-neutral-800" data-completion-message>
-          {% if completion.percent == 100 %}Your profile is complete. Nicely done!{% else %}A complete profile helps others recognise you.{% endif %}
+          {% if completion.percent == 100 %}Profilmu sudah lengkap. Mantap!{% else %}Profil yang lengkap memudahkan orang lain mengenalmu.{% endif %}
         </p>
         <ul class="mt-4 space-y-1">
           {% for step in completion.steps %}
@@ -336,29 +340,29 @@
 
       {# Account details #}
       <section class="scroll-reveal rounded-3xl border border-neutral-400 bg-neutral-50 p-5 sm:p-6" aria-labelledby="account-title">
-        <h2 id="account-title" class="text-h6">Account</h2>
+        <h2 id="account-title" class="text-h6">Akun</h2>
         <dl class="mt-4 space-y-3 font-sans text-sm">
           <div class="flex items-center justify-between gap-3">
             <dt class="text-neutral-800">Username</dt>
             <dd class="truncate font-semibold text-secondary-900">@{{ u.username }}</dd>
           </div>
           <div class="flex items-center justify-between gap-3">
-            <dt class="text-neutral-800">Role</dt>
+            <dt class="text-neutral-800">Peran</dt>
             <dd class="font-semibold text-secondary-900">{{ u.get_role_display }}</dd>
           </div>
           <div class="flex items-center justify-between gap-3">
-            <dt class="text-neutral-800">Member since</dt>
+            <dt class="text-neutral-800">Bergabung sejak</dt>
             <dd class="font-semibold text-secondary-900">{{ u.date_joined|date:"j M Y" }}</dd>
           </div>
           <div class="flex items-center justify-between gap-3">
-            <dt class="text-neutral-800">Account ID</dt>
+            <dt class="text-neutral-800">ID akun</dt>
             <dd class="flex items-center gap-1">
               <code class="rounded-md bg-neutral-300 px-1.5 py-0.5 font-mono text-xs text-secondary-800" title="{{ u.id }}">{{ u.id|stringformat:"s"|slice:":8" }}…</code>
-              {% component "tooltip" text="Copy ID" position="left" %}
+              {% component "tooltip" text="Salin ID" position="left" %}
               <button
                 type="button"
                 data-copy="{{ u.id }}"
-                aria-label="Copy account ID"
+                aria-label="Salin ID akun"
                 class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-neutral-700 transition-colors hover:bg-secondary-50 hover:text-secondary-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
               >{% lucide "copy" class="w-4 h-4" aria_hidden="true" %}</button>
               {% endcomponent %}
@@ -369,17 +373,17 @@
 
       {# Shortcuts #}
       <section class="scroll-reveal rounded-3xl border border-neutral-400 bg-neutral-50 p-5 sm:p-6" aria-labelledby="shortcuts-title">
-        <h2 id="shortcuts-title" class="text-h6">Shortcuts</h2>
+        <h2 id="shortcuts-title" class="text-h6">Pintasan</h2>
         <ul class="mt-3 space-y-1">
           {% if u.is_admin %}
-          <li><a href="{% url 'dashboard:home' %}" class="profile-shortcut group">{% lucide "layout-dashboard" class="w-5 h-5 text-secondary-400" aria_hidden="true" %}<span class="flex-1">Dashboard overview</span>{% lucide "chevron-right" class="w-4 h-4 text-neutral-700 transition-transform group-hover:translate-x-0.5" aria_hidden="true" %}</a></li>
-          <li><a href="{% url 'dashboard:admin_ticket_list' %}" class="profile-shortcut group">{% lucide "life-buoy" class="w-5 h-5 text-secondary-400" aria_hidden="true" %}<span class="flex-1">Manage tickets</span>{% lucide "chevron-right" class="w-4 h-4 text-neutral-700 transition-transform group-hover:translate-x-0.5" aria_hidden="true" %}</a></li>
-          <li><a href="{% url 'home' %}" class="profile-shortcut group">{% lucide "external-link" class="w-5 h-5 text-secondary-400" aria_hidden="true" %}<span class="flex-1">View site</span>{% lucide "chevron-right" class="w-4 h-4 text-neutral-700 transition-transform group-hover:translate-x-0.5" aria_hidden="true" %}</a></li>
+          <li><a href="{% url 'dashboard:home' %}" class="profile-shortcut group">{% lucide "layout-dashboard" class="w-5 h-5 text-secondary-400" aria_hidden="true" %}<span class="flex-1">Ringkasan dashboard</span>{% lucide "chevron-right" class="w-4 h-4 text-neutral-700 transition-transform group-hover:translate-x-0.5" aria_hidden="true" %}</a></li>
+          <li><a href="{% url 'dashboard:admin_ticket_list' %}" class="profile-shortcut group">{% lucide "life-buoy" class="w-5 h-5 text-secondary-400" aria_hidden="true" %}<span class="flex-1">Kelola tiket</span>{% lucide "chevron-right" class="w-4 h-4 text-neutral-700 transition-transform group-hover:translate-x-0.5" aria_hidden="true" %}</a></li>
+          <li><a href="{% url 'home' %}" class="profile-shortcut group">{% lucide "external-link" class="w-5 h-5 text-secondary-400" aria_hidden="true" %}<span class="flex-1">Lihat situs</span>{% lucide "chevron-right" class="w-4 h-4 text-neutral-700 transition-transform group-hover:translate-x-0.5" aria_hidden="true" %}</a></li>
           {% else %}
-          <li><a href="{% url 'helpdesk:ticket_list' %}" class="profile-shortcut group">{% lucide "life-buoy" class="w-5 h-5 text-secondary-400" aria_hidden="true" %}<span class="flex-1">Help desk</span>{% lucide "chevron-right" class="w-4 h-4 text-neutral-700 transition-transform group-hover:translate-x-0.5" aria_hidden="true" %}</a></li>
-          <li><a href="/challenges/" class="profile-shortcut group">{% lucide "trophy" class="w-5 h-5 text-secondary-400" aria_hidden="true" %}<span class="flex-1">Challenges</span>{% lucide "chevron-right" class="w-4 h-4 text-neutral-700 transition-transform group-hover:translate-x-0.5" aria_hidden="true" %}</a></li>
+          <li><a href="{% url 'helpdesk:ticket_list' %}" class="profile-shortcut group">{% lucide "life-buoy" class="w-5 h-5 text-secondary-400" aria_hidden="true" %}<span class="flex-1">Bantuan</span>{% lucide "chevron-right" class="w-4 h-4 text-neutral-700 transition-transform group-hover:translate-x-0.5" aria_hidden="true" %}</a></li>
+          <li><a href="/challenges/" class="profile-shortcut group">{% lucide "trophy" class="w-5 h-5 text-secondary-400" aria_hidden="true" %}<span class="flex-1">Challenge</span>{% lucide "chevron-right" class="w-4 h-4 text-neutral-700 transition-transform group-hover:translate-x-0.5" aria_hidden="true" %}</a></li>
           <li><a href="/feed/" class="profile-shortcut group">{% lucide "rss" class="w-5 h-5 text-secondary-400" aria_hidden="true" %}<span class="flex-1">Feed</span>{% lucide "chevron-right" class="w-4 h-4 text-neutral-700 transition-transform group-hover:translate-x-0.5" aria_hidden="true" %}</a></li>
-          <li><a href="/donations/" class="profile-shortcut group">{% lucide "hand-heart" class="w-5 h-5 text-secondary-400" aria_hidden="true" %}<span class="flex-1">Donations</span>{% lucide "chevron-right" class="w-4 h-4 text-neutral-700 transition-transform group-hover:translate-x-0.5" aria_hidden="true" %}</a></li>
+          <li><a href="/donations/" class="profile-shortcut group">{% lucide "hand-heart" class="w-5 h-5 text-secondary-400" aria_hidden="true" %}<span class="flex-1">Donasi</span>{% lucide "chevron-right" class="w-4 h-4 text-neutral-700 transition-transform group-hover:translate-x-0.5" aria_hidden="true" %}</a></li>
           {% endif %}
         </ul>
       </section>

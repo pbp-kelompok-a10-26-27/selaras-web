@@ -29,7 +29,7 @@ async function loadTicketDetail() {
 
     const data = await readJsonResponse(response);
     if (!response.ok)
-      throw new Error(data.error ?? `Failed to fetch ticket details (${response.status})`);
+      throw new Error(data.error ?? `Detail tiket gagal dimuat (${response.status})`);
 
     ticketContainerId.replaceChildren(
       createTicketDetailComponent(data.ticket),
@@ -39,7 +39,7 @@ async function loadTicketDetail() {
   } catch (error) {
     console.error("Error loading ticket details:", error);
     ticketContainerId.replaceChildren(
-      createDetailErrorState("We couldn't load this ticket.", loadTicketDetail),
+      createDetailErrorState("Tiket ini gagal dimuat.", loadTicketDetail),
     );
   } finally {
     ticketContainerId.removeAttribute("aria-busy");

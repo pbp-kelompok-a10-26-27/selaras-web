@@ -77,8 +77,8 @@ if (root) {
     if (message) {
       message.textContent =
         percent === 100
-          ? "Your profile is complete. Nicely done!"
-          : "A complete profile helps others recognise you.";
+          ? "Profilmu sudah lengkap. Mantap!"
+          : "Profil yang lengkap memudahkan orang lain mengenalmu.";
     }
   }
 
@@ -131,7 +131,7 @@ if (root) {
   function updateDirty() {
     const dirty = hasServerErrors || isDirty();
     form.dataset.dirty = String(dirty);
-    saveStatus.textContent = dirty ? "You have unsaved changes" : "All changes saved";
+    saveStatus.textContent = dirty ? "Ada perubahan yang belum disimpan" : "Semua perubahan tersimpan";
     discard.disabled = !isDirty();
   }
 
@@ -159,8 +159,8 @@ if (root) {
       fields.email.focus();
       window.showToast?.({
         type: "error",
-        title: "Check your email",
-        message: "That email address doesn't look right.",
+        title: "Cek email kamu",
+        message: "Alamat email itu sepertinya belum benar.",
       });
       return;
     }
@@ -242,9 +242,9 @@ if (root) {
       const wrapper = button.closest("[data-tooltip-wrapper]");
       try {
         await navigator.clipboard.writeText(button.dataset.copy);
-        window.flashTooltip?.(wrapper, "Copied!");
+        window.flashTooltip?.(wrapper, "Tersalin!");
       } catch {
-        window.flashTooltip?.(wrapper, "Couldn't copy");
+        window.flashTooltip?.(wrapper, "Gagal menyalin");
       }
     });
   });

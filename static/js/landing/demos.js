@@ -101,11 +101,11 @@ function initQuiz(demo) {
     end.querySelector("[data-quiz-score]").textContent = score;
     end.querySelector("[data-quiz-message]").textContent =
       score === cards.length
-        ? "Sempurna! Anda sudah siap membagikan ilmunya."
+        ? "Sempurna! Kamu sudah siap membagikan ilmunya."
         : score >= cards.length / 2
           ? "Bagus! Beberapa hal masih bisa dipelajari bersama."
           : "Tidak apa-apa, justru di sinilah belajar dimulai.";
-    live.textContent = `Skor Anda ${score} dari ${cards.length}.`;
+    live.textContent = `Skormu ${score} dari ${cards.length}.`;
   }
 
   // Drag the top card: right is "fakta", left is "mitos"
@@ -204,12 +204,12 @@ function initTracker(demo) {
 
   const encouragement = (n) =>
     ({
-      0: "Ketuk Hari 1 untuk mencatat kebiasaan pertama Anda.",
-      1: "Hari pertama tercatat. Lencana “Langkah pertama” jadi milik Anda!",
+      0: "Ketuk Hari 1 untuk mencatat kebiasaan pertamamu.",
+      1: "Hari pertama tercatat. Lencana “Langkah pertama” jadi milikmu!",
       2: "Dua hari berturut-turut. Satu hari lagi menuju lencana berikutnya.",
       3: "Tiga hari! Lencana “Mulai terbiasa” terbuka.",
       [total - 1]: "Satu hari lagi menuju lencana “Kebiasaan baru”.",
-      [total]: "Tantangan selesai! Di SELARAS, lencananya tersimpan di profil Anda.",
+      [total]: "Tantangan selesai! Di SELARAS, lencananya tersimpan di profilmu.",
     })[n] ?? `${n} hari tercatat. Tinggal ${total - n} hari lagi.`;
 
   function render(celebrate = false, text = encouragement(done)) {

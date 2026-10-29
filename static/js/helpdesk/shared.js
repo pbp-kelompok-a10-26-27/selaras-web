@@ -60,10 +60,10 @@ const AVATAR_COLORS = [
 
 /* ================================ TIME ================================ */
 
-const relativeTimeFormatter = new Intl.RelativeTimeFormat(undefined, {
+const relativeTimeFormatter = new Intl.RelativeTimeFormat("id", {
   numeric: "auto",
 });
-const absoluteTimeFormatter = new Intl.DateTimeFormat(undefined, {
+const absoluteTimeFormatter = new Intl.DateTimeFormat("id", {
   dateStyle: "medium",
   timeStyle: "short",
 });
@@ -88,7 +88,7 @@ export function formatRelativeTime(date) {
       );
     }
   }
-  return "just now";
+  return "baru saja";
 }
 
 /* ================================ DOM ================================= */
@@ -225,7 +225,7 @@ export function createTicketIdElement(ticketId) {
   button.setAttribute("aria-describedby", tooltip.id);
 
   setButtonText(button, shortId);
-  button.setAttribute("aria-label", `Copy ticket ID ${shortId}`);
+  button.setAttribute("aria-label", `Salin ID tiket ${shortId}`);
 
   button.addEventListener("click", async (event) => {
     // Ticket cards are clickable; copying shouldn't open the ticket
@@ -235,19 +235,19 @@ export function createTicketIdElement(ticketId) {
       await copyToClipboard(ticketId);
       // flashTooltip (components/tooltip/tooltip.js) shows the feedback, then
       // restores "Copy ticket ID" once the tooltip has faded out
-      window.flashTooltip?.(wrapper, "Copied!");
+      window.flashTooltip?.(wrapper, "Tersalin!");
       window.showToast?.({
         type: "success",
-        title: "Ticket ID copied",
-        message: `${shortId} is now in your clipboard.`,
+        title: "ID tiket tersalin",
+        message: `${shortId} sudah ada di clipboard.`,
         duration: 2500,
       });
     } catch {
-      window.flashTooltip?.(wrapper, "Copy failed");
+      window.flashTooltip?.(wrapper, "Gagal menyalin");
       window.showToast?.({
         type: "error",
-        title: "Couldn't copy ticket ID",
-        message: "Your browser blocked clipboard access.",
+        title: "ID tiket gagal disalin",
+        message: "Browser kamu memblokir akses clipboard.",
       });
     }
   });
@@ -325,7 +325,7 @@ export function createPagination({ page, totalPages, label, hrefFor, onChange })
     } else if (item === page) {
       const current = el("span", `${base} border-secondary-700 bg-secondary-700 text-neutral-50 shadow-sm`, String(item));
       current.setAttribute("aria-current", "page");
-      current.setAttribute("aria-label", `Page ${item}, current page`);
+      current.setAttribute("aria-label", `Halaman ${item}, halaman saat ini`);
       li.append(current);
     } else {
       const a = link(item, "border-transparent text-secondary-800 hover:border-neutral-400 hover:bg-neutral-300 active:scale-[0.97]");
@@ -337,22 +337,22 @@ export function createPagination({ page, totalPages, label, hrefFor, onChange })
   });
 
   const compact = el("p", "font-sans text-sm text-neutral-900 sm:hidden");
-  compact.append("Page ", el("strong", "font-semibold", String(page)), ` of ${totalPages}`);
+  compact.append("Halaman ", el("strong", "font-semibold", String(page)), ` dari ${totalPages}`);
 
   nav.append(
-    step(page - 1, "Previous", "chevron-left", page <= 1),
+    step(page - 1, "Sebelumnya", "chevron-left", page <= 1),
     compact,
     numbers,
-    step(page + 1, "Next", "chevron-right", page >= totalPages),
+    step(page + 1, "Berikutnya", "chevron-right", page >= totalPages),
   );
   renderLucideIcons(nav);
   return nav;
 }
 
-// "Showing 11–20 of 47" for a pagination payload from the API
-export function formatPageRange({ start, end, count }, noun = "tickets") {
+// "Menampilkan 11–20 dari 47" untuk data paginasi dari API
+export function formatPageRange({ start, end, count }, noun = "tiket") {
   if (!count) return `0 ${noun}`;
-  return start === 1 && end === count ? `${count} ${count === 1 ? noun.replace(/s$/, "") : noun}` : `Showing ${start}–${end} of ${count} ${noun}`;
+  return start === 1 && end === count ? `${count} ${noun}` : `Menampilkan ${start}–${end} dari ${count} ${noun}`;
 }
 
 /* =============================== PEOPLE =============================== */

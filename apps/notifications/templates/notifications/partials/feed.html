@@ -1,0 +1,14 @@
+{% load lucide component_tags %}
+{% if notifications %}
+<ul class="space-y-0.5" aria-label="Notifikasi terbaru">
+  {% for notification in notifications %}
+  <li>{% include "notifications/partials/item.html" %}</li>
+  {% endfor %}
+</ul>
+{% else %}
+<div class="flex flex-col items-center gap-2 px-6 py-10 text-center">
+  <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-100 text-primary-700" aria-hidden="true">{% lucide "bell" class="h-6 w-6" %}</span>
+  <p class="font-sans text-sm font-semibold text-secondary-900">Belum ada notifikasi</p>
+  <p class="font-sans text-xs text-neutral-800">Suka, komentar, balasan, dan lencana baru akan muncul di sini.</p>
+</div>
+{% endif %}

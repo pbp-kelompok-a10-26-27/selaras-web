@@ -39,14 +39,13 @@ class AdminChallengeTests(TestCase):
         self.client.force_login(self.member)
         self.assertEqual(self.client.get(url).status_code, 403)
 
-    def test_list_renders_english_with_status_badges(self):
+    def test_list_renders_with_status_badges(self):
         make_challenge("Plastic Free Week")
         make_challenge("Hidden", published=False)
         response = self.client.get(reverse("dashboard:admin_challenge_list"))
-        self.assertContains(response, "New challenge")
+        self.assertContains(response, "Challenge baru")
         self.assertContains(response, 'data-status="active"')
         self.assertContains(response, 'data-status="draft"')
-        self.assertNotContains(response, "Tantangan")
 
     def test_sidebar_link_is_enabled(self):
         response = self.client.get(reverse("dashboard:admin_challenge_list"))
@@ -59,11 +58,11 @@ class AdminChallengeTests(TestCase):
 
         response = self.client.get(url, {"status": "draft"})
         self.assertEqual([c.title for c in response.context["challenges"]], ["Hidden"])
-        self.assertContains(response, "Clear status filter")
+        self.assertContains(response, "Hapus filter status")
 
         response = self.client.get(url, {"search": "plastic"})
         self.assertEqual(response.context["pagination"]["count"], 1)
-        self.assertContains(response, "Clear search")
+        self.assertContains(response, "Hapus pencarian")
 
         response = self.client.get(url, {"status": "nope"})
         self.assertEqual(response.context["status_filter"], "all")
@@ -110,7 +109,9 @@ class AdminChallengeTests(TestCase):
             },
             follow=True,
         )
-        self.assertContains(response, "Challenge \u201cBike Month\u201d created.")
+        self.assertContains(
+            response, "Challenge \u201cBike Month\u201d berhasil dibuat."
+        )
         self.assertTrue(Challenge.objects.get(title="Bike Month").is_published)
 
     def test_form_rejects_end_before_start(self):
@@ -125,14 +126,16 @@ class AdminChallengeTests(TestCase):
             },
         )
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "The end date cannot be before the start date.")
+        self.assertContains(
+            response, "Tanggal selesai tidak boleh sebelum tanggal mulai."
+        )
         self.assertFalse(Challenge.objects.exists())
 
     def test_form_pages_render(self):
         challenge = make_challenge("Plastic Free Week")
         self.assertContains(
             self.client.get(reverse("dashboard:admin_challenge_create")),
-            "New challenge",
+            "Challenge baru",
         )
         self.assertContains(
             self.client.get(
@@ -153,7 +156,7 @@ class AdminChallengeTests(TestCase):
             },
             follow=True,
         )
-        self.assertContains(response, "updated.")
+        self.assertContains(response, "berhasil diperbarui.")
         challenge.refresh_from_db()
         self.assertEqual(challenge.title, "Plastic Free Month")
         self.assertFalse(challenge.is_published)
@@ -165,7 +168,7 @@ class AdminChallengeTests(TestCase):
             follow=True,
         )
         self.assertFalse(Challenge.objects.filter(pk=challenge.pk).exists())
-        self.assertContains(response, "deleted.")
+        self.assertContains(response, "berhasil dihapus.")
 
     def test_delete_blocked_with_participants(self):
         challenge = make_challenge("Popular")
@@ -175,9 +178,7 @@ class AdminChallengeTests(TestCase):
             follow=True,
         )
         self.assertTrue(Challenge.objects.filter(pk=challenge.pk).exists())
-        self.assertContains(
-            response, "can\u2019t be deleted because it has 1 participant"
-        )
+        self.assertContains(response, "tidak bisa dihapus karena sudah punya 1 peserta")
 
     def test_delete_requires_post(self):
         challenge = make_challenge("Safe")

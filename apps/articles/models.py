@@ -1,47 +1,9 @@
 from django.conf import settings
 from django.db import models
 from django.db.models.functions import Lower
-from django.utils.text import slugify
 
 from apps.core.models import TimeStamp
-
-
-def _set_unique_slug(instance, source, source_field, max_length, fallback):
-    original = None
-    if instance.pk:
-        original = (
-            type(instance)
-            .objects.filter(pk=instance.pk)
-            .values(source_field, "slug")
-            .first()
-        )
-
-    should_regenerate = not instance.slug or (
-        original
-        and original[source_field] != source
-        and original["slug"] == instance.slug
-    )
-    if not should_regenerate:
-        return False
-
-    base = (slugify(source) or fallback)[:max_length]
-    slug = base
-    counter = 2
-    matches = type(instance).objects.all()
-    if instance.pk:
-        matches = matches.exclude(pk=instance.pk)
-    while matches.filter(slug=slug).exists():
-        suffix = f"-{counter}"
-        slug = f"{base[: max_length - len(suffix)]}{suffix}"
-        counter += 1
-    instance.slug = slug
-    return True
-
-
-def _include_slug_in_update_fields(kwargs):
-    update_fields = kwargs.get("update_fields")
-    if update_fields is not None:
-        kwargs["update_fields"] = set(update_fields) | {"slug"}
+from apps.core.utils import include_slug_in_update_fields, set_unique_slug
 
 
 class ArticleCategory(TimeStamp):
@@ -49,8 +11,8 @@ class ArticleCategory(TimeStamp):
     slug = models.SlugField(max_length=120, unique=True, blank=True)
 
     def save(self, *args, **kwargs):
-        if _set_unique_slug(self, self.name, "name", 120, "category"):
-            _include_slug_in_update_fields(kwargs)
+        if set_unique_slug(self, self.name, "name", 120, "category"):
+            include_slug_in_update_fields(kwargs)
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -67,8 +29,8 @@ class Tag(TimeStamp):
         ]
 
     def save(self, *args, **kwargs):
-        if _set_unique_slug(self, self.name, "name", 120, "tag"):
-            _include_slug_in_update_fields(kwargs)
+        if set_unique_slug(self, self.name, "name", 120, "tag"):
+            include_slug_in_update_fields(kwargs)
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -77,8 +39,11 @@ class Tag(TimeStamp):
 
 class Article(TimeStamp):
     class Status(models.TextChoices):
-        DRAFT = "DRAFT", "Draft"
-        PUBLISHED = "PUBLISHED", "Published"
+        DRAFT = "DRAFT", "Draf"
+        # Tulisan pengguna yang menunggu ditinjau admin
+        PENDING = "PENDING", "Menunggu review"
+        PUBLISHED = "PUBLISHED", "Terbit"
+        REJECTED = "REJECTED", "Perlu revisi"
 
     title = models.CharField(max_length=200)
     slug = models.SlugField(max_length=220, unique=True, blank=True)
@@ -100,11 +65,47 @@ class Article(TimeStamp):
         max_length=20, choices=Status.choices, default=Status.DRAFT
     )
     published_at = models.DateTimeField(null=True, blank=True)
+    # Jejak review untuk tulisan pengguna
+    submitted_at = models.DateTimeField(null=True, blank=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="reviewed_articles",
+    )
+    review_note = models.TextField(blank=True)
 
     def save(self, *args, **kwargs):
-        if _set_unique_slug(self, self.title, "title", 220, "article"):
-            _include_slug_in_update_fields(kwargs)
+        if set_unique_slug(self, self.title, "title", 220, "article"):
+            include_slug_in_update_fields(kwargs)
         super().save(*args, **kwargs)
 
     def __str__(self):
         return self.title
+
+    @property
+    def reading_minutes(self):
+        return max(round(len(self.content.split()) / 200), 1)
+
+
+class ArticleRead(TimeStamp):
+    """Pembaca yang menyelesaikan artikel (dihitung sekali per pembaca)."""
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="article_reads",
+    )
+    article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name="reads")
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=("user", "article"), name="articles_read_once_per_user"
+            )
+        ]
+        indexes = [
+            models.Index(fields=("user", "created_at"), name="articles_read_user_idx")
+        ]

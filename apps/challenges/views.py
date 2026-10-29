@@ -4,11 +4,13 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.utils import timezone
+from django.utils.formats import date_format
+from django.utils.http import url_has_allowed_host_and_scheme
 
 from apps.core.decorators import admin_required, login_required
 
+from . import services
 from .models import (
-    Badge,
     Challenge,
     ChallengeParticipation,
     ChallengeProgress,
@@ -28,6 +30,7 @@ def challenge_list(request):
 
     challenges = (
         Challenge.objects.filter(is_published=True)
+        .select_related("badge")
         .annotate(participants_count=Count("participations"))
         .order_by("-created_at")
     )
@@ -70,22 +73,22 @@ def challenge_list(request):
         request.session["user_lon"] = weather["longitude"]
 
     status_options = {
-        "All challenges": ["all", "layers"],
-        "Active": ["active", "flame"],
-        "Upcoming": ["upcoming", "calendar"],
+        "Semua challenge": ["all", "layers"],
+        "Berjalan": ["active", "flame"],
+        "Segera": ["upcoming", "calendar"],
     }
 
     if is_authenticated:
-        status_options["My challenges"] = ["my", "user-check"]
+        status_options["Challenge saya"] = ["my", "user-check"]
 
-    status_options["Ended"] = ["ended", "award"]
+    status_options["Selesai"] = ["ended", "award"]
 
     label_map = {
-        "all": "All challenges",
-        "active": "Active",
-        "upcoming": "Upcoming",
-        "my": "My challenges",
-        "ended": "Ended",
+        "all": "Semua challenge",
+        "active": "Berjalan",
+        "upcoming": "Segera",
+        "my": "Challenge saya",
+        "ended": "Selesai",
     }
 
     if status_filter not in label_map or (
@@ -97,6 +100,7 @@ def challenge_list(request):
 
     context = {
         "challenges": challenges,
+        "community_goals": services.community_goals(request.user, limit=3),
         "weather": weather,
         "search_query": search_query,
         "status_filter": status_filter,
@@ -148,66 +152,71 @@ def challenge_list(request):
 def challenge_detail(request, slug):
     """Display challenge details, participation status, and progress."""
 
-    challenge = get_object_or_404(Challenge, slug=slug, is_published=True)
-
+    challenge = get_object_or_404(
+        Challenge.objects.select_related("badge"), slug=slug, is_published=True
+    )
     today = timezone.localdate()
-
-    duration_days = max(1, (challenge.end_date - challenge.start_date).days + 1)
-
-    is_active = challenge.start_date <= today <= challenge.end_date
-
-    is_ended = challenge.end_date < today
-
-    is_upcoming = challenge.start_date > today
-
     participation = None
-
-    is_joined = False
-
-    already_checked_in_today = False
-
-    days_completed = 0
-
-    progress_percentage = 0
-
+    progress = None
     progress_records = []
+    already_checked_in_today = False
+    streak, best_streak = 0, 0
 
-    if hasattr(request, "user") and request.user.is_authenticated:
-        participation = ChallengeParticipation.objects.filter(
-            challenge=challenge, user=request.user
-        ).first()
-
+    if request.user.is_authenticated:
+        participation = (
+            ChallengeParticipation.objects.filter(
+                challenge=challenge, user=request.user
+            )
+            .select_related("challenge__badge", "user")
+            .first()
+        )
         if participation:
-            is_joined = True
-
+            # Also completes it (and awards the badge) if the goal was just reached
+            progress, badge = services.evaluate(participation)
+            if badge is not None:
+                messages.success(
+                    request, f"Target tercapai! Kamu dapat lencana “{badge.name}”."
+                )
             progress_records = participation.progress_records.order_by("-progress_date")
-
             already_checked_in_today = progress_records.filter(
                 progress_date=today
             ).exists()
+            streak, best_streak = services.check_in_streaks(participation)
 
-            days_completed = progress_records.filter(is_completed=True).count()
-
-            progress_percentage = min(100, int((days_completed / duration_days) * 100))
-
-            if days_completed >= duration_days and not participation.completed_at:
-                participation.completed_at = timezone.now()
-
-                participation.save()
+    # Rankings are only shown to the people taking part (and admins)
+    ranking, my_rank, ranked_total = [], None, 0
+    if participation is not None or (
+        request.user.is_authenticated and request.user.is_admin
+    ):
+        ranking, my_rank, ranked_total = services.leaderboard(
+            challenge, viewer=request.user if request.user.is_authenticated else None
+        )
 
     context = {
         "challenge": challenge,
         "today": today,
-        "duration_days": duration_days,
-        "is_active": is_active,
-        "is_ended": is_ended,
-        "is_upcoming": is_upcoming,
+        "duration_days": challenge.duration_days,
+        "is_active": challenge.status == "active",
+        "is_ended": challenge.status == "ended",
+        "is_upcoming": challenge.status == "upcoming",
         "participation": participation,
-        "is_joined": is_joined,
+        "is_joined": participation is not None,
         "already_checked_in_today": already_checked_in_today,
-        "days_completed": days_completed,
-        "progress_percentage": progress_percentage,
+        "progress": progress,
+        "days_completed": progress["current"] if progress else 0,
+        "progress_percentage": progress["percent"] if progress else 0,
         "progress_records": progress_records,
+        "streak": streak,
+        "best_streak": best_streak,
+        "ranking": ranking,
+        "my_rank": my_rank,
+        "ranked_total": ranked_total,
+        "participants_count": challenge.participations.count(),
+        "earned_badge": (
+            UserBadge.objects.filter(user=request.user, badge=challenge.badge).exists()
+            if request.user.is_authenticated and challenge.badge_id
+            else False
+        ),
     }
 
     return render(request, "challenges/challenge_detail.html", context)
@@ -223,13 +232,15 @@ def join_challenge(request, slug):
 
     if challenge.end_date < today:
         messages.warning(
-            request, "This challenge has ended and can no longer be joined."
+            request, "Challenge ini sudah berakhir, jadi nggak bisa diikuti lagi."
         )
 
         return redirect("challenges:detail", slug=slug)
 
     if challenge.start_date > today:
-        messages.warning(request, "This Challenge must start before ...")
+        messages.warning(
+            request, "Challenge ini belum dimulai. Tunggu tanggal mulainya, ya."
+        )
 
         return redirect("challenges:detail", slug=slug)
 
@@ -240,11 +251,11 @@ def join_challenge(request, slug):
     if created:
         messages.success(
             request,
-            f"You joined “{challenge.title}”.",
+            f"Kamu sudah gabung di “{challenge.title}”. Semangat!",
         )
 
     else:
-        messages.info(request, "You already joined this challenge.")
+        messages.info(request, "Kamu sudah ikut challenge ini.")
 
     return redirect("challenges:detail", slug=slug)
 
@@ -265,15 +276,18 @@ def leave_challenge(request, slug):
 
             messages.success(
                 request,
-                f"You left “{challenge.title}”.",
+                f"Kamu keluar dari “{challenge.title}”.",
             )
 
         else:
-            messages.warning(request, "You have not joined this challenge.")
+            messages.warning(request, "Kamu belum ikut challenge ini.")
 
+    # Only same-site paths, so the form can't be used as an open redirect
     next_url = request.POST.get("next")
 
-    if next_url:
+    if next_url and url_has_allowed_host_and_scheme(
+        next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+    ):
         return redirect(next_url)
 
     return redirect("challenges:detail", slug=slug)
@@ -281,17 +295,26 @@ def leave_challenge(request, slug):
 
 @login_required
 def record_progress(request, slug):
-    """Record or update the daily challenge progress for the authenticated user."""
+    """Record or update the daily check-in for a check-in challenge."""
 
     challenge = get_object_or_404(Challenge, slug=slug, is_published=True)
 
     participation = get_object_or_404(
-        ChallengeParticipation, challenge=challenge, user=request.user
+        ChallengeParticipation.objects.select_related("challenge__badge", "user"),
+        challenge=challenge,
+        user=request.user,
     )
 
     today = timezone.localdate()
 
     if request.method == "POST":
+        if challenge.is_tracked:
+            messages.info(
+                request,
+                "Challenge ini mencatat aktivitasmu otomatis, nggak perlu check-in.",
+            )
+            return redirect("challenges:detail", slug=slug)
+
         notes = request.POST.get("notes", "").strip()
 
         progress, created = ChallengeProgress.objects.get_or_create(
@@ -300,51 +323,24 @@ def record_progress(request, slug):
             defaults={"notes": notes, "is_completed": True},
         )
 
-        duration_days = max(1, (challenge.end_date - challenge.start_date).days + 1)
-
-        days_completed = participation.progress_records.filter(
-            is_completed=True
-        ).count()
-
         if not created:
             progress.notes = notes
-
             progress.is_completed = True
-
             progress.save()
-
-            messages.success(request, "Today’s progress note was updated.")
-
+            messages.success(request, "Catatan hari ini sudah diperbarui.")
         else:
-            if days_completed >= duration_days and not participation.completed_at:
-                participation.completed_at = timezone.now()
-
-                participation.save()
-
-                badge, _ = Badge.objects.get_or_create(
-                    name="Eco-Warrior Champion",
-                    defaults={
-                        "description": (
-                            "Awarded for completing every day of a challenge "
-                            "on SELARAS."
-                        )
-                    },
-                )
-
-                UserBadge.objects.get_or_create(user=request.user, badge=badge)
-
+            _, badge = services.evaluate(participation)
+            if participation.completed_at and badge is not None:
                 messages.success(
                     request,
-                    (
-                        "You completed the whole challenge and earned the "
-                        "Eco-Warrior Champion badge."
-                    ),
+                    f"Challenge selesai! Kamu dapat lencana “{badge.name}”.",
                 )
-
+            elif participation.completed_at:
+                messages.success(request, "Challenge selesai! Kerja bagus!")
             else:
                 messages.success(
                     request,
-                    (f"Progress for {today.strftime('%B %d, %Y')} was saved."),
+                    f"Progres {date_format(today, 'j F Y')} tersimpan.",
                 )
 
     return redirect("challenges:detail", slug=slug)
@@ -358,7 +354,7 @@ def challenge_history(request):
 
     raw_participations = (
         ChallengeParticipation.objects.filter(user=request.user)
-        .select_related("challenge")
+        .select_related("challenge__badge", "user")
         .prefetch_related("progress_records")
         .order_by("-created_at")
     )
@@ -368,24 +364,20 @@ def challenge_history(request):
     total_completed = 0
 
     for p in raw_participations:
-        duration_days = max(1, (p.challenge.end_date - p.challenge.start_date).days + 1)
+        progress, _ = services.evaluate(p)
 
-        days_completed = p.progress_records.filter(is_completed=True).count()
+        p.progress = progress
 
-        progress_percentage = min(100, int((days_completed / duration_days) * 100))
+        p.duration_days = p.challenge.duration_days
 
-        is_completed = (p.completed_at is not None) or (days_completed >= duration_days)
+        p.days_completed = progress["current"]
 
-        if is_completed:
+        p.progress_percentage = progress["percent"]
+
+        p.is_completed = progress["completed"]
+
+        if p.is_completed:
             total_completed += 1
-
-        p.duration_days = duration_days
-
-        p.days_completed = days_completed
-
-        p.progress_percentage = progress_percentage
-
-        p.is_completed = is_completed
 
         participations_list.append(p)
 
@@ -408,7 +400,7 @@ def challenge_history(request):
 
     user_badges = (
         UserBadge.objects.filter(user=request.user)
-        .select_related("badge")
+        .select_related("badge", "challenge")
         .order_by("-awarded_at")
     )
 

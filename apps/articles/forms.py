@@ -32,7 +32,6 @@ class ArticleForm(forms.ModelForm):
             "content",
             "category",
             "tags",
-            "status",
             "image",
         )
         widgets = {
@@ -47,7 +46,6 @@ class ArticleForm(forms.ModelForm):
             ),
             "category": forms.Select(),
             "tags": forms.CheckboxSelectMultiple(),
-            "status": forms.Select(),
             "image": forms.ClearableFileInput(
                 attrs={"accept": ".jpg,.jpeg,.png,.webp,.gif"}
             ),
@@ -59,6 +57,21 @@ class ArticleForm(forms.ModelForm):
         self.fields["tags"].queryset = Tag.objects.order_by("name")
         self.fields["tags"].required = False
         self.fields["image"].required = False
+
+    def category_options(self):
+        """Label -> value pairs for the dropdown component (the value is a string)."""
+        return {
+            category.name: str(category.pk)
+            for category in self.fields["category"].queryset
+        }
+
+    @property
+    def selected_category_label(self):
+        chosen = str(self["category"].value() or "")
+        for label, value in self.category_options().items():
+            if value == chosen:
+                return label
+        return ""
 
     def clean_new_tags(self):
         raw_names = self.cleaned_data.get("new_tags", "")
@@ -111,3 +124,23 @@ class ArticleForm(forms.ModelForm):
                 "Gunakan JPEG, PNG, WEBP, atau GIF maksimal 20 megapiksel."
             )
         return upload
+
+
+class CategoryForm(forms.ModelForm):
+    class Meta:
+        model = ArticleCategory
+        fields = ("name",)
+        error_messages = {
+            "name": {"unique": "Kategori dengan nama ini sudah ada."},
+        }
+
+    def clean_name(self):
+        name = self.cleaned_data["name"].strip()
+        if not name:
+            raise ValidationError("Nama kategori wajib diisi.")
+        duplicate = ArticleCategory.objects.filter(name__iexact=name)
+        if self.instance.pk:
+            duplicate = duplicate.exclude(pk=self.instance.pk)
+        if duplicate.exists():
+            raise ValidationError("Kategori dengan nama ini sudah ada.")
+        return name

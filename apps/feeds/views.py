@@ -4,30 +4,34 @@ import uuid
 from functools import wraps
 from json import JSONDecodeError
 
+from django.contrib import messages
+from django.contrib.auth.views import redirect_to_login
 from django.core.cache import cache
-from django.core.exceptions import RequestDataTooBig
-from django.core.files.uploadedfile import UploadedFile
+from django.core.exceptions import RequestDataTooBig, ValidationError
 from django.core.paginator import Paginator
 from django.db import IntegrityError, transaction
-from django.db.models import Count, Exists, OuterRef, Prefetch, Q
+from django.db.models import BooleanField, Count, Exists, OuterRef, Prefetch, Q, Value
 from django.http import Http404, HttpResponse, HttpResponseForbidden, JsonResponse
 from django.http.multipartparser import MultiPartParser, MultiPartParserError
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
+from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 
 from apps.challenges.models import Challenge, ChallengeParticipation
+from apps.challenges.queries import featured_badge_prefetch
+from apps.challenges.services import active_progress
 from apps.core.permissions import is_admin, is_user
+from apps.notifications.services import Kind, display_name, notify
 
-from .forms import MAX_IMAGE_SIZE, FeedCommentForm, FeedPostForm
-from .models import Comment, Like, Post
+from . import media
+from .forms import FeedCommentForm, FeedPostForm
+from .models import Comment, CommentLike, Like, Post
 
 logger = logging.getLogger(__name__)
-ALLOWED_IMAGE_SIGNATURES = (
-    (b"\xff\xd8\xff", ".jpg"),
-    (b"\x89PNG\r\n\x1a\n", ".png"),
-)
+LIKERS_PER_PAGE = 20
+FEED_SORTS = ("latest", "popular")
 
 
 def _is_htmx(request):
@@ -99,6 +103,8 @@ def _api_endpoint(methods, roles=("user", "admin")):
                         "comment-update",
                         "comment-delete",
                         "admin-comment-delete",
+                        "comment-like",
+                        "comment-likers",
                     )
                     else "POST_NOT_FOUND"
                 )
@@ -195,32 +201,82 @@ def _pagination(request):
     return values, None
 
 
+def _liked_by(likes, user):
+    if not user.is_authenticated:
+        return Value(False, output_field=BooleanField())
+    return Exists(likes.filter(user=user))
+
+
 def _post_queryset(user):
-    liked = Like.objects.filter(post_id=OuterRef("pk"), user=user)
+    liked = _liked_by(Like.objects.filter(post_id=OuterRef("pk")), user)
     return (
         Post.objects.select_related("author", "challenge")
+        .prefetch_related(
+            "images",
+            featured_badge_prefetch("author"),
+            # The two latest likers for "Disukai oleh ... dan N lainnya"
+            Prefetch(
+                "likes",
+                queryset=Like.objects.select_related("user").order_by(
+                    "-created_at", "-id"
+                )[:2],
+                to_attr="recent_likes",
+            ),
+        )
         .annotate(
             like_count=Count("likes", distinct=True),
             comment_count=Count("comments", distinct=True),
-            liked_by_me=Exists(liked),
+            liked_by_me=liked,
         )
         .order_by("-created_at", "-id")
     )
 
 
+def _comment_queryset(user):
+    liked = _liked_by(CommentLike.objects.filter(comment_id=OuterRef("pk")), user)
+    return (
+        Comment.objects.select_related("author")
+        .prefetch_related(featured_badge_prefetch("author"))
+        .annotate(like_count=Count("likes", distinct=True), liked_by_me=liked)
+        .order_by("created_at", "id")
+    )
+
+
+def _comment_thread(post, user):
+    """Top-level comments of a post, each with its replies (one level deep)."""
+    return (
+        _comment_queryset(user)
+        .filter(post=post, parent__isnull=True)
+        .prefetch_related(Prefetch("replies", queryset=_comment_queryset(user)))
+    )
+
+
 def _author_data(user):
+    badge = user.featured_badge
     return {
         "id": str(user.pk),
         "name": user.get_full_name().strip() or user.get_username(),
+        "avatar_url": user.avatar_url,
+        "badge": (
+            {"name": badge.name, "icon": badge.icon, "tone": badge.tone}
+            if badge
+            else None
+        ),
     }
 
 
+def _image_urls(request, post):
+    return [request.build_absolute_uri(image.image.url) for image in post.images.all()]
+
+
 def _post_data(request, post):
-    image_url = request.build_absolute_uri(post.image.url) if post.image else None
+    images = _image_urls(request, post)
     return {
-        "id": post.pk,
+        "id": str(post.pk),
         "content": post.content,
-        "image_url": image_url,
+        # First photo, kept for clients written before posts had several
+        "image_url": images[0] if images else None,
+        "images": images,
         "author": _author_data(post.author),
         "challenge": (
             {"id": post.challenge_id, "title": post.challenge.title}
@@ -243,12 +299,17 @@ def _post_data(request, post):
 
 
 def _comment_data(request, comment, include_replies=True):
+    like_count = (
+        comment.like_count if hasattr(comment, "like_count") else comment.likes.count()
+    )
     data = {
-        "id": comment.pk,
-        "post_id": comment.post_id,
-        "parent_id": comment.parent_id,
+        "id": str(comment.pk),
+        "post_id": str(comment.post_id),
+        "parent_id": str(comment.parent_id) if comment.parent_id else None,
         "content": comment.content,
         "author": _author_data(comment.author),
+        "like_count": like_count,
+        "liked_by_me": bool(getattr(comment, "liked_by_me", False)),
         "is_owner": comment.author_id == request.user.pk,
         "created_at": comment.created_at.isoformat(),
         "updated_at": comment.updated_at.isoformat(),
@@ -263,9 +324,9 @@ def _comment_data(request, comment, include_replies=True):
 
 def _comment_json_data(comment):
     return {
-        "id": comment.pk,
-        "post_id": comment.post_id,
-        "parent_id": comment.parent_id,
+        "id": str(comment.pk),
+        "post_id": str(comment.post_id),
+        "parent_id": str(comment.parent_id) if comment.parent_id else None,
         "content": comment.content,
         "author": _author_data(comment.author),
         "created_at": comment.created_at.isoformat(),
@@ -277,7 +338,11 @@ def _comment_json_data(comment):
 def get_comment_json(request):
     if not request.user.is_authenticated:
         return _error(request, 401, "UNAUTHENTICATED", "Autentikasi diperlukan.")
-    comments = Comment.objects.select_related("author").order_by("created_at", "id")
+    comments = (
+        Comment.objects.select_related("author")
+        .prefetch_related(featured_badge_prefetch("author"))
+        .order_by("created_at", "id")
+    )
     return JsonResponse({"data": [_comment_json_data(comment) for comment in comments]})
 
 
@@ -310,42 +375,88 @@ def _throttle(request):
     return response
 
 
-def _image_extension(upload):
-    upload.seek(0)
-    signature = upload.read(12)
-    upload.seek(0)
-    for prefix, extension in ALLOWED_IMAGE_SIGNATURES:
-        if signature.startswith(prefix):
-            return extension
-    if signature.startswith(b"RIFF") and signature[8:12] == b"WEBP":
-        return ".webp"
-    return None
+_IMAGE_ERRORS = {
+    "too_many": (422, "TOO_MANY_IMAGES"),
+    "too_large": (413, "PAYLOAD_TOO_LARGE"),
+    "unsupported": (415, "UNSUPPORTED_MEDIA_TYPE"),
+}
 
 
-def _validate_image(request, upload):
-    if upload is None:
-        return None
-    if not isinstance(upload, UploadedFile):
-        return _validation_error(request, "image", "File foto tidak valid.")
-    if upload.size > MAX_IMAGE_SIZE:
-        return _error(request, 413, "PAYLOAD_TOO_LARGE", "Ukuran foto maksimal 10 MB.")
-    extension = _image_extension(upload)
-    if extension is None:
-        return _error(
-            request,
-            415,
-            "UNSUPPORTED_MEDIA_TYPE",
-            "Foto harus berformat JPEG, PNG, atau WebP.",
-        )
-    upload.name = f"{uuid.uuid4().hex}{extension}"
-    return None
+def _uploaded_images(files):
+    if not files:
+        return []
+    if hasattr(files, "getlist"):
+        return files.getlist("images") + files.getlist("image")
+    return [files[key] for key in ("images", "image") if files.get(key)]
 
 
-def _delete_stored_file(storage, path):
+def _validate_images(request, uploads):
+    """Returns (validated uploads, error response)."""
     try:
-        storage.delete(path)
-    except OSError:
-        logger.warning("Unable to delete feed image %s", path, exc_info=True)
+        return media.validate_images(uploads, request.user), None
+    except ValidationError as error:
+        if error.code in _IMAGE_ERRORS:
+            status, code = _IMAGE_ERRORS[error.code]
+            return None, _error(request, status, code, error.messages[0])
+        return None, _validation_error(request, "images", error.messages[0])
+
+
+def _delete_stored_files(names):
+    for name in names:
+        media.delete_file(name)
+
+
+# ---------------------------------------------------------------- notifications
+
+
+def _notify_post_liked(post, actor):
+    notify(
+        post.author,
+        Kind.POST_LIKED,
+        f"{display_name(actor)} menyukai postinganmu",
+        post.content[:120],
+        url=reverse("feeds:detail", args=(post.pk,)),
+        actor=actor,
+        dedupe_key=f"post:{post.pk}",
+    )
+
+
+def _notify_comment(comment, actor):
+    post = comment.post
+    url = f"{reverse('feeds:detail', args=(post.pk,))}#comment-{comment.pk}"
+    if comment.parent_id:
+        parent = comment.parent
+        notify(
+            parent.author,
+            Kind.COMMENT_REPLIED,
+            f"{display_name(actor)} membalas komentarmu",
+            comment.content[:200],
+            url=url,
+            actor=actor,
+        )
+        if post.author_id == parent.author_id:
+            return
+    notify(
+        post.author,
+        Kind.POST_COMMENTED,
+        f"{display_name(actor)} mengomentari postinganmu",
+        comment.content[:200],
+        url=url,
+        actor=actor,
+    )
+
+
+def _notify_comment_liked(comment, actor):
+    post_url = reverse("feeds:detail", args=(comment.post_id,))
+    notify(
+        comment.author,
+        Kind.COMMENT_LIKED,
+        f"{display_name(actor)} menyukai komentarmu",
+        comment.content[:120],
+        url=f"{post_url}#comment-{comment.pk}",
+        actor=actor,
+        dedupe_key=f"comment:{comment.pk}",
+    )
 
 
 @_api_endpoint(("POST",), roles=("user", "admin"))
@@ -397,29 +508,15 @@ def api_post_create(request):
                 request,
                 403,
                 "NOT_CHALLENGE_PARTICIPANT",
-                "Anda belum mengikuti challenge ini.",
+                "Kamu belum mengikuti challenge ini.",
             )
-    upload = files.get("image")
-    image_error = _validate_image(request, upload)
+    uploads, image_error = _validate_images(request, _uploaded_images(files))
     if image_error:
         return image_error
-    post = Post(
-        author=request.user,
-        challenge=challenge,
-        content=content.strip(),
-    )
-    if upload:
-        storage = post.image.storage
-        try:
-            with transaction.atomic():
-                post.image.save(upload.name, upload, save=False)
-                post.save()
-        except Exception:
-            if post.image.name:
-                _delete_stored_file(storage, post.image.name)
-            raise
-    else:
+    post = Post(author=request.user, challenge=challenge, content=content.strip())
+    with transaction.atomic():
         post.save()
+        media.save_images(post, uploads)
     post = _post_queryset(request.user).get(pk=post.pk)
     return _ok(
         request,
@@ -485,7 +582,7 @@ def api_post_update(request, post_id):
         Post.objects.select_related("author", "challenge"), pk=post_id
     )
     if post.author_id != request.user.pk:
-        return _error(request, 403, "NOT_OWNER", "Postingan bukan milik Anda.")
+        return _error(request, 403, "NOT_OWNER", "Postingan bukan milikmu.")
     if request.content_type != "multipart/form-data":
         return _error(
             request, 415, "UNSUPPORTED_MEDIA_TYPE", "Gunakan multipart/form-data."
@@ -516,23 +613,23 @@ def api_post_update(request, post_id):
     if remove_image not in (True, False, "true", "false", "1", "0"):
         return _validation_error(request, "remove_image", "Nilai remove_image invalid.")
     remove_image = remove_image in (True, "true", "1")
-    upload = files.get("image")
-    if upload and remove_image:
+    uploads = _uploaded_images(files)
+    if uploads and remove_image:
         return _validation_error(
             request, "image", "Foto tidak dapat diganti dan dihapus sekaligus."
         )
-    if content is None and not upload and not remove_image:
+    if content is None and not uploads and not remove_image:
         return _validation_error(
             request, "content", "Minimal satu field yang dapat diubah diperlukan."
         )
-    image_error = _validate_image(request, upload)
+    uploads, image_error = _validate_images(request, uploads)
     if image_error:
         return image_error
-    old_name = post.image.name if post.image else None
-    old_storage = post.image.storage
+    old_names = media.stored_names(post)
     content_changed = content is not None and post.content != content.strip()
-    image_changed = bool(upload) or (remove_image and bool(old_name))
-    if not content_changed and not image_changed:
+    # New photos replace the old set; remove_image clears it
+    images_changed = bool(uploads) or (remove_image and bool(old_names))
+    if not content_changed and not images_changed:
         post = _post_queryset(request.user).get(pk=post.pk)
         return _ok(
             request,
@@ -540,29 +637,16 @@ def api_post_update(request, post_id):
             template="feeds/partials/post_card.html",
             context={"post": post, "post_data": _post_data(request, post)},
         )
-    new_name = None
-    try:
-        with transaction.atomic():
-            update_fields = ["updated_at"]
-            if content_changed:
-                post.content = content.strip()
-                update_fields.append("content")
-            if upload:
-                post.image.save(upload.name, upload, save=False)
-                new_name = post.image.name
-                update_fields.append("image")
-            elif image_changed:
-                post.image = ""
-                update_fields.append("image")
-            post.save(update_fields=update_fields)
-            if old_name and image_changed:
-                transaction.on_commit(
-                    lambda: _delete_stored_file(old_storage, old_name)
-                )
-    except Exception:
-        if new_name:
-            _delete_stored_file(post.image.storage, new_name)
-        raise
+    with transaction.atomic():
+        update_fields = ["updated_at"]
+        if content_changed:
+            post.content = content.strip()
+            update_fields.append("content")
+        if images_changed:
+            post.images.all().delete()
+            media.save_images(post, uploads)
+            transaction.on_commit(lambda: _delete_stored_files(old_names))
+        post.save(update_fields=update_fields)
     post = _post_queryset(request.user).get(pk=post.pk)
     return _ok(
         request,
@@ -572,21 +656,19 @@ def api_post_update(request, post_id):
     )
 
 
-def _delete_post(post):
-    image_name = post.image.name if post.image else None
-    storage = post.image.storage
+def delete_post(post):
+    names = media.stored_names(post)
     with transaction.atomic():
         post.delete()
-        if image_name:
-            transaction.on_commit(lambda: _delete_stored_file(storage, image_name))
+        transaction.on_commit(lambda: _delete_stored_files(names))
 
 
 @_api_endpoint(("DELETE",), roles=("user", "admin"))
 def api_post_delete(request, post_id):
     post = get_object_or_404(Post.objects.select_related("author"), pk=post_id)
     if not is_admin(request.user) and post.author_id != request.user.pk:
-        return _error(request, 403, "NOT_OWNER", "Postingan bukan milik Anda.")
-    _delete_post(post)
+        return _error(request, 403, "NOT_OWNER", "Postingan bukan milikmu.")
+    delete_post(post)
     return _delete_response(request)
 
 
@@ -635,7 +717,7 @@ def api_admin_post_list(request):
 @_api_endpoint(("DELETE",), roles=("admin",))
 def api_admin_post_delete(request, post_id):
     post = get_object_or_404(Post.objects.select_related("author"), pk=post_id)
-    _delete_post(post)
+    delete_post(post)
     return _delete_response(request)
 
 
@@ -645,13 +727,7 @@ def api_comment_list(request, post_id):
     pagination, error = _pagination(request)
     if error:
         return error
-    replies = Comment.objects.select_related("author").order_by("created_at", "id")
-    queryset = (
-        Comment.objects.filter(post=post, parent__isnull=True)
-        .select_related("author")
-        .prefetch_related(Prefetch("replies", queryset=replies))
-        .order_by("created_at", "id")
-    )
+    queryset = _comment_thread(post, request.user)
     total = queryset.count()
     offset = (pagination["page"] - 1) * pagination["per_page"]
     page_items = queryset[offset : offset + pagination["per_page"]]
@@ -722,6 +798,7 @@ def api_comment_create(request, post_id):
     comment = Comment.objects.create(
         post=post, author=request.user, content=content.strip()
     )
+    _notify_comment(comment, request.user)
     return _ok(
         request,
         {"data": _comment_data(request, comment, include_replies=False)},
@@ -780,6 +857,7 @@ def api_reply_create(request, comment_id):
             author=request.user,
             content=content.strip(),
         )
+    _notify_comment(reply, request.user)
     return _ok(
         request,
         {"data": _comment_data(request, reply, include_replies=False)},
@@ -793,7 +871,7 @@ def api_reply_create(request, comment_id):
 def api_comment_update(request, comment_id):
     comment = get_object_or_404(Comment.objects.select_related("author"), pk=comment_id)
     if comment.author_id != request.user.pk:
-        return _error(request, 403, "NOT_OWNER", "Komentar bukan milik Anda.")
+        return _error(request, 403, "NOT_OWNER", "Komentar bukan milikmu.")
     if request.content_type not in (None, "", "application/json"):
         return _error(
             request, 415, "UNSUPPORTED_MEDIA_TYPE", "Gunakan application/json."
@@ -837,7 +915,7 @@ def _delete_comment(comment):
 def api_comment_delete(request, comment_id):
     comment = get_object_or_404(Comment.objects.select_related("author"), pk=comment_id)
     if not is_admin(request.user) and comment.author_id != request.user.pk:
-        return _error(request, 403, "NOT_OWNER", "Komentar bukan milik Anda.")
+        return _error(request, 403, "NOT_OWNER", "Komentar bukan milikmu.")
     _delete_comment(comment)
     return _delete_response(request)
 
@@ -860,6 +938,8 @@ def api_toggle_like(request, post_id):
             _, created = Like.objects.get_or_create(post=post, user=request.user)
         except IntegrityError:
             created = False
+        if created:
+            _notify_post_liked(post, request.user)
         liked = True
     else:
         Like.objects.filter(post=post, user=request.user).delete()
@@ -880,55 +960,151 @@ def api_toggle_like(request, post_id):
     )
 
 
+@_api_endpoint(("POST", "DELETE"), roles=("user", "admin"))
+def api_toggle_comment_like(request, comment_id):
+    comment = get_object_or_404(Comment.objects.select_related("author"), pk=comment_id)
+    throttle_response = _throttle(request)
+    if throttle_response:
+        return throttle_response
+    created = False
+    if request.method == "POST":
+        try:
+            _, created = CommentLike.objects.get_or_create(
+                comment=comment, user=request.user
+            )
+        except IntegrityError:
+            created = False
+        if created:
+            _notify_comment_liked(comment, request.user)
+    else:
+        CommentLike.objects.filter(comment=comment, user=request.user).delete()
+    liked = request.method == "POST"
+    like_count = CommentLike.objects.filter(comment=comment).count()
+    return JsonResponse(
+        {
+            "data": {
+                "comment_id": str(comment.pk),
+                "liked": liked,
+                "like_count": like_count,
+            }
+        },
+        status=201 if created else 200,
+    )
+
+
+def _likers_page(request, likes):
+    """One page of the people behind some likes, as JSON."""
+    likes = (
+        likes.select_related("user")
+        .prefetch_related(featured_badge_prefetch("user"))
+        .order_by("-created_at", "-id")
+    )
+    page_obj = Paginator(likes, LIKERS_PER_PAGE).get_page(request.GET.get("page"))
+    return JsonResponse(
+        {
+            "data": [
+                {**_author_data(like.user), "liked_at": like.created_at.isoformat()}
+                for like in page_obj.object_list
+            ],
+            "meta": {
+                "page": page_obj.number,
+                "per_page": LIKERS_PER_PAGE,
+                "total_items": page_obj.paginator.count,
+                "total_pages": page_obj.paginator.num_pages,
+            },
+        }
+    )
+
+
+@_api_endpoint(("GET",))
+def api_post_likers(request, post_id):
+    post = get_object_or_404(Post, pk=post_id)
+    return _likers_page(request, Like.objects.filter(post=post))
+
+
+@_api_endpoint(("GET",))
+def api_comment_likers(request, comment_id):
+    comment = get_object_or_404(Comment, pk=comment_id)
+    return _likers_page(request, CommentLike.objects.filter(comment=comment))
+
+
+def _login_required_page(request, next_url=None):
+    """Kirim tamu ke halaman masuk, lalu kembali ke halaman yang dituju."""
+    if request.method == "GET":
+        next_url = request.get_full_path()
+    return redirect_to_login(next_url or reverse("feeds:list"))
+
+
+def _feed_sidebar(user):
+    """Running challenges that feed activity moves forward."""
+    return active_progress(
+        user,
+        goal_types=(
+            Challenge.GoalType.POSTS_CREATED,
+            Challenge.GoalType.LIKES_RECEIVED,
+            Challenge.GoalType.COMMENTS_WRITTEN,
+        ),
+    )
+
+
 @require_http_methods(["GET"])
 def post_list(request):
     if request.path.startswith("/api/"):
         return api_post_list(request)
-    if not request.user.is_authenticated:
-        return _error(request, 401, "UNAUTHENTICATED", "Autentikasi diperlukan.")
+    sort = request.GET.get("sort", "latest")
+    if sort not in FEED_SORTS:
+        sort = "latest"
     queryset = _post_queryset(request.user)
+    if sort == "popular":
+        # Most liked first among the last 30 days, so old hits don't stay on top
+        since = timezone.now() - timezone.timedelta(days=30)
+        queryset = queryset.filter(created_at__gte=since).order_by(
+            "-like_count", "-comment_count", "-created_at"
+        )
     page = request.GET.get("page", "1")
     try:
         page_number = max(int(page), 1)
     except ValueError:
         page_number = 1
     posts = Paginator(queryset, 10).get_page(page_number)
+    can_create_post = is_user(request.user) or is_admin(request.user)
     return render(
         request,
         "feeds/feeds.html",
         {
             "posts": posts,
-            "can_create_post": is_user(request.user) or is_admin(request.user),
+            "sort": sort,
+            "sort_options": (
+                ("latest", "Terbaru", "clock"),
+                ("popular", "Populer", "trending-up"),
+            ),
+            "can_create_post": can_create_post,
+            # The quick composer on the list page posts to feeds:create
+            "form": FeedPostForm(request.user) if can_create_post else None,
+            "challenge_progress": _feed_sidebar(request.user),
         },
     )
+
+
+def _detail_context(request, post, comment_form=None):
+    return {
+        "post": post,
+        "comments": _comment_thread(post, request.user),
+        "comment_form": comment_form or FeedCommentForm(),
+        "can_comment": is_user(request.user) or is_admin(request.user),
+    }
 
 
 def post_detail(request, post_id):
     if not request.user.is_authenticated:
-        return _error(request, 401, "UNAUTHENTICATED", "Autentikasi diperlukan.")
+        return _login_required_page(request)
     post = get_object_or_404(_post_queryset(request.user), pk=post_id)
-    replies = Comment.objects.select_related("author").order_by("created_at", "id")
-    comments = (
-        Comment.objects.filter(post=post, parent__isnull=True)
-        .select_related("author")
-        .prefetch_related(Prefetch("replies", queryset=replies))
-        .order_by("created_at", "id")
-    )
-    return render(
-        request,
-        "feeds/detail.html",
-        {
-            "post": post,
-            "comments": comments,
-            "comment_form": FeedCommentForm(),
-            "can_comment": is_user(request.user) or is_admin(request.user),
-        },
-    )
+    return render(request, "feeds/detail.html", _detail_context(request, post))
 
 
 def post_create(request):
     if not request.user.is_authenticated:
-        return _error(request, 401, "UNAUTHENTICATED", "Autentikasi diperlukan.")
+        return _login_required_page(request)
     if not (is_user(request.user) or is_admin(request.user)):
         return HttpResponseForbidden("Peran tidak diizinkan membuat postingan.")
     if request.method == "GET":
@@ -960,15 +1136,15 @@ def post_update(request, post_id):
 
 def post_delete(request, post_id):
     if not request.user.is_authenticated:
-        return _error(request, 401, "UNAUTHENTICATED", "Autentikasi diperlukan.")
+        return _login_required_page(request)
     if not (is_user(request.user) or is_admin(request.user)):
         return HttpResponseForbidden("Hanya pemilik postingan yang dapat menghapusnya.")
     if request.method != "POST":
         return HttpResponse(status=405, headers={"Allow": "POST"})
     post = get_object_or_404(Post.objects.select_related("author"), pk=post_id)
     if post.author_id != request.user.pk:
-        return HttpResponseForbidden("Postingan bukan milik Anda.")
-    _delete_post(post)
+        return HttpResponseForbidden("Postingan bukan milikmu.")
+    delete_post(post)
     if request.POST.get("return_to") == "detail":
         return redirect("feeds:list")
     return redirect(f"{reverse('feeds:list')}#post-{post_id}")
@@ -976,7 +1152,7 @@ def post_delete(request, post_id):
 
 def toggle_like(request, post_id):
     if not request.user.is_authenticated:
-        return _error(request, 401, "UNAUTHENTICATED", "Autentikasi diperlukan.")
+        return _login_required_page(request, reverse("feeds:detail", args=(post_id,)))
     if not (is_user(request.user) or is_admin(request.user)):
         return HttpResponseForbidden("Peran tidak diizinkan menyukai postingan.")
     if request.method != "POST":
@@ -987,7 +1163,9 @@ def toggle_like(request, post_id):
         return throttle_response
     action = request.POST.get("action")
     if action == "like":
-        Like.objects.get_or_create(post=post, user=request.user)
+        _, created = Like.objects.get_or_create(post=post, user=request.user)
+        if created:
+            _notify_post_liked(post, request.user)
     elif action == "unlike":
         Like.objects.filter(post=post, user=request.user).delete()
     else:
@@ -1001,7 +1179,7 @@ def toggle_like(request, post_id):
 
 def comment_create(request, post_id):
     if not request.user.is_authenticated:
-        return _error(request, 401, "UNAUTHENTICATED", "Autentikasi diperlukan.")
+        return _login_required_page(request, reverse("feeds:detail", args=(post_id,)))
     if not (is_user(request.user) or is_admin(request.user)):
         return HttpResponseForbidden("Peran tidak diizinkan membuat komentar.")
     if request.method != "POST":
@@ -1016,38 +1194,112 @@ def comment_create(request, post_id):
         comment.post = post
         comment.author = request.user
         comment.save()
+        _notify_comment(comment, request.user)
         return redirect("feeds:detail", post_id=post.pk)
-    replies = Comment.objects.select_related("author").order_by("created_at", "id")
-    comments = (
-        Comment.objects.filter(post=post, parent__isnull=True)
-        .select_related("author")
-        .prefetch_related(Prefetch("replies", queryset=replies))
-        .order_by("created_at", "id")
-    )
     post = _post_queryset(request.user).get(pk=post.pk)
     return render(
+        request, "feeds/detail.html", _detail_context(request, post, form), status=422
+    )
+
+
+def _can_interact(user):
+    return is_user(user) or is_admin(user)
+
+
+def reply_create(request, comment_id):
+    """Reply from the post page. Replying to a reply answers the same thread,
+    like Instagram, so threads never get deeper than one level."""
+    if not request.user.is_authenticated:
+        return _login_required_page(request)
+    if not _can_interact(request.user):
+        return HttpResponseForbidden("Peran tidak diizinkan membalas komentar.")
+    if request.method != "POST":
+        return HttpResponse(status=405, headers={"Allow": "POST"})
+    target = get_object_or_404(
+        Comment.objects.select_related("post", "parent"), pk=comment_id
+    )
+    throttle_response = _throttle(request)
+    if throttle_response:
+        return throttle_response
+    root = target.parent or target
+    form = FeedCommentForm(request.POST)
+    detail_url = reverse("feeds:detail", args=(root.post_id,))
+    if not form.is_valid():
+        messages.error(request, form.errors["content"][0])
+        return redirect(f"{detail_url}#comment-{target.pk}")
+    reply = Comment.objects.create(
+        post_id=root.post_id,
+        parent=root,
+        author=request.user,
+        content=form.cleaned_data["content"],
+    )
+    _notify_comment(reply, request.user)
+    return redirect(f"{detail_url}#comment-{reply.pk}")
+
+
+def comment_like(request, comment_id):
+    """Like/unlike a comment without JavaScript (the page uses the API)."""
+    if not request.user.is_authenticated:
+        return _login_required_page(request)
+    if not _can_interact(request.user):
+        return HttpResponseForbidden("Peran tidak diizinkan menyukai komentar.")
+    if request.method != "POST":
+        return HttpResponse(status=405, headers={"Allow": "POST"})
+    comment = get_object_or_404(Comment.objects.select_related("author"), pk=comment_id)
+    action = request.POST.get("action")
+    if action == "like":
+        _, created = CommentLike.objects.get_or_create(
+            comment=comment, user=request.user
+        )
+        if created:
+            _notify_comment_liked(comment, request.user)
+    elif action == "unlike":
+        CommentLike.objects.filter(comment=comment, user=request.user).delete()
+    else:
+        return _validation_error(request, "action", "Aksi like tidak valid.")
+    detail_url = reverse("feeds:detail", args=(comment.post_id,))
+    return redirect(f"{detail_url}#comment-{comment.pk}")
+
+
+def post_likers(request, post_id):
+    """Who liked a post: the modal fetches this page as HTML."""
+    if not request.user.is_authenticated:
+        return _login_required_page(request)
+    post = get_object_or_404(Post, pk=post_id)
+    return _likers_html(request, Like.objects.filter(post=post))
+
+
+def comment_likers(request, comment_id):
+    if not request.user.is_authenticated:
+        return _login_required_page(request)
+    comment = get_object_or_404(Comment, pk=comment_id)
+    return _likers_html(request, CommentLike.objects.filter(comment=comment))
+
+
+def _likers_html(request, likes):
+    likes = (
+        likes.select_related("user")
+        .prefetch_related(featured_badge_prefetch("user"))
+        .order_by("-created_at", "-id")
+    )
+    page_obj = Paginator(likes, LIKERS_PER_PAGE).get_page(request.GET.get("page"))
+    return render(
         request,
-        "feeds/detail.html",
-        {
-            "post": post,
-            "comments": comments,
-            "comment_form": form,
-            "can_comment": True,
-        },
-        status=422,
+        "feeds/partials/likers.html",
+        {"page_obj": page_obj, "likes": page_obj.object_list},
     )
 
 
 def comment_delete(request, comment_id):
     if not request.user.is_authenticated:
-        return _error(request, 401, "UNAUTHENTICATED", "Autentikasi diperlukan.")
+        return _login_required_page(request)
     if not (is_user(request.user) or is_admin(request.user)):
         return HttpResponseForbidden("Peran tidak diizinkan menghapus komentar.")
     if request.method != "POST":
         return HttpResponse(status=405, headers={"Allow": "POST"})
     comment = get_object_or_404(Comment, pk=comment_id)
     if not is_admin(request.user) and comment.author_id != request.user.pk:
-        return HttpResponseForbidden("Komentar bukan milik Anda.")
+        return HttpResponseForbidden("Komentar bukan milikmu.")
     post_id = comment.post_id
     _delete_comment(comment)
     return redirect("feeds:detail", post_id=post_id)
@@ -1055,13 +1307,13 @@ def comment_delete(request, comment_id):
 
 def moderate_post(request, post_id):
     if not request.user.is_authenticated:
-        return _error(request, 401, "UNAUTHENTICATED", "Autentikasi diperlukan.")
+        return _login_required_page(request)
     if not is_admin(request.user):
         return HttpResponseForbidden("Hanya admin yang dapat memoderasi postingan.")
     if request.method != "POST":
         return HttpResponse(status=405, headers={"Allow": "POST"})
     post = get_object_or_404(Post, pk=post_id)
-    _delete_post(post)
+    delete_post(post)
     if request.POST.get("return_to") == "detail":
         return redirect("feeds:list")
     return redirect(f"{reverse('feeds:list')}#post-{post_id}")

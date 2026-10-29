@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% load static component_tags lucide %}
+
+{% block title %}Artikel Saya · SELARAS{% endblock %}
+
+{% block extra_head %}
+<noscript><style>.scroll-reveal { opacity: 1; transform: none; }</style></noscript>
+{% endblock %}
+
+{% block content %}
+<div class="relative isolate">
+  <div class="page-aura" aria-hidden="true"></div>
+
+  <main class="mx-auto w-full max-w-5xl px-4 pb-24 pt-36 sm:px-6 sm:pt-40 lg:px-8">
+    <nav aria-label="Kembali" class="mb-6">
+      {% url 'articles:html-list' as list_url %}
+      {% component "button" text="Semua artikel" variant="neutral-ghost" size="sm" icon_left="arrow-left" href=list_url / %}
+    </nav>
+
+    <header class="mb-8 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        {% component "badge" text="Ruang penulis" variant="primary" icon="pen-line" / %}
+        <h1 class="mt-3 font-display text-h3 leading-tight text-foreground sm:text-h2">Artikel saya</h1>
+        <p class="mt-2 max-w-xl font-sans text-b3 text-neutral-900">Draf, kiriman yang sedang ditinjau, dan tulisan yang sudah terbit. Kamu juga sudah membaca <strong>{{ reads_count }}</strong> artikel.</p>
+      </div>
+      {% url 'articles:html-create' as create_url %}
+      {% component "button" href=create_url text="Tulis artikel" variant="secondary" size="lg" icon_left="plus" class_="max-sm:w-full" / %}
+    </header>
+
+    <ol class="mb-8 grid gap-3 sm:grid-cols-3" aria-label="Alur penerbitan">
+      <li class="flex items-center gap-3 rounded-2xl border border-neutral-400 bg-neutral-50 p-4">
+        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-neutral-200 text-secondary-800" aria-hidden="true">{% lucide "file-pen" class="w-4 h-4" %}</span>
+        <span class="font-sans text-sm"><strong class="block text-secondary-900">1. Tulis draf</strong><span class="text-neutral-900">Simpan kapan saja.</span></span>
+      </li>
+      <li class="flex items-center gap-3 rounded-2xl border border-neutral-400 bg-neutral-50 p-4">
+        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-orange-100/20 text-secondary-800" aria-hidden="true">{% lucide "hourglass" class="w-4 h-4" %}</span>
+        <span class="font-sans text-sm"><strong class="block text-secondary-900">2. Kirim untuk review</strong><span class="text-neutral-900">Admin membaca kirimanmu.</span></span>
+      </li>
+      <li class="flex items-center gap-3 rounded-2xl border border-neutral-400 bg-neutral-50 p-4">
+        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary-100 text-primary-700" aria-hidden="true">{% lucide "globe" class="w-4 h-4" %}</span>
+        <span class="font-sans text-sm"><strong class="block text-secondary-900">3. Terbit</strong><span class="text-neutral-900">Atau kembali dengan catatan.</span></span>
+      </li>
+    </ol>
+
+    <div class="mb-5 flex flex-wrap items-center gap-2" role="group" aria-label="Saring status">
+      {% if status == "" %}{% component "button" href="?" text=all_label variant="neutral" size="sm" selected=True / %}{% else %}{% component "button" href="?" text=all_label variant="neutral" size="sm" / %}{% endif %}
+      {% for option in status_options %}
+        {% if status == option.key %}
+          {% component "button" href=option.url text=option.label variant="neutral" size="sm" icon_left=option.icon selected=True / %}
+        {% else %}
+          {% component "button" href=option.url text=option.label variant="neutral" size="sm" icon_left=option.icon / %}
+        {% endif %}
+      {% endfor %}
+    </div>
+
+    {% if articles %}
+    <ul class="space-y-3">
+      {% for article in articles %}
+      <li class="scroll-reveal" style="--i: {{ forloop.counter0 }}">
+        <article class="flex flex-col gap-4 rounded-2xl border border-neutral-400 bg-neutral-50 p-5 transition-all duration-200 hover:border-neutral-500 hover:shadow-md sm:flex-row sm:items-center">
+          <div class="min-w-0 flex-1">
+            <div class="flex flex-wrap items-center gap-2">
+              {% include "articles/partials/status_badge.html" with status=article.status size="sm" %}
+              {% component "badge" text=article.category.name variant="neutral" size="sm" / %}
+            </div>
+            <h2 class="mt-2 font-display text-h5 leading-snug text-foreground">
+              <a href="{% url 'articles:html-detail' article.slug %}" class="rounded-sm outline-none hover:text-secondary-600 focus-visible:ring-2 focus-visible:ring-primary-500">{{ article.title }}</a>
+            </h2>
+            <p class="mt-1 font-sans text-b4 text-neutral-800">
+              Diperbarui {{ article.updated_at|date:"j M Y, H:i" }}
+              {% if article.status == "PUBLISHED" %} · {{ article.reads_total }} pembaca selesai{% endif %}
+            </p>
+            {% if article.status == "REJECTED" and article.review_note %}
+            <p class="mt-2 flex items-start gap-1.5 font-sans text-b4 text-tertiary-800">{% lucide "message-square-warning" class="mt-0.5 w-3.5 h-3.5 shrink-0" aria_hidden="true" %}<span class="line-clamp-2">{{ article.review_note }}</span></p>
+            {% endif %}
+          </div>
+          <div class="flex shrink-0 flex-wrap gap-2">
+            {% url 'articles:html-detail' article.slug as detail_url %}
+            {% component "button" href=detail_url text="Lihat" variant="neutral" size="sm" icon_left="eye" / %}
+            {% if article.status != "PUBLISHED" %}
+            {% url 'articles:html-update' article.slug as edit_url %}
+            {% component "button" href=edit_url text="Edit" variant="secondary" size="sm" icon_left="pencil" / %}
+            {% endif %}
+          </div>
+        </article>
+      </li>
+      {% endfor %}
+    </ul>
+    {% component "pagination" page_obj=page_obj class_="mt-8" / %}
+    {% else %}
+      {% component "empty_state" icon="feather" title="Belum ada tulisan di sini." description="Bagikan pengalamanmu hidup selaras: resep, tips hemat energi, atau cerita kebun kecil di rumah." %}
+        {% fill "actions" %}
+          {% component "button" href=create_url text="Mulai menulis" variant="secondary" size="md" icon_left="pen-line" / %}
+        {% endfill %}
+      {% endcomponent %}
+    {% endif %}
+  </main>
+</div>
+{% include "accounts/_messages.html" %}
+{% endblock %}
+
+{% block scripts %}
+<script type="module">
+  import { revealOnScroll, showMessagesAsToasts } from "{% static 'js/accounts/shared.js' %}";
+  revealOnScroll();
+  showMessagesAsToasts();
+</script>
+{% endblock %}

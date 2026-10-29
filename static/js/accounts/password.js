@@ -3,7 +3,7 @@
 // and a submit button that waits for them.
 import { setButtonLoading, showMessagesAsToasts } from "./shared.js";
 
-const STRENGTH_LABELS = ["Not set", "Weak", "Fair", "Good", "Strong"];
+const STRENGTH_LABELS = ["Belum diisi", "Lemah", "Cukup", "Bagus", "Kuat"];
 const STRENGTH_COLORS = [
   "text-neutral-800",
   "text-tertiary-700",

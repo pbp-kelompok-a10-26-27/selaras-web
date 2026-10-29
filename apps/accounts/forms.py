@@ -15,7 +15,7 @@ class NormalizedEmailMixin:
         if self.instance and self.instance.pk:
             qs = qs.exclude(pk=self.instance.pk)
         if qs.exists():
-            raise ValidationError(_("A user with this email already exists."))
+            raise ValidationError(_("Email ini sudah terdaftar."))
         return email
 
 

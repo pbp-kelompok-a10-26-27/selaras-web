@@ -1,0 +1,75 @@
+{% load component_tags lucide ui_extras %}{% if campaigns %}
+<ul class="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+  {% for campaign in campaigns %}
+  {% cycle "primary" "secondary" "tertiary" as tone silent %}
+  {% cycle "sprout" "trees" "droplets" "recycle" "leaf" "wind" as campaign_icon silent %}
+  {% url 'donations:campaign_detail' campaign.slug as detail_url %}
+  <li class="scroll-reveal" style="--i: {{ forloop.counter0 }}">
+    <article class="campaign-card group relative flex h-full flex-col overflow-hidden rounded-3xl border border-neutral-400 bg-neutral-50 transition-all duration-300 hover:-translate-y-1 hover:border-neutral-500 hover:shadow-xl motion-reduce:transition-none motion-reduce:hover:translate-y-0">
+      <div class="campaign-media relative flex h-36 items-end justify-between p-5" data-tone="{{ tone }}">
+        {% if campaign.image %}
+        <img src="{{ campaign.image.url }}" alt="" loading="lazy" class="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none">
+        <span class="absolute inset-0 bg-gradient-to-t from-secondary-900/35 to-transparent" aria-hidden="true"></span>
+        {% endif %}
+        <div class="absolute left-5 top-5 z-10 flex flex-wrap items-center gap-2">
+          {% include "donations/partials/_campaign_status.html" with status=campaign.status %}
+          {% if campaign.accepts_donations %}
+          {% component "badge" text="Menerima donasi" variant="neutral" icon="heart-handshake" / %}
+          {% endif %}
+        </div>
+        {% if not campaign.image %}<span class="animate-float ml-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-neutral-50/70 bg-neutral-50/70 text-secondary-700 shadow-sm backdrop-blur-sm" aria-hidden="true">
+          {% lucide campaign_icon class="w-7 h-7" %}
+        </span>{% endif %}
+      </div>
+
+      <div class="flex flex-1 flex-col p-5 sm:p-6">
+        <h2 class="font-display text-h5 leading-snug text-foreground">
+          <a href="{{ detail_url }}" class="rounded-sm outline-none transition-colors after:absolute after:inset-0 after:content-[''] hover:text-secondary-600 focus-visible:ring-2 focus-visible:ring-primary-500">{{ campaign.title }}</a>
+        </h2>
+        <p class="mt-2 line-clamp-3 flex-1 font-sans text-sm leading-relaxed text-neutral-900">{{ campaign.description }}</p>
+
+        <div class="mt-5">
+          <div class="flex items-end justify-between gap-3">
+            <div>
+              <p class="font-sans text-b4 text-neutral-800">Terkumpul</p>
+              <p class="font-sans text-base font-semibold text-secondary-900">Rp {{ campaign.approved_total|rupiah }}</p>
+            </div>
+            <p class="font-display text-h5 text-secondary-600">{{ campaign.progress_percent|floatformat:0 }}%</p>
+          </div>
+          {% component "progress" value=campaign.progress_percent label=campaign.title class_="mt-2.5" / %}
+          <p class="mt-2 flex items-center justify-between gap-3 font-sans text-b4 text-neutral-800">
+            <span>dari target Rp {{ campaign.target_amount|rupiah }}</span>
+            {% if campaign.ends_at %}
+            {% with days=campaign.ends_at|days_until %}
+            <span class="inline-flex shrink-0 items-center gap-1 font-semibold {% if days > 0 and days <= 7 %}text-secondary-900{% endif %}">
+              {% lucide "clock" class="w-3.5 h-3.5" aria_hidden="true" %}
+              {% if days > 0 %}{{ days }} hari lagi{% else %}Berakhir{% endif %}
+            </span>
+            {% endwith %}
+            {% endif %}
+          </p>
+        </div>
+
+        <div class="relative z-10 mt-5 flex flex-wrap items-center gap-2">
+          {% component "button" href=detail_url text="Lihat kampanye" variant="neutral" size="md" / %}
+          {% if campaign.accepts_donations and user.is_authenticated %}
+          {% url 'donations:donate' campaign.slug as donate_url %}
+          {% component "button" href=donate_url text="Donasi" variant="primary" size="md" icon_left="hand-heart" / %}
+          {% endif %}
+          {% if is_admin %}
+          {% url 'donations:campaign_update' campaign.slug as edit_url %}
+          {% component "button" href=edit_url text="Edit" variant="neutral-ghost" size="md" icon_left="pencil" / %}
+          {% endif %}
+        </div>
+      </div>
+    </article>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+{% component "empty_state" icon="search-x" title="Belum ada kampanye yang cocok" description="Coba kata pencarian lain, atau kembali lagi nanti untuk melihat aksi lingkungan berikutnya." %}
+  {% fill "actions" %}
+    {% component "button" id="btn-reset-filters" text="Reset pencarian" variant="secondary" size="md" icon_left="rotate-ccw" / %}
+  {% endfill %}
+{% endcomponent %}
+{% endif %}

@@ -1,0 +1,56 @@
+{% load component_tags lucide ui_extras %}
+{# Target komunitas (challenges.services.community_goals) #}
+{% if community_goals %}
+<section aria-labelledby="communityGoalsTitle" class="{{ class_ }}">
+  <div class="mb-4 flex flex-wrap items-end justify-between gap-3">
+    <div>
+      <p class="font-sans text-xs font-semibold uppercase tracking-[0.2em] text-secondary-500">Bersama lebih jauh</p>
+      <h2 id="communityGoalsTitle" class="mt-1 font-display text-h4 leading-tight text-foreground">Target komunitas</h2>
+    </div>
+    <p class="max-w-md font-sans text-sm text-neutral-900">Setiap aksi kecilmu ikut menambah angka di bawah ini.</p>
+  </div>
+
+  <ul class="grid gap-4 {% if community_goals|length > 1 %}md:grid-cols-2{% endif %} {% if community_goals|length > 2 %}xl:grid-cols-3{% endif %}">
+    {% for item in community_goals %}
+    <li class="flex flex-col gap-4 rounded-2xl border border-neutral-400 bg-neutral-50 p-5 sm:p-6" data-community-goal>
+      <div class="flex items-start gap-3">
+        <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl {% if item.reached %}bg-secondary-700 text-neutral-50{% else %}bg-primary-100 text-primary-700{% endif %}" aria-hidden="true">
+          {% if item.reached %}{% lucide "party-popper" class="w-5 h-5" %}{% else %}{% lucide item.goal.goal_icon class="w-5 h-5" %}{% endif %}
+        </span>
+        <div class="min-w-0 flex-1">
+          <h3 class="font-sans text-base font-semibold leading-snug text-secondary-900">{{ item.goal.title }}</h3>
+          {% if item.goal.description %}<p class="mt-0.5 font-sans text-b4 text-neutral-900">{{ item.goal.description }}</p>{% endif %}
+        </div>
+      </div>
+
+      <div>
+        <div class="flex items-baseline justify-between gap-3">
+          <p class="font-sans text-2xl font-semibold tabular-nums text-secondary-900">
+            {% if item.is_money %}Rp {{ item.current|rupiah }}{% else %}{{ item.current|rupiah }}{% endif %}
+          </p>
+          <p class="font-sans text-sm font-semibold tabular-nums text-secondary-700">{{ item.percent }}%</p>
+        </div>
+        {% component "progress" value=item.percent label=item.goal.title class_="mt-2" / %}
+        <p class="mt-2 font-sans text-b4 text-neutral-800">
+          dari {% if item.is_money %}Rp {% endif %}{{ item.target|rupiah }}{% if not item.is_money %} {{ item.unit }}{% endif %} · {% if item.reached %}tercapai!{% elif item.days_left %}{{ item.days_left }} hari lagi{% else %}hari terakhir{% endif %}
+        </p>
+      </div>
+
+      <div class="mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-neutral-400/60 pt-3">
+        {% if item.mine is not None %}
+        <p class="font-sans text-b4 text-neutral-900">
+          Kontribusimu:
+          <strong class="text-secondary-900">{% if item.is_money %}Rp {{ item.mine|rupiah }}{% else %}{{ item.mine }}{% endif %}</strong>
+        </p>
+        {% else %}
+        <p class="font-sans text-b4 text-neutral-800">Masuk untuk ikut menghitung kontribusimu.</p>
+        {% endif %}
+        {% if not item.reached %}
+        <a href="{{ item.action_url }}" class="inline-flex items-center gap-1 rounded-md font-sans text-sm font-semibold text-secondary-700 hover:text-secondary-900 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">{{ item.action_label }}{% lucide "arrow-right" class="w-4 h-4" aria_hidden="true" %}</a>
+        {% endif %}
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}

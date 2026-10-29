@@ -1,7 +1,7 @@
 {% extends "dashboard/base.html" %}
 {% load static lucide component_tags %}
 
-{% block title %}Helpdesk Tickets Management{% endblock %}
+{% block title %}Kelola Tiket Bantuan{% endblock %}
 
 {% block content %}
 <div
@@ -14,9 +14,8 @@
 >
   <input type="hidden" id="dashboardCsrfToken" value="{{ csrf_token }}" />
 
-  <!-- Header -->
   <header class="flex flex-col gap-3">
-    <nav aria-label="Breadcrumb">
+    <nav aria-label="Navigasi">
       <ol class="flex flex-wrap items-center gap-1.5 font-sans text-sm">
         <li><a href="{{ dashboard_home_url }}" class="rounded-md px-1 py-0.5 text-neutral-800 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">Dashboard</a></li>
         <li aria-hidden="true" class="text-neutral-700">{% lucide "chevron-right" class="w-4 h-4" %}</li>
@@ -25,15 +24,14 @@
     </nav>
     <div class="flex flex-wrap items-end justify-between gap-3">
       <div class="flex flex-col gap-1">
-        <h1 class="font-display text-h3 leading-tight text-foreground sm:text-h2">Helpdesk tickets</h1>
-        <p class="max-w-2xl font-sans text-b3 text-neutral-900">Every ticket on SELARAS. You can reply to the ones assigned to you or take an unassigned one to start helping.</p>
+        <h1 class="font-display text-h3 leading-tight text-foreground sm:text-h2">Tiket bantuan</h1>
+        <p class="max-w-2xl font-sans text-b3 text-neutral-900">Semua tiket di SELARAS. Balas tiket milikmu, atau ambil tiket yang belum ditugaskan untuk mulai membantu.</p>
       </div>
-      {% component "button" id="adminTicketsRefresh" text="Refresh" variant="neutral" size="sm" icon_left="refresh-cw" attrs='title="Reload stats and tickets"' / %}
+      {% component "button" id="adminTicketsRefresh" text="Muat ulang" variant="neutral" size="sm" icon_left="refresh-cw" attrs='title="Muat ulang statistik dan tiket"' / %}
     </div>
   </header>
 
-  <!-- 1. Ticket stats (rendered by admin_tickets.js) -->
-  <section id="adminTicketStats" aria-label="Ticket statistics" aria-busy="true">
+  <section id="adminTicketStats" aria-label="Statistik tiket" aria-busy="true">
     <div class="flex flex-col gap-4" aria-hidden="true">
       <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {% for i in "1234" %}{% component "skeleton" variant="rect" height="h-28" rounded="rounded-2xl" / %}{% endfor %}
@@ -44,96 +42,89 @@
     </div>
   </section>
 
-  <!-- 2. Search, filter, sort (pre-filled from the URL) -->
-  <section aria-label="Search and filter tickets" class="flex flex-col gap-4">
+  <section aria-label="Cari dan saring tiket" class="flex flex-col gap-4">
     <div class="grid grid-cols-1 items-end gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(0,2fr)_repeat(4,minmax(0,1fr))]">
       <search class="flex flex-col sm:col-span-2 xl:col-span-1">
-        {% component "input" type="search" id="adminTicketsSearch" name="search" label="Search subject, requester, email or #ID" placeholder=" " icon="search" value=query.search attrs='maxlength="100"' / %}
+        {% component "input" type="search" id="adminTicketsSearch" name="search" label="Cari judul, pengirim, email, atau #ID" placeholder=" " icon="search" value=query.search attrs='maxlength="100"' / %}
       </search>
-      {% component "dropdown" id="admin-tickets-status" label="Status" placeholder="All statuses" name="status" options=status_options initial_value=query.status default_label=status_label / %}
-      {% component "dropdown" id="admin-tickets-priority" label="Priority" placeholder="All priorities" name="priority" options=priority_options initial_value=query.priority default_label=priority_label / %}
-      {% component "dropdown" id="admin-tickets-assignment" label="Assignment" placeholder="Anyone" name="assignment" options=assignment_options initial_value=query.assignment default_label=assignment_label / %}
-      {% component "dropdown" id="admin-tickets-sort" label="Sort by" placeholder="Latest" name="sort" options=sorting_options initial_value=query.sort default_label=sort_label / %}
+      {% component "dropdown" id="admin-tickets-status" label="Status" placeholder="Semua status" name="status" options=status_options initial_value=query.status default_label=status_label / %}
+      {% component "dropdown" id="admin-tickets-priority" label="Prioritas" placeholder="Semua prioritas" name="priority" options=priority_options initial_value=query.priority default_label=priority_label / %}
+      {% component "dropdown" id="admin-tickets-assignment" label="Penugasan" placeholder="Siapa saja" name="assignment" options=assignment_options initial_value=query.assignment default_label=assignment_label / %}
+      {% component "dropdown" id="admin-tickets-sort" label="Urutkan" placeholder="Terbaru" name="sort" options=sorting_options initial_value=query.sort default_label=sort_label / %}
     </div>
 
     <div class="flex flex-wrap items-center justify-between gap-3">
-      <div id="adminTicketsActiveFilters" class="flex flex-wrap items-center gap-2" role="group" aria-label="Active filters"></div>
+      <div id="adminTicketsActiveFilters" class="flex flex-wrap items-center gap-2" role="group" aria-label="Filter aktif"></div>
       <p id="adminTicketsResultCount" class="font-sans text-sm text-neutral-800" role="status" aria-live="polite"></p>
     </div>
   </section>
 
-  <!-- 3. The admin's assigned tickets -->
   <section id="assignedSection" aria-labelledby="assignedTitle" class="flex flex-col gap-3">
     <div class="flex flex-wrap items-end justify-between gap-2">
       <div class="flex flex-col">
         <h2 id="assignedTitle" class="flex scroll-mt-24 items-center gap-2 font-sans text-lg font-semibold text-foreground outline-none" tabindex="-1">
           <span class="text-orange-100">{% lucide "user-check" class="w-5 h-5" %}</span>
-          Assigned to you
+          Tiket milikmu
           <span id="assignedCount" class="rounded-full bg-orange-100/20 px-2 py-0.5 font-sans text-xs font-bold tabular-nums text-secondary-900"></span>
         </h2>
-        <p class="font-sans text-xs text-neutral-800">You can reply to and update these tickets.</p>
+        <p class="font-sans text-xs text-neutral-800">Kamu bisa membalas dan memperbarui tiket ini.</p>
       </div>
     </div>
     <ul id="assignedList" class="flex flex-col gap-2" aria-busy="true">
       {% for i in "12" %}<li aria-hidden="true">{% component "skeleton" variant="rect" height="h-24" rounded="rounded-2xl" / %}</li>{% endfor %}
     </ul>
-    <!-- Pager for this section (10 per page, ?mine_page=), rendered by admin_tickets.js -->
     <div id="assignedPagination"></div>
   </section>
 
-  <!-- 4. Every other ticket (paged) -->
   <section id="othersSection" aria-labelledby="othersTitle" class="flex flex-col gap-3">
     <div class="flex flex-col">
       <h2 id="othersTitle" class="flex scroll-mt-24 items-center gap-2 font-sans text-lg font-semibold text-foreground outline-none" tabindex="-1">
         <span class="text-secondary-500">{% lucide "layers" class="w-5 h-5" %}</span>
-        All other tickets
+        Tiket lainnya
         <span id="othersCount" class="rounded-full bg-neutral-300 px-2 py-0.5 font-sans text-xs font-bold tabular-nums text-secondary-900"></span>
       </h2>
-      <p class="font-sans text-xs text-neutral-800">Unassigned or handled by other coordinators. View only, but you can take unassigned ones.</p>
+      <p class="font-sans text-xs text-neutral-800">Belum ditugaskan atau ditangani koordinator lain. Hanya bisa dilihat, tapi kamu bisa mengambil yang belum ditugaskan.</p>
     </div>
 
     {# Column headings for the wide, table-like layout (the rows label themselves on smaller screens) #}
     <div class="hidden grid-cols-[minmax(0,1fr)_7.5rem_7.5rem_11rem_8rem_11rem] gap-4 px-5 font-sans text-[0.6875rem] font-semibold uppercase tracking-wider text-neutral-800 xl:grid" aria-hidden="true">
-      <span>Ticket</span><span>Status</span><span>Priority</span><span>Assignee</span><span>Activity</span><span class="text-right">Actions</span>
+      <span>Tiket</span><span>Status</span><span>Prioritas</span><span>Koordinator</span><span>Aktivitas</span><span class="text-right">Aksi</span>
     </div>
 
     <ul id="othersList" class="flex flex-col gap-2" aria-busy="true">
       {% for i in "123" %}<li aria-hidden="true">{% component "skeleton" variant="rect" height="h-24" rounded="rounded-2xl" / %}</li>{% endfor %}
     </ul>
 
-    <!-- Pager for this section (10 per page, ?page=), rendered by admin_tickets.js -->
     <div id="othersPagination"></div>
   </section>
 </div>
 
-<!-- Delete confirmation -->
-{% component "modal" id="deleteTicketModal" title="Delete this ticket?" size="sm" %}
+{% component "modal" id="deleteTicketModal" title="Hapus tiket ini?" size="sm" %}
   {% fill "content" %}
   <div class="flex flex-col gap-3">
     <p class="font-sans text-sm text-foreground">
-      <span id="deleteTicketName" class="font-semibold"></span> and
-      <span id="deleteTicketReplies"></span> will be permanently deleted.
+      <span id="deleteTicketName" class="font-semibold"></span> beserta
+      <span id="deleteTicketReplies"></span> akan dihapus permanen.
     </p>
     <p class="flex items-start gap-2 rounded-xl border border-red-100/30 bg-red-100/5 p-3 font-sans text-xs text-foreground">
       <span class="mt-0.5 shrink-0 text-red-100">{% lucide "triangle-alert" class="w-4 h-4" %}</span>
-      This can't be undone. The requester will no longer see this ticket.
+      Tindakan ini tidak bisa dibatalkan. Pengirim tidak akan bisa melihat tiket ini lagi.
     </p>
   </div>
   {% endfill %}
   {% fill "footer" %}
-  {% component "button" text="Cancel" variant="neutral" attrs="data-modal-close data-modal-autofocus" / %}
-  {% component "button" id="deleteTicketConfirm" text="Delete ticket" variant="danger" icon_left="trash-2" / %}
+  {% component "button" text="Batal" variant="neutral" attrs="data-modal-close data-modal-autofocus" / %}
+  {% component "button" id="deleteTicketConfirm" text="Hapus tiket" variant="danger" icon_left="trash-2" / %}
   {% endfill %}
 {% endcomponent %}
 
 {% include "helpdesk/_component_templates.html" %}
 
-<!-- Row actions, cloned by admin_tickets.js -->
 <template id="tpl-button-assign">
-  {% component "button" text="Assign to me" variant="secondary" size="xs" icon_left="user-plus" / %}
+  {% component "button" text="Ambil tiket" variant="secondary" size="xs" icon_left="user-plus" / %}
 </template>
 <template id="tpl-button-show-unassigned">
-  {% component "button" text="Show unassigned tickets" variant="secondary" size="sm" icon_left="inbox" / %}
+  {% component "button" text="Lihat tiket yang belum ditugaskan" variant="secondary" size="sm" icon_left="inbox" / %}
 </template>
 <template id="tpl-button-delete">
   {% component "button" text="" variant="danger-ghost" size="xs" icon_left="trash-2" class_="w-8! px-0!" / %}

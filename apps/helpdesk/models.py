@@ -10,15 +10,15 @@ from apps.core.storage import private_storage
 
 class Ticket(TimeStamp):
     class Status(models.TextChoices):
-        OPEN = "open", _("Open")
-        IN_PROGRESS = "in_progress", _("In Progress")
-        RESOLVED = "resolved", _("Resolved")
-        CLOSED = "closed", _("Closed")
+        OPEN = "open", _("Terbuka")
+        IN_PROGRESS = "in_progress", _("Diproses")
+        RESOLVED = "resolved", _("Selesai")
+        CLOSED = "closed", _("Ditutup")
 
     class Priority(models.TextChoices):
-        LOW = "low", _("Low")
-        NORMAL = "normal", _("Normal")
-        HIGH = "high", _("High")
+        LOW = "low", _("Rendah")
+        NORMAL = "normal", _("Sedang")
+        HIGH = "high", _("Tinggi")
 
     requester = models.ForeignKey(
         settings.AUTH_USER_MODEL,

@@ -1,0 +1,73 @@
+{% extends "dashboard/base.html" %}
+{% load static lucide component_tags %}
+
+{% block title %}Lencana{% endblock %}
+
+{% block content %}
+<div class="flex flex-col gap-8">
+  <header class="flex flex-col gap-3">
+    <nav aria-label="Navigasi">
+      <ol class="flex flex-wrap items-center gap-1.5 font-sans text-sm">
+        <li><a href="{{ dashboard_home_url }}" class="rounded-md px-1 py-0.5 text-neutral-800 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">Dashboard</a></li>
+        <li aria-hidden="true" class="text-neutral-700">{% lucide "chevron-right" class="w-4 h-4" %}</li>
+        <li><a href="{{ back_url }}" class="rounded-md px-1 py-0.5 text-neutral-800 transition-colors hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">Challenge</a></li>
+        <li aria-hidden="true" class="text-neutral-700">{% lucide "chevron-right" class="w-4 h-4" %}</li>
+        <li><span aria-current="page" class="px-1 font-semibold text-primary-800">Lencana</span></li>
+      </ol>
+    </nav>
+    <div class="flex flex-wrap items-end justify-between gap-3">
+      <div class="flex flex-col gap-1">
+        <h1 class="font-display text-h3 leading-tight text-foreground sm:text-h2">Lencana</h1>
+        <p class="max-w-2xl font-sans text-b3 text-neutral-900">Buat hadiahnya sekali, lalu pasang di challenge. Peserta langsung dapat lencana begitu targetnya tercapai.</p>
+      </div>
+      {% url 'dashboard:admin_badge_create' as create_url %}
+      {% component "button" text="Lencana baru" variant="primary" size="sm" icon_left="circle-plus" href=create_url / %}
+    </div>
+  </header>
+
+  {% if badges %}
+  <ul class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+    {% for badge in badges %}
+    <li class="group flex flex-col gap-4 rounded-2xl border border-neutral-400 bg-neutral-50 p-5">
+      <div class="flex items-start gap-4">
+        <span class="badge-medal h-14 w-14 shrink-0" data-tone="{{ badge.tone }}" aria-hidden="true">{% lucide badge.icon class="w-6 h-6" %}</span>
+        <div class="min-w-0 flex-1">
+          <h2 class="font-sans text-base font-semibold text-foreground">{{ badge.name }}</h2>
+          <p class="mt-0.5 line-clamp-2 font-sans text-sm text-neutral-900">{{ badge.description|default:"Tanpa deskripsi." }}</p>
+        </div>
+      </div>
+      <dl class="flex gap-4 font-sans text-xs text-neutral-800">
+        <div><dt class="sr-only">Challenge</dt><dd class="inline-flex items-center gap-1">{% lucide "trophy" class="w-3.5 h-3.5" aria_hidden="true" %}{{ badge.challenge_count }} challenge</dd></div>
+        <div><dt class="sr-only">Pemilik</dt><dd class="inline-flex items-center gap-1">{% lucide "users" class="w-3.5 h-3.5" aria_hidden="true" %}{{ badge.holder_count }} pemilik</dd></div>
+      </dl>
+      <div class="mt-auto flex items-center justify-end gap-2 border-t border-neutral-400/60 pt-3">
+        {% url 'dashboard:admin_badge_update' badge.slug as edit_url %}
+        {% component "button" text="Edit" variant="neutral" size="xs" icon_left="pencil" href=edit_url / %}
+        {% if not badge.holder_count %}
+        <form method="post" action="{% url 'dashboard:admin_badge_delete' badge.slug %}">
+          {% csrf_token %}
+          {% component "button" type="submit" text="Hapus" variant="danger-ghost" size="xs" icon_left="trash-2" / %}
+        </form>
+        {% endif %}
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+    {% component "empty_state" icon="award" title="Belum ada lencana" description="Buat lencana dulu, lalu pilih sebagai hadiah saat membuat atau mengedit challenge." %}
+      {% fill "actions" %}
+        {% component "button" text="Buat lencana pertama" variant="primary" size="md" icon_left="circle-plus" href=create_url / %}
+      {% endfill %}
+    {% endcomponent %}
+  {% endif %}
+</div>
+
+{% include "accounts/_messages.html" %}
+{% endblock %}
+
+{% block scripts %}
+<script type="module">
+  import { showMessagesAsToasts } from "{% static 'js/accounts/shared.js' %}";
+  showMessagesAsToasts();
+</script>
+{% endblock %}

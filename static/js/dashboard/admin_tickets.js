@@ -55,7 +55,7 @@ const ASSIGNMENT_CHIP_CONFIG = {
 const SEARCH_CHIP_CONFIG = { icon: "search", chip: "border-neutral-500 bg-neutral-50", iconColor: "text-neutral-800" };
 
 // What the lists currently show. Each section is paged on its own (10 per page):
-// "Assigned to you" uses ?mine_page=, "All other tickets" uses ?page=.
+// "Tiket milikmu" memakai ?mine_page=, "Tiket lain" memakai ?page=.
 const listState = { assigned: 0, othersTotal: 0, totalCount: 0 };
 const pages = { mine: 1, others: 1 };
 
@@ -64,13 +64,13 @@ const pages = { mine: 1, others: 1 };
 async function readJson(response) {
   const contentType = response.headers.get("content-type") || "";
   if (!contentType.includes("application/json"))
-    throw new Error("Server did not return JSON. Your session may be expired");
+    throw new Error("Server tidak merespons dengan benar. Sesimu mungkin sudah habis.");
   return response.json();
 }
 
 async function getJson(url, signal) {
   const response = await fetch(url, { headers: { Accept: "application/json" }, signal });
-  if (!response.ok) throw new Error(`Request failed (${response.status})`);
+  if (!response.ok) throw new Error(`Permintaan gagal (${response.status})`);
   return readJson(response);
 }
 
@@ -87,10 +87,10 @@ const ticketUrl = (template, ticketId) => template.replace(ZERO_UUID, ticketId);
 /* ================================== STATS ================================== */
 
 const KPI_CARDS = [
-  { key: "assigned_to_me", label: "Assigned to you", hint: "open or in progress", icon: "user-check", tone: "border-orange-100/50 bg-orange-100/15 text-orange-100" },
-  { key: "unassigned", label: "Unassigned", hint: "waiting for a coordinator", icon: "inbox", tone: "border-yellow-200/70 bg-yellow-100/40 text-secondary-700" },
-  { key: "high_active", label: "High priority open", hint: "handle these first", icon: "arrow-up", tone: "border-red-100/40 bg-red-100/10 text-red-100" },
-  { key: "resolved_week", label: "Resolved this week", hint: "in the last 7 days", icon: "circle-check", tone: "border-primary-500/50 bg-primary-200 text-primary-700" },
+  { key: "assigned_to_me", label: "Ditugaskan ke kamu", hint: "terbuka atau diproses", icon: "user-check", tone: "border-orange-100/50 bg-orange-100/15 text-orange-100" },
+  { key: "unassigned", label: "Belum ditugaskan", hint: "menunggu koordinator", icon: "inbox", tone: "border-yellow-200/70 bg-yellow-100/40 text-secondary-700" },
+  { key: "high_active", label: "Prioritas tinggi terbuka", hint: "tangani lebih dulu", icon: "arrow-up", tone: "border-red-100/40 bg-red-100/10 text-red-100" },
+  { key: "resolved_week", label: "Selesai minggu ini", hint: "7 hari terakhir", icon: "circle-check", tone: "border-primary-500/50 bg-primary-200 text-primary-700" },
 ];
 
 function toPercent(value, total) {
@@ -144,11 +144,11 @@ function createPanel(title, subtitle) {
 
 // All tickets by status: one segmented bar + a legend
 function createStatusPanel(rows, total) {
-  const panel = createPanel("All tickets by status", `${total} ${total === 1 ? "ticket" : "tickets"} in total`);
+  const panel = createPanel("Semua tiket per status", `${total} tiket total`);
 
   const bar = el("div", "flex h-3 w-full gap-0.5 overflow-hidden rounded-full bg-neutral-400/70");
   bar.setAttribute("role", "img");
-  bar.setAttribute("aria-label", `Status breakdown: ${rows.map((r) => `${r.label} ${r.value}`).join(", ")}`);
+  bar.setAttribute("aria-label", `Rincian status: ${rows.map((r) => `${r.label} ${r.value}`).join(", ")}`);
   rows.filter((r) => r.value > 0).forEach((row) => {
     const segment = el("span", `h-full transition-[width] duration-700 ease-out first:rounded-l-full last:rounded-r-full motion-reduce:transition-none ${(TICKET_STATUS_CONFIG[row.key] ?? TICKET_STATUS_CONFIG.open).accent}`);
     segment.title = `${row.label}: ${row.value}`;
@@ -174,7 +174,7 @@ function createStatusPanel(rows, total) {
 
 // Open workload by priority: one bar per priority, scaled to the largest
 function createPriorityPanel(rows, activeTotal) {
-  const panel = createPanel("Open workload by priority", `${activeTotal} open or in progress`);
+  const panel = createPanel("Beban kerja terbuka per prioritas", `${activeTotal} terbuka atau diproses`);
   const max = Math.max(1, ...rows.map((r) => r.value));
 
   const list = el("dl", "flex flex-col gap-3");
@@ -212,7 +212,7 @@ function renderStats(stats) {
 
   // Keep the sidebar's Helpdesk count in step (sidebar.js)
   const mine = stats.kpis.assigned_to_me;
-  window.setSidebarBadge?.("helpdesk", mine, `${mine} active ticket${mine === 1 ? "" : "s"} assigned to you`);
+  window.setSidebarBadge?.("helpdesk", mine, `${mine} tiket aktif ditugaskan ke kamu`);
 }
 
 async function loadStats() {
@@ -223,7 +223,7 @@ async function loadStats() {
   } catch (error) {
     console.error(error);
     const message = el("div", "flex items-center gap-3 rounded-2xl border border-red-100/40 bg-red-100/5 p-4 font-sans text-sm text-foreground");
-    message.append(createIcon("triangle-alert", "w-5 h-5 shrink-0 text-red-100"), el("span", "", "Couldn't load ticket statistics. Use Refresh to try again."));
+    message.append(createIcon("triangle-alert", "w-5 h-5 shrink-0 text-red-100"), el("span", "", "Statistik tiket gagal dimuat. Tekan Muat ulang untuk mencoba lagi."));
     statsContainer.replaceChildren(message);
     renderLucideIcons(statsContainer);
   } finally {
@@ -263,7 +263,7 @@ function createTicketRow(ticket) {
   const topLine = el("div", "flex flex-wrap items-center gap-2");
   topLine.append(createTicketIdElement(ticket.id));
   if (ticket.is_assigned_to_me) {
-    topLine.append(el("span", "rounded-full border border-orange-100/50 bg-orange-100/15 px-2 py-0.5 font-sans text-[0.6875rem] font-semibold text-secondary-900", "Yours"));
+    topLine.append(el("span", "rounded-full border border-orange-100/50 bg-orange-100/15 px-2 py-0.5 font-sans text-[0.6875rem] font-semibold text-secondary-900", "Milikmu"));
   }
 
   const subject = ticket.detail_url
@@ -275,7 +275,7 @@ function createTicketRow(ticket) {
 
   const requester = el("p", "truncate font-sans text-xs text-neutral-800");
   requester.append(
-    `by ${ticket.requester?.name ?? "Unknown user"}`,
+    `oleh ${ticket.requester?.name ?? "Pengguna tidak dikenal"}`,
     ticket.requester_email ? ` · ${ticket.requester_email}` : "",
     " · ",
     createTimeElement(ticket.created_at, "opened "),
@@ -295,7 +295,7 @@ function createTicketRow(ticket) {
   const assigneeName = el(
     "span",
     `truncate font-sans text-sm ${ticket.assignee ? "font-semibold text-foreground" : "italic text-neutral-800"}`,
-    ticket.is_assigned_to_me ? "You" : ticket.assignee?.name ?? "Unassigned",
+    ticket.is_assigned_to_me ? "Kamu" : ticket.assignee?.name ?? "Belum ditugaskan",
   );
   if (ticket.assignee) assigneeName.title = ticket.assignee.name;
   assigneeCell.append(el("span", "sr-only", "Assignee:"), assigneeName);
@@ -303,7 +303,7 @@ function createTicketRow(ticket) {
   const activityCell = el("div", "flex items-center gap-3 font-sans text-xs text-neutral-800 xl:flex-col xl:items-start xl:gap-0.5");
   const replies = el("span", "inline-flex items-center gap-1.5");
   const count = ticket.messages_count ?? 0;
-  replies.append(createIcon("message-square", "w-3.5 h-3.5"), `${count} ${count === 1 ? "reply" : "replies"}`);
+  replies.append(createIcon("message-square", "w-3.5 h-3.5"), `${count} balasan`);
   const updated = el("span", "inline-flex items-center gap-3 mt-3");
   updated.append(createIcon("clock", "w-3.5 h-3.5"), createTimeElement(ticket.updated_at, "updated "));
   activityCell.append(replies, updated);
@@ -314,14 +314,14 @@ function createTicketRow(ticket) {
   const actions = el("div", "flex items-center gap-2 border-t border-neutral-400 pt-3 xl:justify-end xl:border-0 xl:pt-0");
   if (ticket.can_assign_to_me) {
     const assignButton = cloneTemplate("tpl-button-assign");
-    assignButton.setAttribute("aria-label", `Assign ticket ${ticket.title} to me`);
+    assignButton.setAttribute("aria-label", `Ambil tiket ${ticket.title}`);
     assignButton.addEventListener("click", () => assignTicket(ticket, assignButton, item));
     actions.append(assignButton);
   }
   const deleteButton = cloneTemplate("tpl-button-delete");
   deleteButton.classList.add("ml-auto", "xl:ml-0");
-  deleteButton.setAttribute("aria-label", `Delete ticket ${ticket.title}`);
-  deleteButton.title = "Delete ticket";
+  deleteButton.setAttribute("aria-label", `Hapus tiket ${ticket.title}`);
+  deleteButton.title = "Hapus tiket";
   deleteButton.addEventListener("click", () => openDeleteDialog(ticket, item));
   actions.append(deleteButton);
 
@@ -366,12 +366,12 @@ function createActionButton(templateId, label, onClick) {
 
 function assignedEmptyState(query) {
   if (hasActiveFilters(query)) {
-    return createEmptyState({ icon: "search-x", title: "None of your tickets match", message: "Try a different search or filter." });
+    return createEmptyState({ icon: "search-x", title: "Nggak ada tiketmu yang cocok", message: "Coba pencarian atau filter lain." });
   }
   return createEmptyState({
     icon: "inbox",
-    title: "Nothing assigned to you",
-    message: "Take an unassigned ticket to start helping. You can only reply to tickets assigned to you.",
+    title: "Belum ada tiket untukmu",
+    message: "Ambil tiket yang belum ditugaskan untuk mulai membantu. Kamu cuma bisa membalas tiket milikmu.",
     action: createActionButton("tpl-button-show-unassigned", "", () => setDropdownValue(assignmentInput, "unassigned")),
   });
 }
@@ -380,15 +380,15 @@ function othersEmptyState(query) {
   if (hasActiveFilters(query)) {
     return createEmptyState({
       icon: "search-x",
-      title: "No other tickets match",
-      message: "Try a different search or filter.",
+      title: "Nggak ada tiket lain yang cocok",
+      message: "Coba pencarian atau filter lain.",
       action: createActionButton("tpl-button-clear-filters", "", clearQuery),
     });
   }
   if (listState.totalCount === 0) {
-    return createEmptyState({ icon: "inbox", title: "No tickets yet", message: "When users file tickets, they'll show up here." });
+    return createEmptyState({ icon: "inbox", title: "No tickets yet", message: "Tiket dari pengguna akan muncul di sini." });
   }
-  return createEmptyState({ icon: "inbox", title: "No other tickets", message: "Every ticket is assigned to you." });
+  return createEmptyState({ icon: "inbox", title: "Nggak ada tiket lain", message: "Semua tiket sudah jadi milikmu." });
 }
 
 function updateCounts(query = getQuery()) {
@@ -397,8 +397,8 @@ function updateCounts(query = getQuery()) {
 
   const shown = (assignedSection.hidden ? 0 : listState.assigned) + (othersSection.hidden ? 0 : listState.othersTotal);
   resultCount.textContent = hasActiveFilters(query)
-    ? `${shown} of ${listState.totalCount} tickets match`
-    : `${listState.totalCount} ${listState.totalCount === 1 ? "ticket" : "tickets"}`;
+    ? `${shown} dari ${listState.totalCount} tiket cocok`
+    : `${listState.totalCount} tiket`;
 }
 
 function pageHref(query, nextPages) {
@@ -420,14 +420,14 @@ function renderPagers(query, assignedPage, othersPage) {
   assignedPagination.replaceChildren(createPagination({
     page: assignedPage.page,
     totalPages: assignedPage.total_pages,
-    label: "Pages of your assigned tickets",
+    label: "Halaman tiket milikmu",
     hrefFor: (page) => pageHref(query, { ...pages, mine: page }),
     onChange: (page) => goToSectionPage("mine", page),
   }));
   othersPagination.replaceChildren(createPagination({
     page: othersPage.page,
     totalPages: othersPage.total_pages,
-    label: "Pages of other tickets",
+    label: "Halaman tiket lain",
     hrefFor: (page) => pageHref(query, { ...pages, others: page }),
     onChange: (page) => goToSectionPage("others", page),
   }));
@@ -532,21 +532,21 @@ function renderFilterChips(query) {
   const chips = [];
   if (query.status) {
     const label = getDropdownLabel(statusInput, query.status);
-    chips.push(createFilterChip({ label, config: TICKET_STATUS_CONFIG[query.status], removeLabel: `Remove status filter: ${label}`, onRemove: () => setDropdownValue(statusInput, "") }));
+    chips.push(createFilterChip({ label, config: TICKET_STATUS_CONFIG[query.status], removeLabel: `Hapus filter status: ${label}`, onRemove: () => setDropdownValue(statusInput, "") }));
   }
   if (query.priority) {
     const label = getDropdownLabel(priorityInput, query.priority);
-    chips.push(createFilterChip({ label: `${label} priority`, config: TICKET_PRIORITY_CONFIG[query.priority], removeLabel: `Remove priority filter: ${label}`, onRemove: () => setDropdownValue(priorityInput, "") }));
+    chips.push(createFilterChip({ label: `${label} priority`, config: TICKET_PRIORITY_CONFIG[query.priority], removeLabel: `Hapus filter prioritas: ${label}`, onRemove: () => setDropdownValue(priorityInput, "") }));
   }
   if (query.assignment) {
     const label = getDropdownLabel(assignmentInput, query.assignment);
-    chips.push(createFilterChip({ label, config: ASSIGNMENT_CHIP_CONFIG[query.assignment], removeLabel: `Remove assignment filter: ${label}`, onRemove: () => setDropdownValue(assignmentInput, "") }));
+    chips.push(createFilterChip({ label, config: ASSIGNMENT_CHIP_CONFIG[query.assignment], removeLabel: `Hapus filter penugasan: ${label}`, onRemove: () => setDropdownValue(assignmentInput, "") }));
   }
   if (query.search) {
     chips.push(createFilterChip({
       label: `“${query.search}”`,
       config: SEARCH_CHIP_CONFIG,
-      removeLabel: `Remove search: ${query.search}`,
+      removeLabel: `Hapus pencarian: ${query.search}`,
       onRemove: () => {
         searchInput.value = "";
         loadTickets();
@@ -610,7 +610,7 @@ async function loadTickets({ minePage = 1, othersPage = 1 } = {}) {
   } catch (error) {
     if (error.name === "AbortError") return;
     console.error(error);
-    window.showToast?.({ type: "error", title: "Couldn't load tickets", message: error.message });
+    window.showToast?.({ type: "error", title: "Tiket gagal dimuat", message: error.message });
   } finally {
     if (listController === controller) setListsBusy(false);
   }
@@ -639,19 +639,19 @@ function removeRow(item, onRemoved) {
 
 async function assignTicket(ticket, button, item) {
   if (button.getAttribute("aria-busy") === "true") return;
-  setButtonLoading(button, true, "Assigning…");
+  setButtonLoading(button, true, "Mengambil tiket…");
 
   try {
     const { response, data } = await postJson(ticketUrl(root.dataset.assignUrlTemplate, ticket.id));
 
     if (!response.ok) {
-      window.showToast?.({ type: "error", title: "Couldn't assign ticket", message: data.error ?? `Request failed (${response.status})` });
+      window.showToast?.({ type: "error", title: "Tiket gagal diambil", message: data.error ?? `Permintaan gagal (${response.status})` });
       // Someone else may have taken it: show the current state
       if (response.status === 409) reloadCurrentPages();
       return;
     }
 
-    window.showToast?.({ type: "success", title: "Assigned to you", message: `${shortId(ticket.id)} · ${ticket.title}` });
+    window.showToast?.({ type: "success", title: "Tiket jadi milikmu", message: `${shortId(ticket.id)} · ${ticket.title}` });
 
     // The ticket moves between sections, and pages shift: reload what's shown
     removeRow(item, async () => {
@@ -662,14 +662,14 @@ async function assignTicket(ticket, button, item) {
         moved.focus({ preventScroll: true });
         highlight(moved);
       } else {
-        // Not on the current page of "Assigned to you" (or that section is filtered out)
+        // Tidak ada di halaman "Tiket milikmu" saat ini (or that section is filtered out)
         document.getElementById(assignedSection.hidden ? "othersTitle" : "assignedTitle")?.focus();
       }
     });
     loadStats();
   } catch (error) {
     console.error(error);
-    window.showToast?.({ type: "error", title: "Couldn't assign ticket", message: error.message });
+    window.showToast?.({ type: "error", title: "Tiket gagal diambil", message: error.message });
   } finally {
     if (button.isConnected) setButtonLoading(button, false);
   }
@@ -681,23 +681,23 @@ function openDeleteDialog(ticket, item) {
   pendingDelete = { ticket, item };
   document.getElementById("deleteTicketName").textContent = `${shortId(ticket.id)} “${ticket.title}”`;
   const replies = ticket.messages_count ?? 0;
-  document.getElementById("deleteTicketReplies").textContent = `its ${replies} ${replies === 1 ? "reply" : "replies"}`;
+  document.getElementById("deleteTicketReplies").textContent = `${replies} balasannya`;
   window.openModal("deleteTicketModal");
 }
 
 async function confirmDelete() {
   if (!pendingDelete || deleteConfirmButton.getAttribute("aria-busy") === "true") return;
   const { ticket, item } = pendingDelete;
-  setButtonLoading(deleteConfirmButton, true, "Deleting…");
+  setButtonLoading(deleteConfirmButton, true, "Menghapus…");
 
   try {
     const { response, data } = await postJson(ticketUrl(root.dataset.deleteUrlTemplate, ticket.id));
     if (!response.ok && response.status !== 404) {
-      throw new Error(data.error ?? `Request failed (${response.status})`);
+      throw new Error(data.error ?? `Permintaan gagal (${response.status})`);
     }
 
     window.closeModal("deleteTicketModal");
-    window.showToast?.({ type: "success", title: "Ticket deleted", message: `${shortId(ticket.id)} · ${ticket.title}` });
+    window.showToast?.({ type: "success", title: "Tiket dihapus", message: `${shortId(ticket.id)} · ${ticket.title}` });
 
     const list = item.parentElement;
     const isAssigned = list === assignedList;
@@ -716,7 +716,7 @@ async function confirmDelete() {
   } catch (error) {
     console.error(error);
     // The dialog stays open so the admin can retry or cancel
-    window.showToast?.({ type: "error", title: "Couldn't delete ticket", message: error.message });
+    window.showToast?.({ type: "error", title: "Tiket gagal dihapus", message: error.message });
   } finally {
     setButtonLoading(deleteConfirmButton, false);
   }
@@ -741,7 +741,7 @@ function init() {
   );
   searchInput?.addEventListener("input", debounce(() => loadTickets(), SEARCH_DEBOUNCE_MS));
   refreshButton?.addEventListener("click", async () => {
-    setButtonLoading(refreshButton, true, "Refreshing…");
+    setButtonLoading(refreshButton, true, "Memuat ulang…");
     await Promise.all([loadStats(), reloadCurrentPages()]);
     setButtonLoading(refreshButton, false);
   });

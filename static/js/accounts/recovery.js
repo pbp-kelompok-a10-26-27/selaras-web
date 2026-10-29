@@ -58,10 +58,10 @@ function startCooldown(link) {
       link.removeAttribute("aria-disabled");
       link.classList.remove(...lockedClasses);
       link.removeEventListener("click", block);
-      if (note) note.textContent = "Still nothing? You can request another link now.";
+      if (note) note.textContent = "Masih belum masuk? Sekarang kamu bisa minta tautan baru.";
       return;
     }
-    if (note) note.textContent = `You can request another link in ${remaining}s.`;
+    if (note) note.textContent = `Kamu bisa minta tautan baru dalam ${remaining} detik.`;
     remaining -= 1;
   };
   const timer = setInterval(tick, 1000);

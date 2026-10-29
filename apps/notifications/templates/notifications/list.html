@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% load static component_tags lucide %}
+
+{% block title %}Notifikasi · SELARAS{% endblock %}
+
+{% block extra_head %}
+<noscript><style>.scroll-reveal { opacity: 1; transform: none; }</style></noscript>
+{% endblock %}
+
+{% block content %}
+<div class="relative isolate">
+  <div class="page-aura" aria-hidden="true"></div>
+
+  <main class="mx-auto w-full max-w-3xl px-4 pb-24 pt-36 sm:px-6 sm:pt-40 lg:px-8">
+    <header class="mb-8 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        {% component "badge" text="Ring-ring!" variant="primary" icon="bell" / %}
+        <h1 class="mt-3 font-display text-h3 leading-tight text-foreground sm:text-h2">Notifikasi</h1>
+        <p class="mt-2 max-w-xl font-sans text-b3 text-neutral-900">
+          {% if unread %}Ada <strong data-unread-count>{{ unread }}</strong> notifikasi yang belum dibaca.{% else %}Semua sudah dibaca. Kamu up to date!{% endif %}
+        </p>
+      </div>
+      {% if unread %}
+      <form method="post" action="{% url 'notifications:read_all' %}">
+        {% csrf_token %}
+        {% component "button" type="submit" text="Tandai semua dibaca" variant="secondary" size="md" icon_left="check-check" class_="max-sm:w-full" / %}
+      </form>
+      {% endif %}
+    </header>
+
+    <div class="mb-5 flex flex-wrap items-center gap-2" role="group" aria-label="Saring notifikasi">
+      {% if show == "all" %}
+        {% component "button" href="?" text="Semua" variant="neutral" size="sm" selected=True / %}
+        {% component "button" href="?show=unread" text="Belum dibaca" variant="neutral" size="sm" icon_left="circle-dot" / %}
+      {% else %}
+        {% component "button" href="?" text="Semua" variant="neutral" size="sm" / %}
+        {% component "button" href="?show=unread" text="Belum dibaca" variant="neutral" size="sm" icon_left="circle-dot" selected=True / %}
+      {% endif %}
+    </div>
+
+    <section class="rounded-3xl border-none bg-neutral-50 p-2 sm:p-3" aria-label="Daftar notifikasi">
+      {% if notifications %}
+      <ul class="space-y-0.5">
+        {% for notification in notifications %}
+        <li class="scroll-reveal" style="--i: {{ forloop.counter0 }}">{% include "notifications/partials/item.html" %}</li>
+        {% endfor %}
+      </ul>
+      {% else %}
+        {% if show == "unread" %}
+          {% component "empty_state" icon="check-check" title="Tidak ada yang belum dibaca." description="Notifikasi baru akan muncul di sini begitu ada aktivitas." / %}
+        {% else %}
+          {% component "empty_state" icon="bell" title="Belum ada notifikasi." description="Saat orang menyukai atau membalas ceritamu, atau kamu mendapat lencana, kabarnya muncul di sini." / %}
+        {% endif %}
+      {% endif %}
+    </section>
+
+    {% component "pagination" page_obj=page_obj / %}
+  </main>
+</div>
+{% include "accounts/_messages.html" %}
+{% endblock %}
+
+{% block scripts %}
+<script type="module">
+  import { revealOnScroll, showMessagesAsToasts } from "{% static 'js/accounts/shared.js' %}";
+  revealOnScroll();
+  showMessagesAsToasts();
+</script>
+{% endblock %}

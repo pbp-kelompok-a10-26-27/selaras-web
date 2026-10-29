@@ -29,12 +29,12 @@ PROOF_FILE_SIGNATURES = {
 def validate_proof_file(uploaded_file):
     """Validate proof size and basic file signature on the server."""
     if uploaded_file.size > MAX_PROOF_UPLOAD_SIZE:
-        raise ValidationError("Proof files must be 5 MB or smaller.")
+        raise ValidationError("Ukuran bukti maksimal 5 MB.")
 
     extension = Path(uploaded_file.name).suffix.lower()
     signature_check = PROOF_FILE_SIGNATURES.get(extension)
     if signature_check is None:
-        raise ValidationError("Upload a common image file or a PDF.")
+        raise ValidationError("Unggah file gambar atau PDF.")
 
     # Check the actual file header instead of trusting the filename or the
     # browser-provided content type. Restore the stream for Django's storage.
@@ -46,7 +46,7 @@ def validate_proof_file(uploaded_file):
         uploaded_file.seek(current_position)
 
     if not signature_check(header):
-        raise ValidationError("The file contents do not match the selected file type.")
+        raise ValidationError("Isi file tidak sesuai dengan jenis filenya.")
 
 
 class CampaignForm(forms.ModelForm):
@@ -55,11 +55,20 @@ class CampaignForm(forms.ModelForm):
         fields = (
             "title",
             "description",
+            "image",
             "target_amount",
             "status",
             "starts_at",
             "ends_at",
         )
+        labels = {
+            "title": "Judul",
+            "description": "Deskripsi",
+            "target_amount": "Target dana (Rp)",
+            "status": "Status",
+            "starts_at": "Mulai",
+            "ends_at": "Berakhir",
+        }
         widgets = {
             "description": forms.Textarea(attrs={"rows": 5}),
             "starts_at": forms.DateTimeInput(
@@ -72,7 +81,9 @@ class CampaignForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        for field in self.fields.values():
+        for name, field in self.fields.items():
+            if name == "image":
+                continue
             field.widget.attrs.setdefault(
                 "class",
                 "min-h-11 w-full rounded-xl border border-neutral-400 bg-white "
@@ -83,10 +94,16 @@ class CampaignForm(forms.ModelForm):
             {"min": "0.01", "step": "0.01"}
         )
 
+    def clean_image(self):
+        image = self.cleaned_data.get("image")
+        if image and getattr(image, "size", 0) > 5 * 1024 * 1024:
+            raise ValidationError("Ukuran foto sampul maksimal 5 MB.")
+        return image
+
     def clean_target_amount(self):
         target_amount = self.cleaned_data["target_amount"]
         if target_amount <= 0:
-            raise ValidationError("Campaign target must be greater than zero.")
+            raise ValidationError("Target kampanye harus lebih dari nol.")
         return target_amount
 
     def clean(self):
@@ -95,7 +112,9 @@ class CampaignForm(forms.ModelForm):
         ends_at = cleaned_data.get("ends_at")
 
         if starts_at and ends_at and ends_at < starts_at:
-            self.add_error("ends_at", "End date must be on or after the start date.")
+            self.add_error(
+                "ends_at", "Tanggal selesai tidak boleh sebelum tanggal mulai."
+            )
 
         return cleaned_data
 
@@ -103,7 +122,12 @@ class CampaignForm(forms.ModelForm):
 class DonationForm(forms.ModelForm):
     class Meta:
         model = Donation
-        fields = ("amount", "proof")
+        fields = ("amount", "proof", "message", "is_anonymous")
+        widgets = {
+            "message": forms.Textarea(
+                attrs={"rows": 3, "maxlength": 280, "placeholder": " "}
+            ),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -114,7 +138,7 @@ class DonationForm(forms.ModelForm):
     def clean_amount(self):
         amount = self.cleaned_data["amount"]
         if amount <= 0:
-            raise ValidationError("Donation amount must be greater than zero.")
+            raise ValidationError("Nominal donasi harus lebih dari nol.")
         return amount
 
     def clean_proof(self):
@@ -128,7 +152,7 @@ class DonationUpdateForm(DonationForm):
     """Edit only a pending donation's amount and, optionally, its proof."""
 
     class Meta(DonationForm.Meta):
-        fields = ("amount", "proof")
+        fields = ("amount", "proof", "message", "is_anonymous")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

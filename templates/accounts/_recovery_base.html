@@ -2,12 +2,11 @@
 {# Standalone layout for the signed-out password reset flow (reset, check email, new password, done), #}
 {# styled like templates/accounts/login.html. Children fill the blocks; recovery_step (1-4) lights up the steps. #}
 <!doctype html>
-<html lang="en" class="h-full">
+<html lang="id" class="h-full">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{% block title %}Reset Password{% endblock %} | SELARAS</title>
-    <!-- Fonts -->
+    <title>{% block title %}Atur Ulang Kata Sandi{% endblock %} · SELARAS</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -16,7 +15,6 @@
     />
     <link href="https://fonts.cdnfonts.com/css/transcity" rel="stylesheet" />
 
-    <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="{% static 'assets/images/logo.svg' %}" />
 
     <link rel="stylesheet" href="{% static 'css/output.css' %}" />
@@ -29,7 +27,6 @@
     <main
       class="fade-in relative z-10 grid min-h-[600px] w-full max-w-5xl grid-cols-1 overflow-hidden rounded-3xl border border-neutral-400 bg-neutral-50 shadow-sm lg:grid-cols-12"
     >
-      <!-- Left: brand + illustration + steps -->
       <section
         class="relative flex flex-col justify-between overflow-hidden border-b border-neutral-400 bg-gradient-to-br from-primary-100 via-primary-200 to-primary-50 p-8 lg:col-span-5 lg:border-r lg:border-b-0 lg:p-12"
       >
@@ -55,14 +52,13 @@
             <span class="absolute top-2 right-4 h-2 w-2 rounded-full bg-primary-600"></span>
             <span class="absolute bottom-4 left-6 h-3 w-3 rounded-full bg-tertiary-400"></span>
           </div>
-          <p class="mb-1 text-xs font-semibold tracking-widest text-secondary-300 uppercase">{% block eyebrow %}Account recovery{% endblock %}</p>
-          <p class="max-w-xs text-sm leading-relaxed text-secondary-600">{% block tagline %}Happens to the best of us. Let's get you back on your path.{% endblock %}</p>
+          <p class="mb-1 text-xs font-semibold tracking-widest text-secondary-300 uppercase">{% block eyebrow %}Pemulihan akun{% endblock %}</p>
+          <p class="max-w-xs text-sm leading-relaxed text-secondary-600">{% block tagline %}Lupa itu wajar, kok. Yuk, kembali ke perjalananmu.{% endblock %}</p>
         </div>
 
         {% block steps %}{% endblock %}
       </section>
 
-      <!-- Right: content -->
       <section class="flex flex-col justify-center bg-neutral-50 p-8 sm:p-10 lg:col-span-7 lg:p-14">
         <div class="slide-in-up mx-auto w-full max-w-md">
           {% block content %}{% endblock %}
@@ -75,7 +71,7 @@
                 href="{% if user.is_authenticated %}{% url 'accounts:profile' %}{% else %}{% url 'accounts:login' %}{% endif %}"
                 class="group ml-1 inline-flex items-center gap-1 rounded-md font-semibold text-secondary-600 transition-all hover:text-secondary-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
               >
-                <span>{% if user.is_authenticated %}Back to profile{% else %}Back to log in{% endif %}</span>
+                <span>{% if user.is_authenticated %}Kembali ke profil{% else %}Kembali ke halaman masuk{% endif %}</span>
                 {% lucide "chevron-right" class="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" aria_hidden="true" %}
               </a>
             </p>

@@ -1,12 +1,13 @@
-"""Navigation for the admin dashboard sidebar and overview page.
+"""Menu sidebar dan halaman ringkasan dashboard admin.
 
-Each section links to a URL name in the "dashboard" namespace. Until a teammate
-adds that route, the section shows as "Soon" (disabled) instead of a broken
-link; adding the URL is enough to enable it, nothing here has to change.
+Bagian yang URL-nya belum ada tampil sebagai "Segera" (nonaktif), bukan tautan
+rusak. Cukup tambahkan URL-nya untuk mengaktifkan.
 """
 
 from django.urls import NoReverseMatch, reverse
 
+from apps.articles.models import Article
+from apps.donations.models import Donation
 from apps.helpdesk.models import Ticket
 
 
@@ -21,61 +22,76 @@ def _url_or_none(name):
 MANAGEMENT_SECTIONS = [
     (
         "users",
-        "Users",
+        "Pengguna",
         "users",
         "dashboard:admin_user_list",
-        "Manage accounts, roles and access.",
+        "Kelola akun, peran, dan akses.",
     ),
     (
         "articles",
-        "Articles",
+        "Artikel",
         "newspaper",
         "dashboard:admin_article_list",
-        "Write, review and publish articles.",
+        "Tulis, tinjau, dan terbitkan artikel.",
     ),
     (
         "challenges",
-        "Challenges",
+        "Challenge",
         "trophy",
         "dashboard:admin_challenge_list",
-        "Run challenges, badges and progress.",
+        "Atur challenge, lencana, dan progres.",
     ),
     (
         "donations",
-        "Donations",
+        "Donasi",
         "hand-heart",
         "dashboard:admin_donation_list",
-        "Track campaigns and donations.",
+        "Pantau kampanye dan donasi.",
     ),
     (
         "feeds",
         "Feeds",
         "rss",
         "dashboard:admin_feed_list",
-        "Moderate posts, likes and comments.",
+        "Moderasi postingan, suka, dan komentar.",
     ),
     (
         "helpdesk",
         "Helpdesk",
         "life-buoy",
         "dashboard:admin_ticket_list",
-        "Answer and resolve support tickets.",
+        "Jawab dan selesaikan tiket bantuan.",
     ),
 ]
 
 
 def get_helpdesk_badge_label(count):
-    return f"{count} active ticket{'s' if count != 1 else ''} assigned to you"
+    return f"{count} tiket aktif ditugaskan ke kamu"
 
 
-def get_sidebar_sections(user):
-    """Sections for the sidebar component: [{"label": ..., "items": [...]}]."""
+# Angka di menu: hal yang menunggu tindakan admin. key -> (hitung, label)
+BADGES = {
+    "helpdesk": (
+        lambda user: Ticket.objects.filter(
+            assigned_to=user,
+            status__in=[Ticket.Status.OPEN, Ticket.Status.IN_PROGRESS],
+        ).count(),
+        get_helpdesk_badge_label,
+    ),
+    "articles": (
+        lambda user: Article.objects.filter(status=Article.Status.PENDING).count(),
+        lambda count: f"{count} artikel menunggu review",
+    ),
+    "donations": (
+        lambda user: Donation.objects.filter(status=Donation.Status.PENDING).count(),
+        lambda count: f"{count} donasi menunggu verifikasi",
+    ),
+}
 
-    # Badge on Helpdesk: the admin's own tickets that still need work
-    assigned_active = Ticket.objects.filter(
-        assigned_to=user,
-        status__in=[Ticket.Status.OPEN, Ticket.Status.IN_PROGRESS],
-    ).count()
+
+def get_sidebar_sections(user, active=None):
+    """Bagian menu untuk komponen sidebar. ``active`` menandai menu yang aktif
+    untuk halaman admin di luar /dashboard/ (mis. verifikasi donasi)."""
 
     items = []
     for key, label, icon, url_name, description in MANAGEMENT_SECTIONS:
@@ -86,19 +102,23 @@ def get_sidebar_sections(user):
             "href": _url_or_none(url_name),
             "description": description,
         }
-        if key == "helpdesk":
-            # Always set (even 0) so the badge can be updated live; it's hidden while 0
-            item["badge"] = assigned_active
-            item["badge_label"] = get_helpdesk_badge_label(assigned_active)
+        if key in BADGES:
+            count, badge_label = BADGES[key]
+            # Selalu diisi (walau 0) supaya bisa diperbarui live; disembunyikan saat 0
+            item["badge"] = count(user)
+            item["badge_label"] = badge_label(item["badge"])
+        if active:
+            item["active"] = key == active
         items.append(item)
 
     return [
         {
+            "key": "main",
             "label": "",
             "items": [
                 {
                     "key": "overview",
-                    "label": "Overview",
+                    "label": "Ringkasan",
                     "icon": "layout-dashboard",
                     "href": _url_or_none("dashboard:home"),
                     # The overview URL is a prefix of every dashboard URL, so
@@ -107,5 +127,5 @@ def get_sidebar_sections(user):
                 }
             ],
         },
-        {"label": "Management", "items": items},
+        {"key": "manage", "label": "Kelola", "items": items},
     ]

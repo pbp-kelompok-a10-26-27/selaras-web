@@ -98,7 +98,7 @@ function init(root) {
       chipsEl.append(
         createFilterChip(
           `\u201c${state.search}\u201d`,
-          "Clear search",
+          "Hapus pencarian",
           () => {
             if (searchInput) searchInput.value = "";
             apply({ search: "" });
@@ -108,7 +108,7 @@ function init(root) {
     }
     if (state.status !== "all") {
       chipsEl.append(
-        createFilterChip(statusLabel(state.status), "Clear status filter", () =>
+        createFilterChip(statusLabel(state.status), "Hapus filter status", () =>
           apply({ status: "all" }),
         ),
       );
@@ -117,7 +117,7 @@ function init(root) {
 
   function renderCount(count) {
     if (countEl) {
-      countEl.textContent = `${count} challenge${count === 1 ? "" : "s"}`;
+      countEl.textContent = `${count} challenge`;
     }
   }
 
@@ -273,26 +273,26 @@ function init(root) {
     set("weather-temp-val", `${data.temperature}\u00b0C`);
     set("weather-cond-text", data.condition);
     set("weather-suggestion", data.suggestion);
-    set("weather-location-label", data.location_label || "Your location");
+    set("weather-location-label", data.location_label || "Lokasimu");
     const slot = document.getElementById("weather-icon-slot");
     if (slot) slot.innerHTML = weatherIcon(data.icon);
   }
 
   async function syncWeather(lat, lon) {
-    setWeatherStatus("Getting the forecast for your location\u2026");
+    setWeatherStatus("Mengambil prakiraan cuaca di lokasimu\u2026");
     try {
       const response = await fetch(
         `${weatherUrl}?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`,
       );
       if (!response.ok) throw new Error("Request failed");
       updateWeather(await response.json());
-      setWeatherStatus("Weather updated for your location.");
+      setWeatherStatus("Cuaca sudah disesuaikan dengan lokasimu.");
       localStorage.setItem("selaras_weather_lat", lat);
       localStorage.setItem("selaras_weather_lon", lon);
       setTimeout(() => statusMessage?.classList.add("hidden"), 4000);
     } catch {
       setWeatherStatus(
-        "Could not update the weather. Showing the default forecast.",
+        "Cuaca belum bisa diperbarui. Kami tampilkan prakiraan bawaan.",
         true,
       );
     }
@@ -300,10 +300,10 @@ function init(root) {
 
   detectButton?.addEventListener("click", () => {
     if (!navigator.geolocation) {
-      setWeatherStatus("Your browser does not support location access.", true);
+      setWeatherStatus("Browser kamu belum mendukung akses lokasi.", true);
       return;
     }
-    setWeatherStatus("Finding your location\u2026");
+    setWeatherStatus("Mencari lokasimu\u2026");
     detectButton.setAttribute("disabled", "true");
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
@@ -312,13 +312,13 @@ function init(root) {
       },
       (error) => {
         detectButton.removeAttribute("disabled");
-        let message = "Could not access your location.";
+        let message = "Lokasimu belum bisa diakses.";
         if (error.code === error.PERMISSION_DENIED) {
-          message = "Location permission was denied.";
+          message = "Izin lokasi ditolak.";
         } else if (error.code === error.TIMEOUT) {
-          message = "The location request timed out.";
+          message = "Permintaan lokasi kelamaan. Coba lagi, ya.";
         }
-        setWeatherStatus(`${message} Showing the default forecast.`, true);
+        setWeatherStatus(`${message} Kami tampilkan prakiraan bawaan.`, true);
       },
       { timeout: 8000, maximumAge: 300000 },
     );

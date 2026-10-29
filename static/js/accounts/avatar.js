@@ -178,12 +178,12 @@ if (root) {
     showError("");
     if (!file) return;
     if (!ACCEPTED_TYPES.includes(file.type)) {
-      showError("That file isn't a JPG, PNG, WebP or GIF image.");
+      showError("File itu bukan gambar JPG, PNG, WebP, atau GIF.");
       return;
     }
     const maxMb = Number(root.dataset.maxSourceMb);
     if (file.size > maxMb * 1024 * 1024) {
-      showError(`That photo is larger than ${maxMb} MB. Pick a smaller one.`);
+      showError(`Foto itu lebih dari ${maxMb} MB. Pilih yang lebih kecil, ya.`);
       return;
     }
 
@@ -204,7 +204,7 @@ if (root) {
     };
     image.onerror = () => {
       URL.revokeObjectURL(url);
-      showError("We couldn't read that image. Try a different one.");
+      showError("Gambar itu nggak bisa dibaca. Coba gambar lain.");
     };
     image.src = url;
   }
@@ -344,9 +344,9 @@ if (root) {
       body,
     });
     const isJson = (response.headers.get("content-type") || "").includes("application/json");
-    if (!isJson) throw new Error("Your session may have expired. Reload the page and try again.");
+    if (!isJson) throw new Error("Sesimu mungkin sudah habis. Muat ulang halaman lalu coba lagi.");
     const data = await response.json();
-    if (!response.ok) throw new Error(data.error ?? `Something went wrong (${response.status}).`);
+    if (!response.ok) throw new Error(data.error ?? `Terjadi kesalahan (${response.status}).`);
     return data;
   }
 
@@ -354,7 +354,7 @@ if (root) {
     return new Promise((resolve, reject) => {
       canvas.toBlob(
         (blob) => {
-          if (!blob) return reject(new Error("We couldn't prepare that photo."));
+          if (!blob) return reject(new Error("Foto itu belum bisa diproses."));
           // Browsers that can't encode WebP quietly give back a PNG; both are accepted
           resolve(blob);
         },
@@ -384,8 +384,8 @@ if (root) {
       window.closeModal(MODAL_ID);
       window.showToast?.({
         type: "success",
-        title: "Photo updated",
-        message: "Your new profile picture is live.",
+        title: "Foto diperbarui",
+        message: "Foto profil barumu sudah tampil.",
       });
     } catch (error) {
       showError(error.message);
@@ -408,8 +408,8 @@ if (root) {
       window.closeModal(MODAL_ID);
       window.showToast?.({
         type: "success",
-        title: "Photo removed",
-        message: "You're back to your initials.",
+        title: "Foto dihapus",
+        message: "Profilmu kembali memakai inisial.",
       });
     } catch (error) {
       showError(error.message);

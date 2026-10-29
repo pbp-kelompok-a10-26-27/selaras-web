@@ -9,7 +9,7 @@ class Button(component.Component):
 
         return {
             "id": kwargs.get("id", ""),
-            "text": kwargs.get("text", "Button"),
+            "text": kwargs.get("text", "Tombol"),
             "variant": kwargs.get("variant", "primary"),
             "size": kwargs.get("size", "md"),
             "href": kwargs.get("href", ""),

@@ -1,0 +1,5 @@
+{% load component_tags %}{% comment %}
+Lifecycle pill for a campaign. Usage:
+{% include "donations/partials/_campaign_status.html" with status=campaign.status %}
+status is one of DRAFT, PUBLISHED, CLOSED.
+{% endcomment %}{% if status == "PUBLISHED" %}{% component "badge" text="Dipublikasikan" variant="primary" icon="megaphone" attrs='data-campaign-status="PUBLISHED"' / %}{% elif status == "CLOSED" %}{% component "badge" text="Ditutup" variant="neutral" icon="lock" attrs='data-campaign-status="CLOSED"' / %}{% else %}{% component "badge" text="Draf" variant="outline" icon="file-pen" attrs='data-campaign-status="DRAFT"' / %}{% endif %}

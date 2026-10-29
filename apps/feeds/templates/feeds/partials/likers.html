@@ -1,0 +1,27 @@
+{% load component_tags lucide %}
+{% if likes %}
+<ul class="divide-y divide-neutral-400/60" data-likers-list>
+  {% for like in likes %}
+  <li class="flex items-center gap-3 px-2 py-2.5">
+    {% component "avatar" src=like.user.avatar_url name=like.user.display_name size="sm" / %}
+    <div class="min-w-0 flex-1">
+      {% component "user_name" user=like.user name_class="font-sans text-sm font-semibold text-secondary-900" / %}
+      <p class="truncate font-sans text-xs text-neutral-800">@{{ like.user.username }}</p>
+    </div>
+    <time class="shrink-0 font-sans text-xs text-neutral-800" datetime="{{ like.created_at|date:'c' }}" data-relative>{{ like.created_at|date:"j M" }}</time>
+  </li>
+  {% endfor %}
+</ul>
+{% if page_obj.has_next %}
+<div class="px-2 pt-3" data-likers-more-wrap>
+  <button type="button" data-likers-more="{{ request.path }}?page={{ page_obj.next_page_number }}" class="w-full cursor-pointer rounded-xl border border-neutral-400 px-4 py-2.5 font-sans text-sm font-semibold text-secondary-800 outline-none transition-colors hover:bg-secondary-50 focus-visible:ring-2 focus-visible:ring-primary-500">
+    Muat lebih banyak ({{ page_obj.paginator.count|add:0 }} total)
+  </button>
+</div>
+{% endif %}
+{% else %}
+<div class="flex flex-col items-center gap-2 px-4 py-8 text-center">
+  <span class="flex h-11 w-11 items-center justify-center rounded-2xl bg-tertiary-100 text-tertiary-800" aria-hidden="true">{% lucide "heart" class="h-5 w-5" %}</span>
+  <p class="font-sans text-sm font-semibold text-secondary-900">Belum ada yang menyukai</p>
+</div>
+{% endif %}

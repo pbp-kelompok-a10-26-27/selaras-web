@@ -1,14 +1,11 @@
-import uuid
-
 from django import forms
-from django.core.files.uploadedfile import UploadedFile
+from django.core.exceptions import ValidationError
 from django.db import transaction
 
 from apps.challenges.models import Challenge
 
+from . import media
 from .models import Comment, Post
-
-MAX_IMAGE_SIZE = 10 * 1024 * 1024
 
 
 class FeedCommentForm(forms.ModelForm):
@@ -37,6 +34,23 @@ class FeedCommentForm(forms.ModelForm):
         return content
 
 
+class MultipleImageInput(forms.ClearableFileInput):
+    allow_multiple_selected = True
+
+
+class MultipleImageField(forms.FileField):
+    """Several photos from one <input type="file" multiple>."""
+
+    widget = MultipleImageInput
+
+    def clean(self, data, initial=None):
+        if not data:
+            return []
+        files = data if isinstance(data, (list, tuple)) else [data]
+        single = super().clean
+        return [single(file, initial) for file in files if file]
+
+
 class FeedPostForm(forms.Form):
     content = forms.CharField(
         max_length=2000,
@@ -46,7 +60,6 @@ class FeedPostForm(forms.Form):
                 "rows": 4,
                 "maxlength": 2000,
                 "placeholder": "Ceritakan progres atau kegiatanmu...",
-                "class": "w-full rounded-xl border border-slate-300 p-3",
             }
         ),
     )
@@ -54,25 +67,42 @@ class FeedPostForm(forms.Form):
         queryset=Challenge.objects.none(),
         required=False,
         empty_label="Posting tanpa challenge",
-        widget=forms.Select(
-            attrs={"class": "w-full rounded-xl border border-slate-300 p-3"}
-        ),
     )
-    image = forms.FileField(
-        required=False,
-        widget=forms.FileInput(
-            attrs={
-                "accept": "image/jpeg,image/png,image/webp",
-                "class": "feed-image-input",
-            }
-        ),
-    )
+    images = MultipleImageField(required=False)
 
     def __init__(self, user, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.user = user
+        self.max_images = media.max_images_for(user)
+        self.max_mb = media.MAX_MB
         self.fields["challenge"].queryset = Challenge.objects.filter(
             participations__user=user
         ).order_by("title")
+        self.fields["images"].widget.attrs.update(
+            {"accept": "image/jpeg,image/png,image/webp", "class": "feed-image-input"}
+        )
+
+    @property
+    def photo_hint(self):
+        return (
+            f"Hingga {self.max_images} foto JPEG, PNG, atau WebP · "
+            f"total maksimal {self.max_mb} MB"
+        )
+
+    def challenge_options(self):
+        """Label -> value pairs for the dropdown component (the value is a string)."""
+        options = {self.fields["challenge"].empty_label: ""}
+        for challenge in self.fields["challenge"].queryset:
+            options[challenge.title] = str(challenge.pk)
+        return options
+
+    @property
+    def selected_challenge_label(self):
+        chosen = str(self.data.get("challenge") or "") if self.is_bound else ""
+        for label, value in self.challenge_options().items():
+            if value == chosen:
+                return label
+        return ""
 
     def clean_content(self):
         content = self.cleaned_data["content"].strip()
@@ -80,35 +110,12 @@ class FeedPostForm(forms.Form):
             raise forms.ValidationError("Isi postingan wajib diisi.")
         return content
 
-    def clean_image(self):
-        image = self.cleaned_data.get("image")
-        if image is None:
-            return image
-        if not isinstance(image, UploadedFile):
-            raise forms.ValidationError("File foto tidak valid.")
-        if image.size > MAX_IMAGE_SIZE:
-            raise forms.ValidationError("Ukuran foto maksimal 10 MB.")
-        image.seek(0)
-        signature = image.read(12)
-        image.seek(0)
-        extensions = {
-            b"\xff\xd8\xff": ".jpg",
-            b"\x89PNG\r\n\x1a\n": ".png",
-        }
-        extension = next(
-            (
-                suffix
-                for prefix, suffix in extensions.items()
-                if signature.startswith(prefix)
-            ),
-            None,
-        )
-        if signature.startswith(b"RIFF") and signature[8:12] == b"WEBP":
-            extension = ".webp"
-        if extension is None:
-            raise forms.ValidationError("Foto harus berformat JPEG, PNG, atau WebP.")
-        image.name = f"{uuid.uuid4().hex}{extension}"
-        return image
+    def clean_images(self):
+        images = self.cleaned_data.get("images") or []
+        try:
+            return media.validate_images(images, self.user)
+        except ValidationError as error:
+            raise forms.ValidationError(error.messages[0]) from error
 
     def save(self, user):
         post = Post(
@@ -116,15 +123,7 @@ class FeedPostForm(forms.Form):
             challenge=self.cleaned_data.get("challenge"),
             content=self.cleaned_data["content"],
         )
-        image = self.cleaned_data.get("image")
-        storage = post.image.storage
-        try:
-            with transaction.atomic():
-                if image:
-                    post.image.save(image.name, image, save=False)
-                post.save()
-        except Exception:
-            if post.image.name:
-                storage.delete(post.image.name)
-            raise
+        with transaction.atomic():
+            post.save()
+            media.save_images(post, self.cleaned_data.get("images") or [])
         return post

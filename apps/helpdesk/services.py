@@ -14,9 +14,7 @@ def validate_attachments(files, links):
 
     errors = []
     if len(files) + len(links) > TicketAttachment.MAX_PER_TICKET:
-        errors.append(
-            f"Attach at most {TicketAttachment.MAX_PER_TICKET} images or links."
-        )
+        errors.append(f"Maksimal {TicketAttachment.MAX_PER_TICKET} gambar atau tautan.")
         return [], [], errors
 
     cleaned_files = []

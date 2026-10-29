@@ -678,3 +678,45 @@ All values are measured from the Figma frame (1440px wide).
 3. Changes to a component's parameters, states, or specifications must update its section in this file.
 4. Resolved pending decisions must be removed from section 15.
 5. Run `npm run build` after changing tokens or component classes.
+
+---
+
+# 17. Feeds & Donations Components
+
+Components live in `apps/core/components/<name>/` and are used with `{% component "<name>" ... / %}`. Template filters `rupiah` and `days_until` are in `apps/core/templatetags/ui_extras.py` (`{% load ui_extras %}`).
+
+| Component     | Parameters                                                                                   | Notes |
+| ------------- | -------------------------------------------------------------------------------------------- | ----- |
+| `badge`       | `text`, `variant` (`primary`, `secondary`, `tertiary`, `neutral`, `info`, `warning`, `danger`, `outline`), `size` (`sm`, `md`), `icon`, `attrs`, `class_` | Non-interactive status pill |
+| `avatar`      | `src`, `name`, `size` (`xs`..`xl`), `tone`, `class_`                                          | Falls back to initials; colour is stable per name |
+| `progress`    | `value` (0-100), `label`, `size` (`sm`, `md`, `lg`), `with_preview`, `id`, `class_`           | `role="progressbar"`; striped `data-progress-preview` segment for "after your donation" |
+| `empty_state` | `icon`, `title`, `description`, slot `actions`                                                | Dashed card for empty lists |
+| `pagination`  | `page_obj`, `param`, `anchor`, `class_`                                                       | Keeps other query params; renders nothing for one page |
+| `textarea`    | `id`, `name`, `label`, `value`, `rows`, `maxlength`, `errors`, `required`, `attrs`, `class_`  | Floating label like `input`; live counter and Ctrl/Cmd+Enter submit (`static/js/components/textarea/`) |
+| `file_drop`   | `id`, `name`, `title`, `hint`, `icon`, `accept`, `max_mb`, `required`, `errors`, `input_class` | Drag and drop, preview, client-side size/type check (`static/js/components/file-drop/`) |
+
+Page-level classes in `static/src/input.css` (section "FEEDS & DONATIONS"): `.page-aura`, `.campaign-media` (`data-tone`), `.progress-ring-value`, `.post-card`, `.post-like`.
+
+Articles: `.article-read-progress` and `.article-prose` (`data-size` sm/md/lg) in the "ARTICLES" section; behaviour in `static/js/articles/` (list, detail, editor).
+
+---
+
+# 18. Badges, Notifications & Social Components
+
+| Component      | Parameters                                                                                   | Notes |
+| -------------- | -------------------------------------------------------------------------------------------- | ----- |
+| `badge_chip`   | `badge` (a `challenges.Badge`), `size` (xs/sm/md), `show_name`, `class_`                     | A challenge badge as a pill in its tone (`.badge-chip[data-tone]`) |
+| `user_name`    | `user`, `size`, `badge_name`, `name_class`, `class_`                                          | Display name plus the user's featured badge. Prefetch it in lists with `apps.challenges.queries.featured_badge_prefetch("author")` |
+| `photo_picker` | `id`, `name`, `title`, `hint`, `accept`, `max_files`, `max_mb`, `errors`, `input_class`       | Several photos for one `<input multiple>`: thumbnails, remove, reorder, paste, size meter and in-browser downscaling (`static/js/components/photo-picker/`) |
+
+Classes in `static/src/input.css` (section "BADGES & NOTIFICATIONS"):
+
+- `.badge-medal[data-tone]` (add `data-locked` for unearned badges). Tones: `primary`, `secondary`, `tertiary`, `gold`.
+- `.notif-panel[data-open]` for the navbar bell popover.
+- `.post-carousel` and `.carousel-dot` for the feed photo carousel.
+
+Scripts:
+
+- `static/js/components/notifications/bell.js` runs on every page. It loads the bell popover and polls the unread count while the tab is visible. It also shows a toast for each new badge.
+- `static/js/components/relative-time/relative-time.js` renders `time[data-relative]` in Indonesian ("5 menit yang lalu").
+- `apps/challenges/templates/challenges/partials/progress_widget.html` is the shared "running challenges" side panel on feed, donation and article pages. It needs `challenge_progress` from `challenges.services.active_progress`.
