@@ -1,0 +1,7 @@
+<div class="space-y-5">
+  {% for post in posts %}
+    {% include "feeds/partials/post_card.html" with post=post %}
+  {% empty %}
+    <p>Belum ada postingan.</p>
+  {% endfor %}
+</div>

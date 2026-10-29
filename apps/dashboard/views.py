@@ -1,6 +1,8 @@
 import re
 from datetime import timedelta
+from urllib.parse import urlencode
 
+from django.contrib import messages
 from django.db import transaction
 from django.db.models import Count, Q
 from django.http import HttpRequest, JsonResponse
@@ -9,6 +11,8 @@ from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
+from apps.challenges.forms import ChallengeForm
+from apps.challenges.models import Challenge, ChallengeParticipation
 from apps.core.decorators import admin_required
 from apps.helpdesk.models import Ticket
 from apps.helpdesk.views import (
@@ -26,6 +30,8 @@ from apps.helpdesk.views import (
 )
 
 from .navigation import get_sidebar_sections
+
+CHALLENGES_PER_PAGE = 10
 
 # ================================= Dashboard Layout ================================= #
 
@@ -481,3 +487,183 @@ def admin_ticket_update(request: HttpRequest, ticket_id):
 
 
 # ==================================================================================== #
+
+
+# ==================================================================================== #
+#                                 Challenges Management                                #
+# ==================================================================================== #
+
+
+@admin_required
+def admin_challenge_list(request: HttpRequest):
+    """Admin dashboard view for managing all challenges, viewing participation stats,
+    filtering by status, and accessing CRUD operations."""
+    search_query = request.GET.get("search", "").strip()
+    status_filter = request.GET.get("status", "all")
+    today = timezone.localdate()
+
+    challenges = Challenge.objects.annotate(
+        participants_count=Count("participations")
+    ).order_by("-created_at")
+
+    if search_query:
+        challenges = challenges.filter(
+            Q(title__icontains=search_query) | Q(description__icontains=search_query)
+        )
+
+    if status_filter == "active":
+        challenges = challenges.filter(
+            is_published=True, start_date__lte=today, end_date__gte=today
+        )
+    elif status_filter == "upcoming":
+        challenges = challenges.filter(is_published=True, start_date__gt=today)
+    elif status_filter == "ended":
+        challenges = challenges.filter(is_published=True, end_date__lt=today)
+    elif status_filter == "draft":
+        challenges = challenges.filter(is_published=False)
+
+    status_options = {
+        "All statuses": ["all", "layers"],
+        "Active": ["active", "flame"],
+        "Upcoming": ["upcoming", "calendar"],
+        "Ended": ["ended", "award"],
+        "Draft": ["draft", "file-pen"],
+    }
+    label_map = {
+        "all": "All statuses",
+        "active": "Active",
+        "upcoming": "Upcoming",
+        "ended": "Ended",
+        "draft": "Draft",
+    }
+    if status_filter not in label_map:
+        status_filter = "all"
+    status_label = label_map[status_filter]
+
+    # Metric snapshots for the admin overview
+    total_challenges = Challenge.objects.count()
+    active_challenges = Challenge.objects.filter(
+        is_published=True, start_date__lte=today, end_date__gte=today
+    ).count()
+    total_participants = ChallengeParticipation.objects.count()
+    draft_challenges = Challenge.objects.filter(is_published=False).count()
+
+    page_challenges, pagination = paginate(
+        challenges, parse_page(request), per_page=CHALLENGES_PER_PAGE
+    )
+
+    def page_url(page=None, **overrides):
+        params = {"search": search_query, "status": status_filter, "page": page}
+        params.update(overrides)
+        params = {
+            key: value
+            for key, value in params.items()
+            if value and value != "all" and not (key == "page" and value == 1)
+        }
+        base = reverse("dashboard:admin_challenge_list")
+        return f"{base}?{urlencode(params)}" if params else base
+
+    pagination["prev_url"] = (
+        page_url(pagination["page"] - 1) if pagination["page"] > 1 else None
+    )
+    pagination["next_url"] = (
+        page_url(pagination["page"] + 1)
+        if pagination["page"] < pagination["total_pages"]
+        else None
+    )
+
+    context = {
+        "challenges": page_challenges,
+        "pagination": pagination,
+        "search_query": search_query,
+        "status_filter": status_filter,
+        "status_options": status_options,
+        "status_label": status_label,
+        "clear_search_url": page_url(search="", page=None),
+        "clear_status_url": page_url(status="all", page=None),
+        "reset_url": reverse("dashboard:admin_challenge_list"),
+        "today": today,
+        "metrics": {
+            "total": total_challenges,
+            "active": active_challenges,
+            "participants": total_participants,
+            "draft": draft_challenges,
+        },
+    }
+    return render_dashboard(
+        request, "dashboard/challenges/challenge_list.html", context
+    )
+
+
+@admin_required
+def admin_challenge_create(request: HttpRequest):
+    """Create a new challenge from within the admin dashboard."""
+    if request.method == "POST":
+        form = ChallengeForm(request.POST)
+        if form.is_valid():
+            challenge = form.save()
+            messages.success(request, f"Challenge “{challenge.title}” created.")
+            return redirect("dashboard:admin_challenge_list")
+    else:
+        form = ChallengeForm()
+
+    context = {
+        "form": form,
+        "is_edit": False,
+        "title": "New challenge",
+        "back_url": reverse("dashboard:admin_challenge_list"),
+    }
+    return render_dashboard(
+        request, "dashboard/challenges/challenge_form.html", context
+    )
+
+
+@admin_required
+def admin_challenge_update(request: HttpRequest, slug):
+    """Edit an existing challenge from within the admin dashboard."""
+    challenge = get_object_or_404(Challenge, slug=slug)
+
+    if request.method == "POST":
+        form = ChallengeForm(request.POST, instance=challenge)
+        if form.is_valid():
+            challenge = form.save()
+            messages.success(request, f"Challenge “{challenge.title}” updated.")
+            return redirect("dashboard:admin_challenge_list")
+    else:
+        form = ChallengeForm(instance=challenge)
+
+    context = {
+        "form": form,
+        "challenge": challenge,
+        "is_edit": True,
+        "title": f"Edit challenge: {challenge.title}",
+        "back_url": reverse("dashboard:admin_challenge_list"),
+    }
+    return render_dashboard(
+        request, "dashboard/challenges/challenge_form.html", context
+    )
+
+
+@admin_required
+@require_POST
+def admin_challenge_delete(request: HttpRequest, slug):
+    """Safely delete an unparticipated challenge from within the admin dashboard."""
+    challenge = get_object_or_404(Challenge, slug=slug)
+    participants_count = challenge.participations.count()
+
+    if participants_count > 0:
+        messages.error(
+            request,
+            (
+                f"“{challenge.title}” can’t be deleted because it has "
+                f"{participants_count} participant"
+                f"{'s' if participants_count != 1 else ''}. "
+                "Unpublish it to a draft instead."
+            ),
+        )
+    else:
+        challenge_title = challenge.title
+        challenge.delete()
+        messages.success(request, f"Challenge “{challenge_title}” deleted.")
+
+    return redirect("dashboard:admin_challenge_list")

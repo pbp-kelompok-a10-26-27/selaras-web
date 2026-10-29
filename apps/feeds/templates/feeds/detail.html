@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+{% load component_tags %}
+
+{% block title %}Detail Postingan | SELARAS{% endblock %}
+
+{% block content %}
+<style>
+  .feed-comments-heading,
+  .feed-comment-count {
+    font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+    line-height: 1.5rem;
+    letter-spacing: normal;
+    font-synthesis: none;
+  }
+
+  .feed-comments-heading {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    margin-bottom: 1.5rem;
+    color: #252710;
+  }
+
+  .feed-comment-count {
+    color: #64748b;
+  }
+
+  .feed-comment-form {
+    display: grid;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .feed-comment-label {
+    color: #334155;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.25rem;
+  }
+
+  .feed-comment-textarea {
+    display: block;
+    width: 100%;
+    min-height: 7rem;
+    padding: 0.75rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 0.75rem;
+    background: #fff;
+    color: #1e293b;
+    font: inherit;
+    line-height: 1.5rem;
+    resize: vertical;
+  }
+
+  .feed-comment-textarea::placeholder {
+    color: #64748b;
+  }
+
+  .feed-comment-textarea:focus-visible {
+    border-color: #047857;
+    outline: 2px solid #047857;
+    outline-offset: 2px;
+  }
+
+  .feed-comment-submit {
+    min-height: 44px;
+    justify-self: start;
+    padding: 0.625rem 1.25rem;
+    border: 0;
+    border-radius: 0.75rem;
+    background: #047857;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .feed-comment-submit:hover {
+    background: #065f46;
+  }
+
+  .feed-comment-submit:focus-visible {
+    outline: 3px solid #6ee7b7;
+    outline-offset: 3px;
+  }
+
+  .feed-like-button {
+    display: inline-flex;
+    min-height: 40px;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.75rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 0.625rem;
+    background: #fff;
+    color: #334155;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .feed-like-button:hover {
+    border-color: #047857;
+    color: #047857;
+  }
+
+  .feed-like-button.is-liked {
+    border-color: #047857;
+    background: #ecfdf5;
+    color: #047857;
+  }
+
+  .feed-like-button:focus-visible {
+    outline: 2px solid #047857;
+    outline-offset: 2px;
+  }
+</style>
+<main class="mx-auto max-w-3xl space-y-6 px-4 py-10">
+  <a href="{% url 'feeds:list' %}" class="inline-block text-emerald-800 underline">
+    Kembali ke feed
+  </a>
+
+  {% include "feeds/partials/post_card.html" with post=post return_to="detail" %}
+
+  <section id="comments" class="rounded-2xl bg-white p-6 shadow-sm">
+    <h2 class="feed-comments-heading">
+      Komentar <span class="feed-comment-count">({{ post.comment_count }})</span>
+    </h2>
+
+    {% if can_comment %}
+      <form
+        action="{% url 'feeds:comment_create' post.id %}"
+        method="post"
+        class="feed-comment-form"
+      >
+        {% csrf_token %}
+        <label
+          for="{{ comment_form.content.id_for_label }}"
+          class="feed-comment-label"
+        >
+          Tambahkan komentar
+        </label>
+        {{ comment_form.content }}
+        {% for error in comment_form.content.errors %}
+          <p role="alert" class="text-sm text-red-700">{{ error }}</p>
+        {% endfor %}
+        <button
+          type="submit"
+          class="feed-comment-submit"
+        >
+          Kirim komentar
+        </button>
+      </form>
+    {% endif %}
+
+    <div class="space-y-4">
+      {% for comment in comments %}
+        <article class="rounded-xl border border-slate-200 p-4">
+          <p class="font-semibold">
+            {{ comment.author.get_full_name|default:comment.author.username }}
+          </p>
+          <p class="whitespace-pre-wrap">{{ comment.content }}</p>
+          <div class="mt-1 flex items-center gap-3 text-xs text-slate-500">
+            <span>{{ comment.created_at }}</span>
+            {% if user.role == "admin" or comment.author_id == user.id %}
+              <button
+                type="button"
+                data-modal-open="delete-comment-modal-{{ comment.id }}"
+                aria-haspopup="dialog"
+                class="font-semibold text-red-700 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700"
+              >
+                Hapus komentar
+              </button>
+            {% endif %}
+          </div>
+          {% for reply in comment.replies.all %}
+            <div class="ml-5 mt-3 border-l-2 border-emerald-200 py-2 pl-4">
+              <p class="font-semibold">
+                {{ reply.author.get_full_name|default:reply.author.username }}
+              </p>
+              <p class="whitespace-pre-wrap">{{ reply.content }}</p>
+              {% if user.role == "admin" or reply.author_id == user.id %}
+                <button
+                  type="button"
+                  data-modal-open="delete-comment-modal-{{ reply.id }}"
+                  aria-haspopup="dialog"
+                  class="mt-1 text-xs font-semibold text-red-700 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700"
+                >
+                  Hapus komentar
+                </button>
+              {% endif %}
+            </div>
+            {% if user.role == "admin" or reply.author_id == user.id %}
+              {% component "modal" id="delete-comment-modal-{{ reply.id }}" title="Konfirmasi hapus komentar" size="sm" %}
+                {% fill "content" %}
+                  <p class="font-sans text-sm text-slate-700">Yakin ingin menghapus komentar ini? Tindakan ini tidak dapat dibatalkan.</p>
+                {% endfill %}
+                {% fill "footer" %}
+                  <button type="button" data-modal-close data-modal-autofocus class="min-h-10 rounded-xl border border-slate-300 px-4 py-2 font-semibold text-slate-700 hover:bg-slate-100">Batal</button>
+                  <form action="{% url 'feeds:comment_delete' reply.id %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="min-h-10 rounded-xl bg-red-700 px-4 py-2 font-semibold text-white hover:bg-red-800">Ya, hapus</button>
+                  </form>
+                {% endfill %}
+              {% endcomponent %}
+            {% endif %}
+          {% endfor %}
+        </article>
+        {% if user.role == "admin" or comment.author_id == user.id %}
+          {% component "modal" id="delete-comment-modal-{{ comment.id }}" title="Konfirmasi hapus komentar" size="sm" %}
+            {% fill "content" %}
+              <p class="font-sans text-sm text-slate-700">Yakin ingin menghapus komentar ini? Tindakan ini tidak dapat dibatalkan.</p>
+            {% endfill %}
+            {% fill "footer" %}
+              <button type="button" data-modal-close data-modal-autofocus class="min-h-10 rounded-xl border border-slate-300 px-4 py-2 font-semibold text-slate-700 hover:bg-slate-100">Batal</button>
+              <form action="{% url 'feeds:comment_delete' comment.id %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="min-h-10 rounded-xl bg-red-700 px-4 py-2 font-semibold text-white hover:bg-red-800">Ya, hapus</button>
+              </form>
+            {% endfill %}
+          {% endcomponent %}
+        {% endif %}
+      {% empty %}
+        <p class="text-slate-600">Belum ada komentar. Jadilah yang pertama berkomentar.</p>
+      {% endfor %}
+    </div>
+  </section>
+</main>
+{% endblock %}

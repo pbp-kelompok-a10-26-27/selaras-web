@@ -20,14 +20,20 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
+from apps.articles.urls import api_urlpatterns
 from apps.core.views import design_system, home
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path(
+        "api/",
+        include((api_urlpatterns, "articles_api"), namespace="articles_api"),
+    ),
     path("accounts/", include("apps.accounts.urls")),
     path("articles/", include("apps.articles.urls")),
     path("challenges/", include("apps.challenges.urls")),
     path("feed/", include("apps.feeds.urls")),
+    path("api/v1/", include("apps.feeds.api_urls")),
     path("donations/", include("apps.donations.urls")),
     path("helpdesk/", include("apps.helpdesk.urls")),
     path("design-system/", design_system, name="design_system"),
@@ -45,3 +51,6 @@ if settings.DEBUG:
 # Custom error pages (templates/errors/), used when DEBUG is False
 handler404 = "apps.core.views.page_not_found"
 handler403 = "apps.core.views.permission_denied"
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

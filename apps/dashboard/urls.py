@@ -48,4 +48,21 @@ urlpatterns = [
         views.admin_ticket_detail_api,
         name="admin_ticket_detail_api",
     ),
+    # Challenges management
+    path("challenges/", views.admin_challenge_list, name="admin_challenge_list"),
+    path(
+        "challenges/create/",
+        views.admin_challenge_create,
+        name="admin_challenge_create",
+    ),
+    path(
+        "challenges/<slug:slug>/edit/",
+        views.admin_challenge_update,
+        name="admin_challenge_update",
+    ),
+    path(
+        "challenges/<slug:slug>/delete/",
+        views.admin_challenge_delete,
+        name="admin_challenge_delete",
+    ),
 ]

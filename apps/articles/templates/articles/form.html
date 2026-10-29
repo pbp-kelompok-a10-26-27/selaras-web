@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+{% load static lucide %}
+
+{% block meta %}
+    <title>{% if article %}Edit artikel{% else %}Tulis artikel{% endif %} - SELARAS</title>
+{% endblock meta %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'css/articles.css' %}">
+{% endblock extra_head %}
+
+{% block content %}
+    <main class="articles-page articles-editor-page">
+        <section class="articles-shell articles-editor-shell">
+            <a class="articles-back-link"
+               href="{% if article %}{% url 'articles:html-detail' article.slug %}{% else %}{% url 'articles:html-list' %}{% endif %}">
+                {% lucide "arrow-left" size=17 aria_hidden="true" %}
+                Kembali
+            </a>
+
+            <header class="articles-editor-intro">
+                <p class="articles-eyebrow">Area pengelolaan · admin</p>
+
+                <h1>
+                    {% if article %}
+                        Merawat cerita yang sudah ada.
+                    {% else %}
+                        Sebuah cerita baru.
+                    {% endif %}
+                </h1>
+
+                <p>
+                    Tuangkan gagasan, bagikan pengetahuan, dan biarkan setiap
+                    tulisan membawa perubahan.
+                </p>
+            </header>
+
+            <div class="articles-editor-layout">
+                <form class="articles-form-panel"
+                      method="post"
+                      enctype="multipart/form-data"
+                      novalidate>
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="articles-form-errors" role="alert">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+
+                    <div class="articles-form-field">
+                        <label for="{{ form.title.id_for_label }}">
+                            Judul artikel
+                        </label>
+                        {{ form.title }}
+
+                        {% for error in form.title.errors %}
+                            <p class="articles-field-error">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+
+                    <div class="articles-form-field">
+                        <label for="{{ form.summary.id_for_label }}">
+                            Ringkasan
+                        </label>
+                        {{ form.summary }}
+
+                        <small>
+                            Ringkasan ini membantu pembaca memilih cerita
+                            dari halaman daftar.
+                        </small>
+
+                        {% for error in form.summary.errors %}
+                            <p class="articles-field-error">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+
+                    <div class="articles-form-field">
+                        <label for="{{ form.category.id_for_label }}">
+                            Kategori
+                        </label>
+                        {{ form.category }}
+
+                        {% for error in form.category.errors %}
+                            <p class="articles-field-error">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+
+                    {{ form.status.as_hidden }}
+
+                    {% for error in form.status.errors %}
+                        <p class="articles-field-error">{{ error }}</p>
+                    {% endfor %}
+
+                    <div class="articles-form-field">
+                        <label for="{{ form.tags.id_for_label }}">
+                            Tag yang sudah ada
+                        </label>
+
+                        <div class="articles-tag-choices">
+                            {% for tag_choice in form.tags %}
+                                <label class="articles-tag-choice">
+                                    {{ tag_choice.tag }}
+                                    <span>#{{ tag_choice.choice_label }}</span>
+                                </label>
+                            {% empty %}
+                                <span class="articles-filter-empty">
+                                    Belum ada tag yang tersedia; tambahkan nama
+                                    tag di bawah.
+                                </span>
+                            {% endfor %}
+                        </div>
+
+                        <small>Pilih tag yang akan dipasang pada artikel.</small>
+
+                        {% for error in form.tags.errors %}
+                            <p class="articles-field-error">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+
+                    <div class="articles-form-field">
+                        <label for="{{ form.new_tags.id_for_label }}">
+                            {{ form.new_tags.label }}
+                        </label>
+                        {{ form.new_tags }}
+
+                        <small>
+                            {{ form.new_tags.help_text }}
+                            Tag yang namanya sudah ada akan digunakan kembali.
+                        </small>
+
+                        {% for error in form.new_tags.errors %}
+                            <p class="articles-field-error">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+
+                    <div class="articles-form-field">
+                        <label for="{{ form.content.id_for_label }}">
+                            Isi artikel
+                        </label>
+                        {{ form.content }}
+
+                        {% for error in form.content.errors %}
+                            <p class="articles-field-error">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+
+                    <div class="articles-form-field">
+                        <label for="{{ form.image.id_for_label }}">
+                            Gambar utama
+                        </label>
+
+                        {% if article and article.image %}
+                            <img class="articles-current-image"
+                                 src="{{ article.image.url }}"
+                                 alt="Gambar artikel saat ini">
+                        {% endif %}
+
+                        {{ form.image }}
+
+                        <small>
+                            JPEG, PNG, WEBP, atau GIF · maksimal 5 MB dan
+                            20 megapiksel. Mengunggah gambar baru akan
+                            mengganti gambar sebelumnya.
+                        </small>
+
+                        {% for error in form.image.errors %}
+                            <p class="articles-field-error">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+
+                    <div class="articles-form-actions">
+                        {% component "button" text="Simpan sebagai draf" variant="neutral" size="md" type="submit" attrs='name="status" value="DRAFT"' / %}
+                        {% component "button" text="Terbitkan artikel" variant="primary" size="md" type="submit" icon_right="arrow-right" attrs='name="status" value="PUBLISHED"' / %}
+                    </div>
+
+                    <p class="articles-form-note">
+                        Pilih status “Draf” atau “Terbit” sebelum menyimpan.
+                        Hanya admin dapat mengubah status dan mengelola artikel.
+                    </p>
+                </form>
+
+                <aside class="articles-editor-note">
+                    {% lucide "sprout" size=23 aria_hidden="true" %}
+
+                    <h2>Merawat bumi lewat tulisan</h2>
+
+                    <p>
+                        Setiap perubahan berawal dari pemahaman. Bagikan pengetahuan dan inspirasi menginspirasi langkah kecil untuk menjaga kelestarian bumi.
+                    </p>
+
+                    <ul class="articles-editor-tips">
+                        <li>
+                            <strong>Draf tetap aman</strong>
+                            <span>Hanya admin yang dapat melihat artikel yang belum dipublikasikan.</span>
+                        </li>
+                        <li>
+                            <strong>Tag yang relevan</strong>
+                            <span>Bantu pembaca menemukan tulisanmu dengan lebih mudah.</span>
+                        </li>
+                        <li>
+                            <strong>Publikasi lebih praktis</strong>
+                            <span>Waktu publikasi akan diatur secara otomatis oleh sistem.</span>
+                        </li>
+                    </ul>
+
+                    {% if article %}
+                        <form class="articles-delete-form"
+                              method="post"
+                              action="{% url 'articles:html-delete' article.slug %}">
+                            {% csrf_token %}
+
+                            <p>Artikel akan dihapus permanen.</p>
+
+                            <button type="submit">
+                                {% lucide "trash-2" size=16 aria_hidden="true" %}
+                                Hapus artikel
+                            </button>
+                        </form>
+                    {% endif %}
+                </aside>
+            </div>
+        </section>
+    </main>
+{% endblock content %}

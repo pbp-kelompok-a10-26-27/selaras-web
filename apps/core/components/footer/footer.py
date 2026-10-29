@@ -9,7 +9,7 @@ class Footer(component.Component):
 
         return {
             "urls": {
-                "articles": kwargs.get("articles_url", "/articles/"),
+                "articles": kwargs.get("articles_url", "/articles/browse/"),
                 "challenges": kwargs.get("challenges_url", "/challenges/"),
                 "feed": kwargs.get("feed_url", "/feed/"),
                 "donations": kwargs.get("donations_url", "/donations/"),

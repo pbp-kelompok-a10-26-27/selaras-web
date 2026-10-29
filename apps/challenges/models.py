@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.db import models
 from django.db.models import UniqueConstraint
+from django.utils import timezone
 from django.utils.text import slugify
 
 from apps.core.models import TimeStamp
@@ -18,6 +19,18 @@ class Challenge(TimeStamp):
         if not self.slug:
             self.slug = slugify(self.title)
         super().save(*args, **kwargs)
+
+    @property
+    def status(self):
+        """Lifecycle state by local date: draft, upcoming, active or ended."""
+        if not self.is_published:
+            return "draft"
+        today = timezone.localdate()
+        if self.end_date < today:
+            return "ended"
+        if self.start_date > today:
+            return "upcoming"
+        return "active"
 
     def __str__(self):
         return self.title
