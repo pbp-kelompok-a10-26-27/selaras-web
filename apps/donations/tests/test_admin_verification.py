@@ -71,7 +71,9 @@ class AdminDonationVerificationTests(TestCase):
             with self.subTest(url=url):
                 response = self.client.get(url)
                 self.assertEqual(response.status_code, 302)
-                self.assertTrue(response["Location"].startswith(reverse("accounts:login")))
+                self.assertTrue(
+                    response["Location"].startswith(reverse("accounts:login"))
+                )
 
     def test_regular_users_are_denied_queue_detail_post_and_admin_proof(self):
         donation = self.make_donation(proof=self.proof_upload())
@@ -247,16 +249,12 @@ class AdminDonationVerificationTests(TestCase):
         )
         self.assertEqual(initial.context["campaign"].approved_total, Decimal("0.00"))
 
-        self.client.post(
-            self.verify_url(pending), {"status": Donation.Status.APPROVED}
-        )
+        self.client.post(self.verify_url(pending), {"status": Donation.Status.APPROVED})
         updated = self.client.get(
             reverse("donations:campaign_detail", args=[self.campaign.slug])
         )
 
-        self.assertEqual(
-            updated.context["campaign"].approved_total, Decimal("125.50")
-        )
+        self.assertEqual(updated.context["campaign"].approved_total, Decimal("125.50"))
 
     def test_verified_donation_has_no_decision_buttons(self):
         donation = self.make_donation(status=Donation.Status.REJECTED)

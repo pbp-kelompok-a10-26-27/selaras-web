@@ -167,9 +167,7 @@ def donation_update(request, donation_id):
             )
             if form.is_valid():
                 updated_donation = form.save(commit=False)
-                updated_donation.save(
-                    update_fields=["amount", "proof", "updated_at"]
-                )
+                updated_donation.save(update_fields=["amount", "proof", "updated_at"])
                 messages.success(request, "Donasi berhasil diperbarui.")
                 return redirect("donations:detail", donation_id=donation.pk)
     else:

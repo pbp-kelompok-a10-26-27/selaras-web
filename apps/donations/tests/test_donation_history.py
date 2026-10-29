@@ -68,7 +68,9 @@ class DonationHistoryAndDetailTests(TestCase):
             with self.subTest(url=url):
                 response = self.client.get(url)
                 self.assertEqual(response.status_code, 302)
-                self.assertTrue(response["Location"].startswith(reverse("accounts:login")))
+                self.assertTrue(
+                    response["Location"].startswith(reverse("accounts:login"))
+                )
 
     def test_history_contains_only_the_current_users_donations_and_statuses(self):
         own = [
@@ -86,9 +88,7 @@ class DonationHistoryAndDetailTests(TestCase):
         )
         for status in Donation.Status.values:
             self.assertContains(response, status)
-        self.assertNotContains(
-            response, reverse("donations:detail", args=[another.pk])
-        )
+        self.assertNotContains(response, reverse("donations:detail", args=[another.pk]))
         self.assertContains(response, reverse("donations:edit", args=[own[0].pk]))
 
     def test_admin_general_history_is_still_limited_to_admins_own_donations(self):
@@ -99,9 +99,7 @@ class DonationHistoryAndDetailTests(TestCase):
         response = self.client.get(reverse("donations:history"))
 
         self.assertEqual(list(response.context["donations"]), [own])
-        self.assertNotContains(
-            response, reverse("donations:detail", args=[another.pk])
-        )
+        self.assertNotContains(response, reverse("donations:detail", args=[another.pk]))
 
     def test_valid_status_filter_only_filters_current_users_donations(self):
         approved = self.make_donation(self.user, status=Donation.Status.APPROVED)
@@ -126,9 +124,7 @@ class DonationHistoryAndDetailTests(TestCase):
 
         self.assertEqual(response.context["status"], "")
         self.assertEqual(list(response.context["donations"]), [own])
-        self.assertNotContains(
-            response, reverse("donations:detail", args=[another.pk])
-        )
+        self.assertNotContains(response, reverse("donations:detail", args=[another.pk]))
 
     def test_detail_shows_campaign_amount_date_and_each_status(self):
         self.client.force_login(self.user)

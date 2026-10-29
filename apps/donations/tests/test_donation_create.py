@@ -127,9 +127,7 @@ class DonationCreateViewTests(TestCase):
                     reverse("donations:campaign_detail", args=[campaign.slug]),
                 )
                 self.assertContains(response, "tidak menerima donasi")
-                self.assertFalse(
-                    Donation.objects.filter(campaign=campaign).exists()
-                )
+                self.assertFalse(Donation.objects.filter(campaign=campaign).exists())
 
     def test_closed_campaign_is_not_available_to_regular_user(self):
         closed = Campaign.objects.create(

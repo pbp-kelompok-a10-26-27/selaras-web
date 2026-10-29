@@ -64,7 +64,9 @@ class CampaignManagementTests(TestCase):
             with self.subTest(url=url):
                 response = self.client.get(url)
                 self.assertEqual(response.status_code, 302)
-                self.assertTrue(response["Location"].startswith(reverse("accounts:login")))
+                self.assertTrue(
+                    response["Location"].startswith(reverse("accounts:login"))
+                )
 
     def test_regular_user_is_denied_create_and_edit_get_and_post(self):
         campaign = self.create_campaign()
@@ -82,9 +84,11 @@ class CampaignManagementTests(TestCase):
 
         for method, url, data in requests:
             with self.subTest(method=method, url=url):
-                response = getattr(self.client, method)(url, data) if data else getattr(
-                    self.client, method
-                )(url)
+                response = (
+                    getattr(self.client, method)(url, data)
+                    if data
+                    else getattr(self.client, method)(url)
+                )
                 self.assertEqual(response.status_code, 403)
 
         campaign.refresh_from_db()
@@ -104,12 +108,10 @@ class CampaignManagementTests(TestCase):
 
         self.assertEqual(create_response.status_code, 200)
         self.assertTemplateUsed(create_response, "dashboard/base.html")
-        self.assertTemplateUsed(
-            create_response, "donations/admin/campaign_form.html"
-        )
+        self.assertTemplateUsed(create_response, "donations/admin/campaign_form.html")
         self.assertEqual(edit_response.status_code, 200)
         self.assertContains(edit_response, 'value="2030-10-01T10:00"')
-        self.assertContains(create_response, "name=\"csrfmiddlewaretoken\"")
+        self.assertContains(create_response, 'name="csrfmiddlewaretoken"')
 
     def test_admin_can_create_campaign_with_valid_fields_and_status(self):
         self.client.force_login(self.admin)
