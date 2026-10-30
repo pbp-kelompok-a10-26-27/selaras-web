@@ -10,3 +10,4 @@ pip-audit>=2.7
 django-components
 gunicorn>=22.0,<24.0
 whitenoise>=6.9,<7.0
+coverage

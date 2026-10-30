@@ -24,3 +24,6 @@ node_modules/
 # Keep generated CSS if your team wants it committed.
 # Private uploads (ticket attachments)
 private_media/
+
+CHANGES.md
+.coverage
