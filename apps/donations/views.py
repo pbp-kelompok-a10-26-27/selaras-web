@@ -83,6 +83,26 @@ def campaign_detail(request, slug):
     )
 
 
+CAMPAIGN_STATUS_ICONS = {
+    Campaign.Status.DRAFT: "file-pen",
+    Campaign.Status.PUBLISHED: "globe",
+    Campaign.Status.CLOSED: "lock",
+}
+
+
+def campaign_status_dropdown(form):
+    """Data for the design system dropdown that replaces the status <select>."""
+    value = str(form["status"].value() or Campaign.Status.DRAFT)
+    return {
+        "status_options": {
+            str(label): [choice, CAMPAIGN_STATUS_ICONS[choice]]
+            for choice, label in Campaign.Status.choices
+        },
+        "status_value": value,
+        "status_label": str(dict(Campaign.Status.choices).get(value, "")),
+    }
+
+
 @admin_required
 @require_http_methods(["GET", "POST"])
 def campaign_create(request):
@@ -100,7 +120,7 @@ def campaign_create(request):
     return render_dashboard(
         request,
         "donations/admin/campaign_form.html",
-        {"form": form, "is_create": True},
+        {"form": form, "is_create": True, **campaign_status_dropdown(form)},
         active_section="donations",
     )
 
@@ -123,7 +143,12 @@ def campaign_update(request, slug):
     return render_dashboard(
         request,
         "donations/admin/campaign_form.html",
-        {"form": form, "campaign": campaign, "is_create": False},
+        {
+            "form": form,
+            "campaign": campaign,
+            "is_create": False,
+            **campaign_status_dropdown(form),
+        },
         active_section="donations",
     )
 

@@ -360,6 +360,36 @@ class Command(BaseCommand):
                 True,
                 "Penyemangat",
             ),
+            (
+                "energy",
+                "Matikan Lampu 1 Jam Setiap Malam",
+                G.CHECK_IN,
+                None,
+                -2,
+                12,
+                True,
+                None,
+            ),
+            (
+                "donate-month",
+                "Donasi Rp250.000 Bulan Ini",
+                G.DONATION_AMOUNT,
+                250000,
+                -10,
+                20,
+                True,
+                None,
+            ),
+            (
+                "share-month",
+                "Bagikan 10 Cerita Bulan Ini",
+                G.POSTS_CREATED,
+                10,
+                -10,
+                20,
+                True,
+                None,
+            ),
             # Edge: lifecycle states
             ("upcoming", "Pekan Hemat Air", G.CHECK_IN, None, 3, 9, True, None),
             ("ended", "Bulan Tanpa Sedotan", G.CHECK_IN, None, -40, -10, True, None),
@@ -451,6 +481,12 @@ class Command(BaseCommand):
             join(user, "comments")
         join("sari", "huge")
         join("panjang", "oneday")
+        check_in(join("dimas", "energy"), [0, 1])
+        check_in(join("citra", "energy"), [2])
+        for user in ("budi", "panjang"):
+            join(user, "donate-month")
+        for user in ("budi", "dimas", "noname"):
+            join(user, "share-month")
 
         # Ended: one finisher, one who never finished
         finished = join("sari", "ended")
@@ -578,6 +614,46 @@ class Command(BaseCommand):
                 None,
                 ["laut"],
                 0,
+            ),
+            (
+                "Mengenal Label Eco-Score pada Kemasan",
+                "Konsumsi Sadar",
+                moderator,
+                S.PUBLISHED,
+                4,
+                SKY,
+                ["pangan", "daur ulang"],
+                14,
+            ),
+            (
+                "Panel Surya Atap: Hitung Dulu Sebelum Pasang",
+                "Energi",
+                admin,
+                S.PUBLISHED,
+                6,
+                FOREST,
+                ["energi", "hemat"],
+                16,
+            ),
+            (
+                "Memilah Sampah Jadi Tiga Wadah",
+                "Lingkungan",
+                moderator,
+                S.PUBLISHED,
+                3,
+                None,
+                ["daur ulang", "zero waste"],
+                18,
+            ),
+            (
+                "Menjaga Pantai Setelah Liburan",
+                "Lingkungan",
+                admin,
+                S.PUBLISHED,
+                4,
+                BLOSSOM,
+                ["laut", "plastik"],
+                22,
             ),
         ]
         self.articles = []
@@ -734,7 +810,7 @@ class Command(BaseCommand):
             ),
         }
         # More posts so the list paginates (10 per page)
-        for index in range(12):
+        diary = [
             post(
                 ["sari", "budi", "citra", "dimas"][index % 4],
                 f"Catatan harian #{index + 1}: {PARAGRAPH[:90]}",
@@ -742,6 +818,8 @@ class Command(BaseCommand):
                 None,
                 60 + index * 6,
             )
+            for index in range(12)
+        ]
 
         # Likes: "harvest" is popular; Sari reaches the 5-like challenge
         likers = ["budi", "citra", "dimas", "admin", "moderator", "panjang"]
@@ -754,10 +832,34 @@ class Command(BaseCommand):
         Like.objects.create(post=posts["text"], user=u["citra"])
         for name in ("sari", "budi", "citra", "dimas", "admin"):
             Like.objects.create(post=posts["old"], user=u[name])
+        # Every other post gets some engagement too, so no card looks empty
+        for key, names in (
+            ("max-user", ("budi", "citra", "admin")),
+            (
+                "max-admin",
+                ("sari", "budi", "citra", "dimas", "moderator", "panjang", "noname"),
+            ),
+            ("long", ("sari", "admin")),
+            ("xss", ("moderator",)),
+            ("mentions", ("sari", "citra", "dimas", "admin")),
+            ("noname", ("budi", "panjang")),
+        ):
+            for name in names:
+                Like.objects.create(post=posts[key], user=u[name])
+        # Likers come from accounts outside the likes challenge's author list, and
+        # citra's diary posts get one like each so she stays one short of 5
+        diary_likers = ["admin", "moderator", "panjang", "noname"]
+        for index, item in enumerate(diary):
+            count = 1 if item.author == u["citra"] else index % 4 + 1
+            for name in diary_likers[:count]:
+                Like.objects.create(post=item, user=u[name])
 
-        def comment(post_key, author, content, parent=None, minutes_ago=30):
+        def comment(post_or_key, author, content, parent=None, minutes_ago=30):
+            """``post_or_key`` is a key of ``posts`` or a Post (the diary posts)."""
             item = Comment.objects.create(
-                post=posts[post_key],
+                post=posts.get(post_or_key)
+                if isinstance(post_or_key, str)
+                else post_or_key,
                 author=u[author],
                 content=content,
                 parent=parent,
@@ -785,9 +887,35 @@ class Command(BaseCommand):
             comment("single", name, f"Semangat bersepeda! dari {name}", minutes_ago=120)
             comment("text", name, "Langkah kecil yang keren 👏", minutes_ago=100)
 
+        # Comments elsewhere come from accounts outside the comments challenge, so
+        # budi and citra keep their partial progress
+        comment("max-admin", "sari", "Dokumentasinya lengkap sekali!", minutes_ago=300)
+        thanks = comment(
+            "max-admin", "moderator", "Terima kasih untuk semua relawan 🌳", None, 280
+        )
+        comment("max-admin", "admin", "@demo_moderator sama-sama!", thanks, 260)
+        comment("mentions", "sari", "Seru banget, kapan lagi?", minutes_ago=400)
+        comment("mentions", "panjang", "Ikut dong lain kali 🙌", minutes_ago=380)
+        comment("noname", "moderator", "Selamat bergabung di SELARAS!", minutes_ago=500)
+        comment("long", "sari", "Ceritanya inspiratif, terima kasih.", minutes_ago=600)
+        diary_commenters = ["sari", "panjang", "admin", "moderator"]
+        for index, item in enumerate(diary):
+            for offset in range(index % 3):
+                name = diary_commenters[(index + offset) % 4]
+                if u[name] == item.author:
+                    continue
+                comment(
+                    item,
+                    name,
+                    ["Semangat terus!", "Aku juga mau coba.", "Keren 👏"][offset],
+                    minutes_ago=700 + index * 10 + offset,
+                )
+
         for name in ("budi", "citra", "dimas"):
             CommentLike.objects.create(comment=root, user=u[name])
         CommentLike.objects.create(comment=reply, user=u["dimas"])
+        for name in ("sari", "admin"):
+            CommentLike.objects.create(comment=thanks, user=u[name])
         self.posts = posts
         self.log("Feed posts", Post.objects.filter(author__in=u.values()).count())
 
@@ -827,6 +955,54 @@ class Command(BaseCommand):
             ("soon", "Kebun Komunitas (Segera)", "2500000", C.PUBLISHED, 5, 40, None),
             ("closed", "Panel Surya Masjid", "8000000", C.CLOSED, -90, -30, None),
             ("draft", "Draf Kampanye Rahasia", "1000000", C.DRAFT, None, None, None),
+            # More running campaigns so the list paginates and filters have results
+            (
+                "coral",
+                "Transplantasi Terumbu Karang",
+                "7500000",
+                C.PUBLISHED,
+                -8,
+                25,
+                SKY,
+            ),
+            (
+                "compost",
+                "Komposter untuk 50 Rumah",
+                "2000000",
+                C.PUBLISHED,
+                -6,
+                30,
+                GREEN,
+            ),
+            (
+                "bins",
+                "Tempat Sampah Terpilah di Taman",
+                "1200000",
+                C.PUBLISHED,
+                -4,
+                18,
+                SAND,
+            ),
+            (
+                "bike",
+                "Parkir Sepeda di Stasiun",
+                "3500000",
+                C.PUBLISHED,
+                -9,
+                21,
+                FOREST,
+            ),
+            (
+                "rain",
+                "Tangki Air Hujan Sekolah",
+                "2800000",
+                C.PUBLISHED,
+                -7,
+                14,
+                BLOSSOM,
+            ),
+            ("seed", "Bibit Gratis untuk Warga", "900000", C.PUBLISHED, -3, 12, GREEN),
+            ("lamp", "Lampu Jalan Tenaga Surya", "6000000", C.PUBLISHED, -5, 35, None),
         ]
         self.campaigns = {}
         for key, title, target, status, starts, ends, color in specs:
@@ -923,6 +1099,37 @@ class Command(BaseCommand):
                 anonymous=index % 3 == 2,
                 days_ago=2 + index,
             )
+        # Donations to the newer campaigns. All at least 3 days old, so the weekly
+        # donation challenge above keeps its scenario (sari done, budi halfway)
+        for key, name, amount, status, days in (
+            ("coral", "citra", "200000", D.APPROVED, 3),
+            ("coral", "panjang", "500000", D.APPROVED, 4),
+            ("coral", "moderator", "150000", D.PENDING, 3),
+            ("compost", "noname", "50000", D.APPROVED, 5),
+            ("compost", "budi", "75000", D.APPROVED, 6),
+            ("bins", "admin", "120000", D.APPROVED, 4),
+            ("bins", "dimas", "30000", D.PENDING, 3),
+            ("bike", "budi", "250000", D.APPROVED, 8),
+            ("bike", "citra", "40000", D.REJECTED, 7),
+            ("rain", "panjang", "300000", D.APPROVED, 5),
+            ("rain", "noname", "60000", D.APPROVED, 6),
+            ("seed", "moderator", "90000", D.APPROVED, 3),
+            ("lamp", "admin", "1000000", D.APPROVED, 4),
+            ("lamp", "dimas", "35000", D.APPROVED, 9),
+        ):
+            donate(
+                name,
+                key,
+                amount,
+                status,
+                "Semoga bermanfaat 🌱" if status == D.APPROVED else "",
+                reason=(
+                    "Bukti transfer buram, mohon unggah ulang."
+                    if status == D.REJECTED
+                    else ""
+                ),
+                days_ago=days,
+            )
         self.log("Campaigns", len(self.campaigns))
         self.log("Donations", Donation.objects.filter(donor__in=u.values()).count())
 
@@ -951,6 +1158,34 @@ class Command(BaseCommand):
             ),
             ("dimas", "Akun terkunci setelah ganti email", S.CLOSED, P.NORMAL, "admin"),
             ("panjang", f"Uji escape subjek {XSS}"[:200], S.OPEN, P.LOW, None),
+            ("sari", "Foto postingan gagal diunggah", S.IN_PROGRESS, P.HIGH, "admin"),
+            ("budi", "Progres challenge tidak bertambah", S.OPEN, P.HIGH, None),
+            (
+                "citra",
+                "Artikel ditolak, bagaimana revisinya?",
+                S.RESOLVED,
+                P.NORMAL,
+                "admin",
+            ),
+            ("dimas", "Ingin mengganti email akun", S.OPEN, P.NORMAL, "moderator"),
+            (
+                "noname",
+                "Nama saya tidak tampil di feed",
+                S.IN_PROGRESS,
+                P.LOW,
+                "moderator",
+            ),
+            ("sari", "Saran: mode gelap untuk aplikasi", S.CLOSED, P.LOW, "admin"),
+            ("budi", "Bukti donasi salah unggah", S.IN_PROGRESS, P.HIGH, "moderator"),
+            ("citra", "Notifikasi tidak muncul di lonceng", S.OPEN, P.NORMAL, None),
+            (
+                "panjang",
+                "Teks nama terpotong di profil",
+                S.RESOLVED,
+                P.LOW,
+                "moderator",
+            ),
+            ("dimas", "Cuaca challenge tidak sesuai lokasi", S.OPEN, P.NORMAL, "admin"),
         ]
         for requester, subject, status, priority, assignee in specs:
             ticket = Ticket.objects.create(
@@ -968,12 +1203,27 @@ class Command(BaseCommand):
                 message="Mohon bantuannya, terima kasih.",
             )
             if assignee:
-                TicketMessage.objects.create(
+                answer = TicketMessage.objects.create(
                     ticket=ticket,
                     author=u[assignee],
                     message="Halo, kami sedang memeriksanya.",
                     is_admin_response=True,
                     reply_to=first,
+                )
+            # Finished tickets carry a full back-and-forth conversation
+            if status in (S.RESOLVED, S.CLOSED) and assignee:
+                thanks = TicketMessage.objects.create(
+                    ticket=ticket,
+                    author=u[requester],
+                    message="Sudah saya coba, sekarang berhasil. Terima kasih!",
+                    reply_to=answer,
+                )
+                TicketMessage.objects.create(
+                    ticket=ticket,
+                    author=u[assignee],
+                    message="Senang bisa membantu. Tiket ini kami tandai selesai.",
+                    is_admin_response=True,
+                    reply_to=thanks,
                 )
         self.log("Tickets", len(specs))
 
@@ -1166,7 +1416,10 @@ UAT checklist
     [ ] Bell count, popover, "Tandai semua dibaca", panjang shows 99+
     [ ] A new badge triggers the "Lencana baru" toast once
   Helpdesk
-    [ ] Tickets in every status, assigned and unassigned
+    [ ] 15 tickets in every status and priority, assigned and unassigned
+    [ ] Resolved/closed tickets show a full conversation with quoted replies
+    [ ] Closed tickets are read-only; only the assigned admin can reply
+    [ ] Dashboard: filters, "Ditugaskan ke saya", assign an unassigned ticket
   Gamification
     [ ] Landing + /challenges/: 3 running community goals with "your share"
         ("5 cerita pertama" already reached; upcoming, ended, hidden not shown)
