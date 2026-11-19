@@ -5,7 +5,8 @@ from pathlib import Path
 from .base import *  # noqa: F403
 
 DEBUG = True  # Set to True for development, False for production
-ALLOWED_HOSTS = ["127.0.0.1", "localhost"]  # Add your development host here
+# Dukung Flutter Android emulator (10.0.2.2) & local LAN
+ALLOWED_HOSTS = ["127.0.0.1", "localhost", "10.0.2.2", "*"]
 
 # Saat test, file unggahan ditulis ke folder sementara (bukan media/ milik dev)
 if "test" in sys.argv:
