@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # Libraries
     "rest_framework",
+    "rest_framework.authtoken",
     "corsheaders",
     "django_components",
     "lucide",

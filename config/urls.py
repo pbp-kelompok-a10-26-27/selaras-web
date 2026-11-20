@@ -27,6 +27,7 @@ from apps.core.views import design_system, home
 urlpatterns = [
     path("admin/", admin.site.urls),
     # === Django REST Framework (API v1) untuk Mobile Flutter (GET-only) ===
+    path("api/v1/accounts/", include("apps.accounts.api_urls")),
     path("api/v1/articles/", include("apps.articles.api_urls")),
     path("api/v1/challenges/", include("apps.challenges.api_urls")),
     path("api/v1/donations/", include("apps.donations.api_urls")),
