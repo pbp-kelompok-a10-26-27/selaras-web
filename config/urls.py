@@ -33,6 +33,7 @@ urlpatterns = [
     path("api/v1/donations/", include("apps.donations.api_urls")),
     path("api/v1/feeds/", include("apps.feeds.drf_urls")),
     path("api/v1/helpdesk/", include("apps.helpdesk.api_urls")),
+    path("api/v1/notifications/", include("apps.notifications.api_urls")),
     path(
         "api/",
         include((api_urlpatterns, "articles_api"), namespace="articles_api"),
